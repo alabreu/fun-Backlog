@@ -100,12 +100,53 @@ feature chegar.
 
 ---
 
+## 5. Ordem dos providers: os públicos primeiro
+
+**Decidido em:** 04/08/2026.
+
+O briefing sugere começar pelos jogos (IGDB). A implementação começou por
+**AniList (animes) e Open Library (livros)**.
+
+**Por quê:** os dois são públicos e sem chave, então a busca com capa de
+verdade funciona sem nenhuma configuração, sem Edge Function e sem login — é o
+que torna o app testável de imediato, por qualquer pessoa com o link. IGDB e
+TMDB entram na mesma lista `PROVIDERS` com `requiresServer: true`, e o
+`searchAll` já os filtra sozinho para quem está sem sessão.
+
+**O que custa:** jogos, filmes e séries só entram à mão até as functions
+existirem — nenhuma mídia fica de fora, mas três delas ficam sem capa
+automática.
+
+---
+
+## 6. Detalhe do item: bottom sheet, não rota
+
+**Decidido em:** 04/08/2026.
+
+**Por quê:** mudar status ou progresso é uma ação de dois toques a partir da
+estante. Uma rota dedicada cobraria navegação, botão de voltar e a perda da
+posição de scroll do grid por uma edição de um toque.
+
+**O que custa:** o sheet não é linkável nem compartilhável, e cresce mal. Vale
+reabrir quando o detalhe ganhar elenco, tempo estimado ou "onde assistir".
+
+---
+
 ## Ainda em aberto
 
-- **Schema de `items`**: campos comuns + metadados flexíveis por mídia, e como
-  modelar status e progresso sem virar bagunça de enums. Próxima sessão.
 - **Identidade visual**: paleta (primitivos em `src/index.css`), ícones reais e
-  a linguagem do grid de capas. Sessão própria, com opções.
-- **Detalhe do item**: modal ou página dedicada.
+  a linguagem do grid de capas. Sessão própria, com opções — é a última etapa
+  planejada.
+- **Densidade por peso da mídia**: o briefing pede que um RPG de 80 horas não
+  ocupe o mesmo espaço mental que um filme de 90 minutos. Hoje o grid é
+  uniforme. As saídas plausíveis (capa maior ou span de duas colunas para
+  mídias longas, agrupamento por tempo) são decisões visuais — ficam para a
+  sessão de identidade.
+- **Progresso ao mudar de status**: marcar "concluído" ainda não preenche o
+  progresso até o total conhecido, nem o contrário. Falta decidir se isso é
+  automático ou explícito.
 - **HowLongToBeat**: sem API oficial — avaliar viabilidade antes de prometer
   tempo estimado como campo de primeira classe.
+- **Merge de convidado para conta**: quem catalogou sem login e depois entra
+  hoje não leva os itens locais para a nuvem. Precisa de uma decisão de produto
+  (subir tudo, perguntar, ou ignorar).
