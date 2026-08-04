@@ -1,0 +1,65 @@
+@import 'tailwindcss';
+
+/* Paleta neutra de partida — troque pelos tokens da identidade do app.
+   Os NOMES semânticos (bg/surface/primary/accent/ink/muted/success/danger)
+   são usados pelas telas prontas; mantenha-os e mude só os valores.
+   ACESSIBILIDADE: ao trocar, mantenha os contrastes AA — texto normal ≥ 4.5:1
+   contra bg/surface; texto grande e componentes de UI ≥ 3:1 (checar em
+   webaim.org/resources/contrastchecker). Os valores abaixo já passam. */
+@theme {
+  --color-bg: #f7f6f3; /* fundo principal */
+  --color-surface: #ffffff; /* cards / chips / sheets */
+  --color-primary: #3f3f46; /* botões primários (10.3:1 com texto branco) */
+  --color-accent: #be123c; /* badges e acentos pontuais (6.4:1 com branco) */
+  --color-ink: #1c1c1e; /* texto e overlays (16.6:1 no bg) */
+  --color-muted: #52525b; /* texto secundário (6.6:1 no bg) */
+  --color-success: #15803d; /* confirmações (4.5:1 no bg) */
+  --color-danger: #b91c1c; /* erros (5.9:1 no bg) */
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Respeita notch / safe areas no PWA instalado. */
+#root {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+  box-sizing: border-box;
+}
+
+/* Indicador de foco visível e consistente para navegação por teclado.
+   Só em :focus-visible — não aparece em clique/toque, só via teclado. */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Respeita quem pediu menos movimento no sistema (vestibular/motion sickness).
+   Zera animações e transições sem quebrar estados finais. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
