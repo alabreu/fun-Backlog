@@ -1,4 +1,8 @@
-import { SEARCH_LIMIT, type MediaProvider, type MediaSearchResult } from './types'
+import {
+  SEARCH_LIMIT,
+  type MediaProvider,
+  type MediaSearchResult,
+} from './types'
 
 /**
  * Livros via Open Library (público, sem chave). O briefing já avisa que a
@@ -24,12 +28,17 @@ interface OpenLibraryDoc {
 
 /** Capa pelo id numérico. 'M' (medium) é o tamanho que o grid usa; 'L' existe
  *  para o detalhe, se um dia a tela de item quiser a arte maior. */
-export function openLibraryCover(coverId: number, size: 'M' | 'L' = 'M'): string {
+export function openLibraryCover(
+  coverId: number,
+  size: 'M' | 'L' = 'M',
+): string {
   return `https://covers.openlibrary.org/b/id/${coverId}-${size}.jpg`
 }
 
 /** Exportado para teste: o mapeamento é a parte que quebra quando a API muda. */
-export function mapOpenLibraryDoc(doc: OpenLibraryDoc): MediaSearchResult | null {
+export function mapOpenLibraryDoc(
+  doc: OpenLibraryDoc,
+): MediaSearchResult | null {
   // `key` vem como "/works/OL45804W" — o id é o último segmento.
   const id = doc.key?.split('/').filter(Boolean).pop()
   if (!id || !doc.title) return null

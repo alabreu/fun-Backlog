@@ -19,6 +19,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-04-catalogo',
+    date: '2026-08-04',
+    emoji: '📚',
+    title: {
+      pt: 'A estante existe',
+      en: 'The shelf is here',
+    },
+    items: {
+      pt: [
+        'Catálogo em grid de capas, com filtro por mídia e por status e busca.',
+        'Buscar e adicionar animes e livros pelo título — sem login, com capa.',
+        'Qualquer jogo, filme ou série pode entrar à mão enquanto as outras fontes não chegam.',
+        'Detalhe do item: status, progresso, nota e notas.',
+      ],
+      en: [
+        'Cover-grid catalogue, with filters by medium and status, plus search.',
+        'Search and add anime and books by title — no sign-in, cover included.',
+        'Any game, movie or series can be added by hand until the other sources land.',
+        'Item detail: status, progress, rating and notes.',
+      ],
+    },
+  },
+  {
     id: '2026-08-04-inicio',
     date: '2026-08-04',
     emoji: '🎬',

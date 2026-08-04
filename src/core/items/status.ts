@@ -1,3 +1,4 @@
+import type { MessageKey } from '@core/i18n'
 import type { ItemStatus, MediaType, ProgressUnit } from './types'
 
 /**
@@ -11,14 +12,60 @@ import type { ItemStatus, MediaType, ProgressUnit } from './types'
  * pequeno: 10 chaves em vez das 25 que um enum por mídia exigiria.
  */
 
+/**
+ * Os dois estados cujo nome muda de mídia para mídia. Escrito como mapa, e não
+ * montado por template (`status.${media}.${status}`), porque o mapa é
+ * verificado pelo compilador: `MessageKey` só aceita chave que exista de fato
+ * em `i18n/pt.ts`, então esquecer uma tradução quebra o build em vez de vazar
+ * a chave crua para a tela.
+ */
+const NAMED_BY_MEDIA: Record<
+  MediaType,
+  Record<'active' | 'done', MessageKey>
+> = {
+  game: { active: 'status.game.active', done: 'status.game.done' },
+  movie: { active: 'status.movie.active', done: 'status.movie.done' },
+  series: { active: 'status.series.active', done: 'status.series.done' },
+  anime: { active: 'status.anime.active', done: 'status.anime.done' },
+  book: { active: 'status.book.active', done: 'status.book.done' },
+}
+
+const UNIVERSAL: Record<'backlog' | 'paused' | 'abandoned', MessageKey> = {
+  backlog: 'status.backlog',
+  paused: 'status.paused',
+  abandoned: 'status.abandoned',
+}
+
 /** Chave de i18n do rótulo de um status, para uma mídia. */
 export function statusLabelKey(
   status: ItemStatus,
   mediaType: MediaType,
-): string {
+): MessageKey {
   return status === 'active' || status === 'done'
-    ? `status.${mediaType}.${status}`
-    : `status.${status}`
+    ? NAMED_BY_MEDIA[mediaType][status]
+    : UNIVERSAL[status]
+}
+
+/** Chave de i18n do nome de uma mídia (plural, como nos filtros). */
+export function mediaLabelKey(mediaType: MediaType): MessageKey {
+  const keys: Record<MediaType, MessageKey> = {
+    game: 'media.game',
+    movie: 'media.movie',
+    series: 'media.series',
+    anime: 'media.anime',
+    book: 'media.book',
+  }
+  return keys[mediaType]
+}
+
+/** Chave de i18n do rótulo da unidade de progresso. */
+export function progressLabelKey(unit: ProgressUnit): MessageKey {
+  const keys: Record<ProgressUnit, MessageKey> = {
+    page: 'item.progress.page',
+    episode: 'item.progress.episode',
+    hour: 'item.progress.hour',
+  }
+  return keys[unit]
 }
 
 /**

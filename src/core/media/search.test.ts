@@ -128,7 +128,9 @@ describe('searchAll', () => {
       stubProvider({
         id: 'movies',
         mediaTypes: ['movie'],
-        search: async () => [result({ mediaType: 'movie', provider: 'movies' })],
+        search: async () => [
+          result({ mediaType: 'movie', provider: 'movies' }),
+        ],
       }),
     )
 

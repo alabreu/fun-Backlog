@@ -44,12 +44,12 @@ describe('datesForStatus', () => {
 
   it('preserva o início original ao pausar e voltar', () => {
     const started = '2026-01-01T00:00:00.000Z'
-    expect(datesForStatus('paused', { startedAt: started }, now).startedAt).toBe(
-      started,
-    )
-    expect(datesForStatus('active', { startedAt: started }, now).startedAt).toBe(
-      started,
-    )
+    expect(
+      datesForStatus('paused', { startedAt: started }, now).startedAt,
+    ).toBe(started)
+    expect(
+      datesForStatus('active', { startedAt: started }, now).startedAt,
+    ).toBe(started)
   })
 
   it('concluir sem ter começado carimba as duas datas', () => {

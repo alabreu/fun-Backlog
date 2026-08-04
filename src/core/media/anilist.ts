@@ -1,4 +1,8 @@
-import { SEARCH_LIMIT, type MediaProvider, type MediaSearchResult } from './types'
+import {
+  SEARCH_LIMIT,
+  type MediaProvider,
+  type MediaSearchResult,
+} from './types'
 
 /**
  * Animes via AniList (GraphQL público, sem chave e generoso no rate limit —
@@ -59,7 +63,10 @@ export const anilistProvider: MediaProvider = {
   async search(query, signal) {
     const response = await fetch(ANILIST_URL, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
       body: JSON.stringify({
         query: QUERY,
         variables: { search: query, perPage: SEARCH_LIMIT },

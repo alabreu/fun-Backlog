@@ -2,13 +2,87 @@
 export const pt = {
   // Comum
   'common.back': 'Voltar',
+  'common.cancel': 'Cancelar',
+  'common.close': 'Fechar',
+  'common.remove': 'Remover',
 
-  // Home (placeholder — substitua pelo seu produto)
+  // Cabeçalho (o botão do menu vive no topo do catálogo)
   'home.menuButton': 'Menu',
   'home.menuButtonUnread': 'Menu — há novidades não lidas',
-  'home.placeholderTitle': 'Seu app começa aqui',
-  'home.placeholderBody':
-    'Substitua esta tela pelo seu produto. O menu no canto superior direito já vem com feedback, idioma, novidades e login.',
+
+  // Mídias (plural, como nos filtros e nos grupos da busca)
+  'media.game': 'Jogos',
+  'media.movie': 'Filmes',
+  'media.series': 'Séries',
+  'media.anime': 'Animes',
+  'media.book': 'Livros',
+
+  // Status — universais e, onde a palavra muda, por mídia
+  'status.backlog': 'Na fila',
+  'status.paused': 'Pausado',
+  'status.abandoned': 'Abandonado',
+  'status.game.active': 'Jogando',
+  'status.game.done': 'Zerado',
+  'status.movie.active': 'Assistindo',
+  'status.movie.done': 'Assistido',
+  'status.series.active': 'Assistindo',
+  'status.series.done': 'Terminada',
+  'status.anime.active': 'Assistindo',
+  'status.anime.done': 'Terminado',
+  'status.book.active': 'Lendo',
+  'status.book.done': 'Lido',
+
+  // Catálogo (a estante)
+  'catalog.add': 'Adicionar',
+  'catalog.filterAll': 'Tudo',
+  'catalog.searchPlaceholder': 'Buscar na estante',
+  'catalog.count': '{count} de {total}',
+  'catalog.emptyTitle': 'Sua estante está vazia',
+  'catalog.emptyBody':
+    'Adicione o primeiro jogo, filme, série, anime ou livro que você quer consumir.',
+  'catalog.emptyAction': 'Adicionar o primeiro',
+  'catalog.noMatchTitle': 'Nada com esse filtro',
+  'catalog.noMatchBody': 'Tente outra mídia, outro status ou outra busca.',
+  'catalog.guestNote':
+    'Seus itens ficam só neste aparelho. Entre para sincronizar.',
+  'catalog.loadError': 'Não deu para carregar sua estante agora.',
+
+  // Adicionar item
+  'add.title': 'Adicionar',
+  'add.searchLabel': 'Buscar',
+  'add.searchPlaceholder': 'Digite um título…',
+  'add.searching': 'Buscando…',
+  'add.hint': 'Animes e livros já funcionam sem login.',
+  'add.needsLogin':
+    'Jogos, filmes e séries precisam de login para buscar — em breve.',
+  'add.someFailed': 'Uma das fontes não respondeu. O resto está aí embaixo.',
+  'add.noResults': 'Nada encontrado para “{query}”.',
+  'add.added': '“{title}” entrou na sua estante.',
+  'add.addFailed': 'Não deu para adicionar. Tente de novo.',
+  'add.alreadyIn': 'Já está na estante',
+  'add.manualTitle': 'Não achou? Adicione à mão',
+  'add.manualTitleLabel': 'Título',
+  'add.manualTitlePlaceholder': 'Nome do jogo, filme, livro…',
+  'add.manualMediaLabel': 'Mídia',
+  'add.manualSubmit': 'Adicionar à estante',
+
+  // Item (detalhe)
+  'item.statusLabel': 'Status',
+  'item.progressLabel': 'Progresso',
+  'item.progress.page': 'Página',
+  'item.progress.episode': 'Episódio',
+  'item.progress.hour': 'Horas',
+  'item.progressOf': 'de {total}',
+  'item.ratingLabel': 'Nota',
+  'item.ratingValue': '{value} de 5',
+  'item.ratingClear': 'Tirar a nota',
+  'item.notesLabel': 'Notas',
+  'item.notesPlaceholder': 'O que você achou? Onde parou?',
+  'item.addedAt': 'Adicionado em {date}',
+  'item.completedAt': 'Concluído em {date}',
+  'item.removeConfirm': 'Remover da estante?',
+  'item.removed': 'Removido da estante.',
+  'item.saveFailed': 'Não deu para salvar. Tente de novo.',
 
   // Menu (sheet do botão no topo direito)
   'menu.feedback': 'Enviar feedback',

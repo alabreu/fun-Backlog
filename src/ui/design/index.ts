@@ -16,9 +16,13 @@
  * existe aqui — e aí o certo é adicionar a variante ao componente, não deixar a
  * classe solta na tela.
  */
+export { Badge } from './Badge'
+export type { BadgeProps, BadgeTone } from './Badge'
 export { Button, buttonClasses } from './Button'
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button'
 export { Card } from './Card'
+export { Cover, CoverGrid } from './Cover'
+export type { CoverProps } from './Cover'
 export type { CardPadding, CardProps } from './Card'
 export { Chip } from './Chip'
 export type { ChipProps } from './Chip'
