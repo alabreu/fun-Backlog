@@ -1,9 +1,35 @@
-# app-boilerplate
+# Fun Backlog
 
-Template de partida para apps novos (React + Vite + TS + Tailwind v4 +
-Supabase + Vercel). Extraído dos padrões do Tutor Brew
-(`alabreu/alabreu.github.io`, pasta `mtg-deck-builder/`) e do Komme
-(`alabreu/mesa-app`). Detalhes de uso e setup: `README.md`.
+App para catalogar e gerenciar backlog de entretenimento (jogos, filmes,
+séries, animes, livros). **Não é um gerenciador de tarefas.**
+
+**Antes de qualquer coisa, leia [`docs/briefing.md`](./docs/briefing.md)** — é a
+fonte da verdade sobre produto, princípios de design, modelo de dados,
+providers de mídia, features e ordem de execução. Este `CLAUDE.md` cobre só o
+que foi herdado do template; o briefing manda no resto.
+
+Pontos do briefing que valem repetir aqui:
+
+- **Não implemente antes do plano ser aprovado.** O briefing pede perguntas em
+  aberto + plano de execução primeiro.
+- O usuário é **designer, não desenvolvedor**: explique decisões de arquitetura
+  e apresente opções com trade-offs em vez de decidir sozinho.
+- **Português nas conversas, inglês no código e nos commits.** (O template usa
+  português nos comentários e docs — mantenha isso onde já existe.)
+- Commits pequenos e frequentes.
+
+Questão em aberto conhecida: o briefing imagina Next.js + shadcn/ui, mas o
+template herdado é **React + Vite**. As duas coisas não convivem — precisa ser
+decidido com o usuário, e afeta diretamente o requisito de que as chamadas às
+APIs externas aconteçam no servidor (Vite puro não tem servidor).
+
+## Herdado do `app-boilerplate`
+
+Template de partida (React + Vite + TS + Tailwind v4 + Supabase + Vercel),
+extraído dos padrões do Tutor Brew (`alabreu/alabreu.github.io`, pasta
+`mtg-deck-builder/`) e do Komme (`alabreu/mesa-app`). Detalhes de uso e setup:
+`README.md`. Para trazer atualizações do template:
+[`docs/sync-boilerplate.md`](./docs/sync-boilerplate.md).
 
 ## O que já vem pronto (não reimplementar)
 
