@@ -29,10 +29,12 @@ export const CHANGELOG: ChangelogEntry[] = [
     items: {
       pt: [
         'App no ar com feedback, idioma, novidades e login opcional.',
+        'Tema claro e escuro, acompanhando o sistema.',
         'Substitua esta entrada quando lançar sua primeira feature.',
       ],
       en: [
         'App is live with feedback, language, news and optional sign-in.',
+        'Light and dark themes, following your system.',
         'Replace this entry when you ship your first feature.',
       ],
     },

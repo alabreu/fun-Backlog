@@ -1,20 +1,115 @@
 @import 'tailwindcss';
 
-/* Paleta neutra de partida — troque pelos tokens da identidade do app.
-   Os NOMES semânticos (bg/surface/primary/accent/ink/muted/success/danger)
-   são usados pelas telas prontas; mantenha-os e mude só os valores.
-   ACESSIBILIDADE: ao trocar, mantenha os contrastes AA — texto normal ≥ 4.5:1
-   contra bg/surface; texto grande e componentes de UI ≥ 3:1 (checar em
-   webaim.org/resources/contrastchecker). Os valores abaixo já passam. */
+/* ===========================================================================
+   CAMADA 1 — PRIMITIVOS
+   Valores crus, sem significado. Vivem em :root (e NÃO no @theme) de
+   propósito: assim o Tailwind não gera `bg-sand-50` e ninguém consegue pular a
+   camada semântica. Esta escala é estável — trocar de tema não mexe aqui.
+   =========================================================================== */
+:root {
+  --palette-white: #ffffff;
+  --palette-sand-50: #f7f6f3;
+  --palette-gray-300: #d4d4d8;
+  --palette-gray-400: #a1a1aa;
+  --palette-gray-600: #52525b;
+  --palette-gray-700: #3f3f46;
+  --palette-gray-900: #1e1e22;
+  --palette-gray-950: #1c1c1e;
+  --palette-black-900: #131316;
+  --palette-rose-400: #fb7185;
+  --palette-rose-700: #be123c;
+  --palette-green-400: #4ade80;
+  --palette-green-700: #15803d;
+  --palette-red-400: #f87171;
+  --palette-red-700: #b91c1c;
+}
+
+/* ===========================================================================
+   CAMADA 2 — TOKENS SEMÂNTICOS
+   Nomeados pelo PAPEL e apontando para primitivos. É esta camada que a UI usa,
+   e é ela que o tema repõe — trocar de claro para escuro é repontar estas
+   linhas, não reescrever valor.
+
+   ACESSIBILIDADE: os pares de contraste são conferidos automaticamente em
+   `npm run lint` (scripts/check-contrast.mjs), nos DOIS temas. Ao trocar a
+   paleta de um app novo, rode o lint em vez de conferir no olho.
+   =========================================================================== */
 @theme {
-  --color-bg: #f7f6f3; /* fundo principal */
-  --color-surface: #ffffff; /* cards / chips / sheets */
-  --color-primary: #3f3f46; /* botões primários (10.3:1 com texto branco) */
-  --color-accent: #be123c; /* badges e acentos pontuais (6.4:1 com branco) */
-  --color-ink: #1c1c1e; /* texto e overlays (16.6:1 no bg) */
-  --color-muted: #52525b; /* texto secundário (6.6:1 no bg) */
-  --color-success: #15803d; /* confirmações (4.5:1 no bg) */
-  --color-danger: #b91c1c; /* erros (5.9:1 no bg) */
+  --color-bg: var(--palette-sand-50); /* fundo principal */
+  --color-surface: var(--palette-white); /* cards / chips / sheets */
+  --color-ink: var(--palette-gray-950); /* texto principal */
+  --color-muted: var(--palette-gray-600); /* texto secundário */
+  --color-primary: var(--palette-gray-700); /* ações primárias */
+  --color-on-primary: var(--palette-white); /* texto SOBRE primary */
+  --color-accent: var(--palette-rose-700); /* badges e destaques */
+  --color-on-accent: var(--palette-white); /* texto SOBRE accent */
+  --color-success: var(--palette-green-700); /* confirmações */
+  --color-danger: var(--palette-red-700); /* erros */
+  /* Superfície deliberadamente invertida (toast) e véu do sheet: escuros nos
+     DOIS temas. Por isso NÃO derivam de `ink`/`bg`, que invertem — um toast
+     que inverte junto com o tema deixa de se destacar. */
+  --color-inverse: var(--palette-gray-950);
+  --color-on-inverse: var(--palette-sand-50);
+  --color-scrim: var(--palette-gray-950);
+
+  /* --- Raio: nomeado pelo PAPEL, não pelo tamanho. --- */
+  --radius-control: 9999px; /* botões, chips */
+  --radius-field: 1rem; /* inputs, textareas */
+  --radius-card: 1rem; /* cards e blocos de conteúdo */
+  --radius-sheet: 1.5rem; /* bottom sheets */
+
+  /* --- Espaçamento: a margem lateral padrão das telas (px-gutter). --- */
+  --spacing-gutter: 1rem;
+
+  /* --- Escala tipográfica semântica. --- */
+  --text-label: 0.6875rem; /* 11px: metadados, badges, headings de seção */
+  --text-label--line-height: 1rem;
+  --text-body: 0.875rem; /* 14px: corpo padrão */
+  --text-body--line-height: 1.25rem;
+  --text-title: 1.125rem; /* 18px: título dentro da tela */
+  --text-title--line-height: 1.5rem;
+  --text-metric: 1.25rem; /* 20px: números em destaque (KPIs) */
+  --text-metric--line-height: 1.5rem;
+  --text-display: 1.5rem; /* 24px: título da tela */
+  --text-display--line-height: 1.75rem;
+}
+
+/* ===========================================================================
+   TEMA ESCURO — só a camada semântica é repontada.
+   Segue o sistema por padrão; `data-theme` no <html> força um dos dois (é o
+   gancho para um app expor um seletor de tema, como o /design faz).
+   =========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-bg: var(--palette-black-900);
+    --color-surface: var(--palette-gray-900);
+    --color-ink: var(--palette-sand-50);
+    --color-muted: var(--palette-gray-400);
+    /* No escuro o botão primário INVERTE: superfície clara, texto escuro. Por
+       isso `on-primary` existe — sem ele, `text-white` fixo no componente
+       quebraria aqui. */
+    --color-primary: var(--palette-gray-300);
+    --color-on-primary: var(--palette-gray-950);
+    --color-accent: var(--palette-rose-400);
+    --color-on-accent: var(--palette-gray-950);
+    --color-success: var(--palette-green-400);
+    --color-danger: var(--palette-red-400);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: var(--palette-black-900);
+  --color-surface: var(--palette-gray-900);
+  --color-ink: var(--palette-sand-50);
+  --color-muted: var(--palette-gray-400);
+  --color-primary: var(--palette-gray-300);
+  --color-on-primary: var(--palette-gray-950);
+  --color-accent: var(--palette-rose-400);
+  --color-on-accent: var(--palette-gray-950);
+  --color-success: var(--palette-green-400);
+  --color-danger: var(--palette-red-400);
 }
 
 html,

@@ -24,7 +24,13 @@ export function useAuthInit(): void {
       setReady(true)
     })
     const unsub = authClient.onChange((user) => setUser(user))
-    return () => unsub()
+    return () => {
+      // Reset simétrico: sem ele, o double-mount do StrictMode (dev) desfaz a
+      // assinatura no cleanup e o remount cai na guarda — login/logout
+      // deixariam de refletir na UI em dev.
+      started = false
+      unsub()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 }

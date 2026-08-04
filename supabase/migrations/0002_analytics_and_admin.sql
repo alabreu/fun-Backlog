@@ -8,7 +8,9 @@ create table if not exists public.analytics_events (
   session_id text not null check (char_length(session_id) <= 64),
   user_id uuid references auth.users(id) on delete set null,
   type text not null check (char_length(type) <= 60),
-  meta jsonb,
+  -- Limite de tamanho: o insert é público (anônimo por design), então meta sem
+  -- teto viraria custo de storage aberto. O track() do cliente corta antes.
+  meta jsonb check (meta is null or pg_column_size(meta) <= 4096),
   created_at timestamptz not null default now()
 );
 

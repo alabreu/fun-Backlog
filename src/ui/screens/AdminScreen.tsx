@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@core/backend/client'
+import { Card, Screen, ScreenBody, SectionTitle } from '@ui/design'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
@@ -73,12 +74,12 @@ export function AdminScreen() {
   )
 
   return (
-    <div className="flex h-full flex-col">
+    <Screen>
       <ScreenHeader title={t('admin.title')} />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8">
+      <ScreenBody>
         {state === 'loading' ? null : state === 'denied' ? (
-          <p className="mt-10 text-center text-sm text-muted">
+          <p className="mt-10 text-center text-body text-muted">
             {t('admin.restricted')}
           </p>
         ) : (
@@ -86,24 +87,21 @@ export function AdminScreen() {
             <>
               <div className="grid grid-cols-3 gap-2">
                 {tiles.map((tile) => (
-                  <div
-                    key={tile.label}
-                    className="rounded-2xl bg-surface p-3 text-center ring-1 ring-ink/5"
-                  >
-                    <p className="text-xl font-extrabold">{tile.value}</p>
-                    <p className="text-[11px] uppercase tracking-wide text-muted">
+                  <Card key={tile.label} className="text-center">
+                    <p className="text-metric font-extrabold">{tile.value}</p>
+                    <p className="text-label uppercase tracking-wide text-muted">
                       {tile.label}
                     </p>
-                  </div>
+                  </Card>
                 ))}
               </div>
 
-              <h2 className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wide text-muted">
+              <SectionTitle className="mb-2 mt-6">
                 {t('admin.sessionsByDay')}
-              </h2>
-              <div className="rounded-2xl bg-surface p-3 ring-1 ring-ink/5">
+              </SectionTitle>
+              <Card>
                 {metrics.sessions_by_day.length === 0 ? (
-                  <p className="py-2 text-center text-sm text-muted">
+                  <p className="py-2 text-center text-body text-muted">
                     {t('admin.noData')}
                   </p>
                 ) : (
@@ -121,38 +119,35 @@ export function AdminScreen() {
                     ))}
                   </div>
                 )}
-              </div>
+              </Card>
 
-              <h2 className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wide text-muted">
+              <SectionTitle className="mb-2 mt-6">
                 {t('admin.feedbackInbox')}
-              </h2>
+              </SectionTitle>
               {feedback.length === 0 ? (
-                <p className="py-2 text-center text-sm text-muted">
+                <p className="py-2 text-center text-body text-muted">
                   {t('admin.feedbackEmpty')}
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {feedback.map((row) => (
-                    <article
-                      key={row.id}
-                      className="rounded-2xl bg-surface p-3 ring-1 ring-ink/5"
-                    >
-                      <p className="mb-1 flex items-center gap-2 text-[11px] text-muted">
-                        <span className="rounded-full bg-ink/5 px-2 py-0.5 font-semibold uppercase">
+                    <Card key={row.id} as="article">
+                      <p className="mb-1 flex items-center gap-2 text-label text-muted">
+                        <span className="rounded-control bg-ink/5 px-2 py-0.5 font-semibold uppercase">
                           {row.type}
                         </span>
                         {dateFmt.format(new Date(row.created_at))}
                         {row.contact_email && <span>· {row.contact_email}</span>}
                       </p>
-                      <p className="whitespace-pre-wrap text-sm">{row.message}</p>
-                    </article>
+                      <p className="whitespace-pre-wrap text-body">{row.message}</p>
+                    </Card>
                   ))}
                 </div>
               )}
             </>
           )
         )}
-      </div>
-    </div>
+      </ScreenBody>
+    </Screen>
   )
 }

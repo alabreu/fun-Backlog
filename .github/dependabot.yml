@@ -7,8 +7,47 @@ updates:
     schedule:
       interval: weekly
     groups:
+      # O React só funciona se os quatro pacotes subirem juntos: react e
+      # react-dom têm peer dependency um do outro, e cada @types/* exige a
+      # mesma major do seu pacote. Sem este grupo o Dependabot abre um PR só
+      # com react-dom e o `npm ci` quebra em ERESOLVE (foi o caso do #7).
+      # Sem `update-types` o grupo pega major também — que é justamente o
+      # caso que precisa vir junto.
+      react:
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
+      # Mesmo caso do grupo react, com outro par: @vitejs/plugin-react@6 exige
+      # `vite@^8`, e o plugin-react@4 só aceita até `vite@^7`. Cada um sozinho
+      # quebra o `npm ci` (foi o caso dos #10 e #12). Os outros plugins de Vite
+      # do projeto — vite-plugin-pwa, @tailwindcss/vite, vitest — já aceitam a
+      # v8 numa faixa larga, então não precisam entrar no grupo.
+      vite:
+        patterns:
+          - vite
+          - '@vitejs/plugin-react'
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # ESLint travado na v9: o eslint-plugin-jsx-a11y (que roda as regras de
+      # acessibilidade exigidas pelo ACCESSIBILITY.md) declara peer
+      # `eslint@^3 || ... || ^9` na 6.10.2, a última publicada. Qualquer major
+      # do eslint quebra o `npm ci`. Minor e patch da linha 9.x continuam
+      # passando normalmente.
+      # Remover estas duas entradas quando o jsx-a11y publicar suporte a v10+.
+      - dependency-name: eslint
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@eslint/js'
+        update-types: ['version-update:semver-major']
+      # TypeScript travado na linha 5: o typescript-eslint (que roda o lint dos
+      # arquivos .ts/.tsx) declara peer `typescript >=4.8.4 <6.1.0` na 8.66.0,
+      # a última publicada — ou seja, nenhuma versão dele aceita TS 7 ainda.
+      # Qualquer major do typescript quebra o `npm ci` (foi o caso do #11).
+      # Remover quando o typescript-eslint publicar suporte a TS 7.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -15,6 +15,13 @@ const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 /** Se o backend está configurado neste build (login/nuvem disponíveis). */
 export const backendConfigured = Boolean(url && anonKey)
 
+/** URL base do backend — para quem precisa chamar endpoints fora do SDK
+ *  (ex.: Edge Functions). Continua passando por esta costura de propósito. */
+export const backendUrl = url ?? ''
+
+/** Chave pública (anon) — exigida como header `apikey` pelas Edge Functions. */
+export const backendAnonKey = anonKey ?? ''
+
 /** Cliente compartilhado (ou null quando não configurado) — sessão única para auth e dados. */
 export const supabase: SupabaseClient | null = backendConfigured
   ? createClient(url as string, anonKey as string, {

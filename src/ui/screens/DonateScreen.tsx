@@ -1,5 +1,6 @@
 import { Heart } from '@phosphor-icons/react'
 import { donateConfigured, donateUrl } from '@core/donate'
+import { buttonClasses, Screen, ScreenBody } from '@ui/design'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
@@ -13,31 +14,33 @@ export function DonateScreen() {
   const { t } = useTranslation()
 
   return (
-    <div className="flex h-full flex-col">
+    <Screen>
       <ScreenHeader title={t('donate.title')} />
 
-      <main className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
+      <ScreenBody as="main" centered className="gap-4">
         {!donateConfigured ? (
-          <p className="text-sm text-muted">{t('donate.soon')}</p>
+          <p className="text-body text-muted">{t('donate.soon')}</p>
         ) : (
           <>
             <Heart size={48} weight="fill" className="text-accent" />
-            <p className="max-w-xs text-balance text-sm text-muted">
+            <p className="max-w-xs text-balance text-body text-muted">
               {t('donate.body')}
             </p>
+            {/* <a> com a receita de classe do Button: é um link de verdade
+                (nova aba), mas precisa parecer o botão primário. */}
             <a
               href={donateUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-2 flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-white transition active:scale-95"
+              className={buttonClasses({ className: 'mt-2' })}
             >
               <Heart size={18} weight="fill" />
               {t('donate.button')}
             </a>
-            <p className="text-xs text-muted">{t('donate.thanks')}</p>
+            <p className="text-label text-muted">{t('donate.thanks')}</p>
           </>
         )}
-      </main>
-    </div>
+      </ScreenBody>
+    </Screen>
   )
 }

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { trackSessionStart } from '@core/analytics'
 import { storageKey } from '@core/config'
 import { DEFAULT_LOCALE, normalizeLocale } from '@core/i18n'
@@ -16,9 +16,13 @@ import { NewsScreen } from '@ui/screens/NewsScreen'
 
 const LOCALE_STORAGE_KEY = storageKey('locale')
 
-// Lazy: o código do painel de admin não entra no bundle dos usuários comuns.
+// Lazy: nem o painel de admin nem a vitrine do design system entram no bundle
+// dos usuários comuns. Ambas são rotas escondidas, sem link na UI.
 const AdminScreen = lazy(() =>
   import('@ui/screens/AdminScreen').then((m) => ({ default: m.AdminScreen })),
+)
+const DesignScreen = lazy(() =>
+  import('@ui/screens/DesignScreen').then((m) => ({ default: m.DesignScreen })),
 )
 
 /**
@@ -79,6 +83,14 @@ export function App() {
             element={
               <Suspense fallback={null}>
                 <AdminScreen />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/design"
+            element={
+              <Suspense fallback={null}>
+                <DesignScreen />
               </Suspense>
             }
           />

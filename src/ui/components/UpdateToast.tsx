@@ -49,17 +49,22 @@ export function UpdateToast() {
 
   return (
     // role=status: leitores de tela anunciam a chegada do toast sem roubar o foco.
-    <div role="status" className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
-      <div className="flex items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-white shadow-xl">
-        <span className="flex items-center gap-1.5 text-sm">
+    <div
+      role="status"
+      className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-gutter"
+    >
+      <div className="flex items-center gap-3 rounded-card bg-inverse px-4 py-3 text-on-inverse shadow-xl">
+        <span className="flex items-center gap-1.5 text-body">
           <Sparkle size={16} weight="fill" className="text-amber-300" />
           {t('update.available')}
         </span>
+        {/* ds-ok: fora do Button porque o toast pede um alvo menor que o
+            tamanho `sm` e um disabled mais sutil. Usa os mesmos tokens. */}
         <button
           type="button"
           onClick={applyUpdate}
           disabled={updating}
-          className="flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1.5 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-80 disabled:active:scale-100"
+          className="flex items-center gap-1.5 rounded-control bg-primary px-3.5 py-1.5 text-body font-semibold text-on-primary transition active:scale-95 disabled:opacity-80 disabled:active:scale-100"
         >
           {updating && (
             <CircleNotch size={15} weight="bold" className="animate-spin" />

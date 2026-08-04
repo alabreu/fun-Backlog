@@ -16,6 +16,15 @@ const sessionId =
 export function track(type: string, meta?: Record<string, unknown>): void {
   if (!supabase) return
   const db = supabase
+  // O banco recusa meta acima de 4 KB (pg_column_size, migração 0002). Corte
+  // aproximado aqui poupa a rede; meta não serializável (ciclo, BigInt) também
+  // é descartado — o evento sempre vai, no máximo sem meta.
+  let safeMeta = meta ?? null
+  try {
+    if (safeMeta && JSON.stringify(safeMeta).length > 4096) safeMeta = null
+  } catch {
+    safeMeta = null
+  }
   db.auth
     .getSession()
     .then(({ data }) =>
@@ -23,7 +32,7 @@ export function track(type: string, meta?: Record<string, unknown>): void {
         session_id: sessionId,
         user_id: data.session?.user.id ?? null,
         type: type.slice(0, 60),
-        meta: meta ?? null,
+        meta: safeMeta,
       }),
     )
     .then(undefined, () => {})

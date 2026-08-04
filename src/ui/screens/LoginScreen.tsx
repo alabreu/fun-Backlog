@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { GoogleLogo, SignOut } from '@phosphor-icons/react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
+import { Button, Input, Screen, ScreenBody } from '@ui/design'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useAuth } from '@ui/hooks/useAuth'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -48,12 +49,12 @@ export function LoginScreen() {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <Screen>
       <ScreenHeader title={t('auth.title')} />
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8">
+      <ScreenBody>
         {!configured ? (
-          <p className="mt-10 text-center text-sm text-muted">
+          <p className="mt-10 text-center text-body text-muted">
             {t('auth.soon')}
           </p>
         ) : user ? (
@@ -62,57 +63,53 @@ export function LoginScreen() {
               <img
                 src={user.avatarUrl}
                 alt=""
-                className="h-16 w-16 rounded-full object-cover ring-1 ring-ink/10"
+                className="h-16 w-16 rounded-control object-cover ring-1 ring-ink/10"
               />
             )}
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted">
+              <p className="text-label uppercase tracking-wide text-muted">
                 {t('auth.signedInAs')}
               </p>
-              <p className="text-lg font-bold">{user.name ?? user.email}</p>
+              <p className="text-title font-bold">{user.name ?? user.email}</p>
               {user.name && user.email && (
-                <p className="text-sm text-muted">{user.email}</p>
+                <p className="text-body text-muted">{user.email}</p>
               )}
             </div>
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => signOut()}
-              className="mt-2 flex items-center gap-2 rounded-full bg-surface px-5 py-3 text-sm font-semibold text-ink ring-1 ring-ink/10 transition active:scale-95"
+              className="mt-2"
             >
               <SignOut size={18} weight="bold" />
               {t('auth.signOut')}
-            </button>
+            </Button>
           </div>
         ) : (
           <>
-            <p className="mb-5 mt-1 text-sm text-muted">{t('auth.subtitle')}</p>
+            <p className="mb-5 mt-1 text-body text-muted">{t('auth.subtitle')}</p>
 
-            <button
-              type="button"
-              onClick={google}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-surface py-3.5 text-sm font-semibold text-ink ring-1 ring-ink/15 transition active:scale-95"
-            >
+            <Button variant="secondary" fullWidth onClick={google}>
               <GoogleLogo size={20} weight="bold" />
               {t('auth.google')}
-            </button>
+            </Button>
 
-            <div className="my-5 flex items-center gap-3 text-xs text-muted">
+            <div className="my-5 flex items-center gap-3 text-label text-muted">
               <span className="h-px flex-1 bg-ink/10" />
               {t('auth.or')}
               <span className="h-px flex-1 bg-ink/10" />
             </div>
 
             <form onSubmit={submit} className="flex flex-col gap-3">
-              <input
+              <Input
                 type="email"
                 autoComplete="email"
                 aria-label={t('auth.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('auth.email')}
-                className="w-full rounded-2xl bg-ink/5 px-4 py-3 text-sm text-ink outline-none ring-1 ring-ink/10 placeholder:text-muted focus:ring-2 focus:ring-primary/40"
               />
-              <input
+              <Input
                 type="password"
                 autoComplete={
                   mode === 'signup' ? 'new-password' : 'current-password'
@@ -121,37 +118,40 @@ export function LoginScreen() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t('auth.password')}
-                className="w-full rounded-2xl bg-ink/5 px-4 py-3 text-sm text-ink outline-none ring-1 ring-ink/10 placeholder:text-muted focus:ring-2 focus:ring-primary/40"
               />
 
-              {error && <p className="text-sm text-danger">{t('auth.error')}</p>}
+              {error && (
+                <p className="text-body text-danger">{t('auth.error')}</p>
+              )}
 
-              <button
+              <Button
                 type="submit"
+                fullWidth
                 disabled={busy || !email || !password}
-                className="mt-1 rounded-full bg-primary py-3.5 text-sm font-semibold text-white transition active:scale-95 disabled:opacity-40 disabled:active:scale-100"
+                className="mt-1"
               >
                 {mode === 'signup' ? t('auth.signUp') : t('auth.signIn')}
-              </button>
+              </Button>
             </form>
 
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              fullWidth
               onClick={() => {
                 setMode(mode === 'signin' ? 'signup' : 'signin')
                 setError(false)
               }}
-              className="mt-4 w-full text-center text-sm font-medium text-primary"
+              className="mt-4"
             >
               {mode === 'signin' ? t('auth.toSignUp') : t('auth.toSignIn')}
-            </button>
+            </Button>
 
-            <p className="mt-6 text-center text-xs text-muted">
+            <p className="mt-6 text-center text-label text-muted">
               {t('auth.guestNote')}
             </p>
           </>
         )}
-      </div>
-    </div>
+      </ScreenBody>
+    </Screen>
   )
 }
