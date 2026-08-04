@@ -44,23 +44,37 @@ alguns arquivos são deste app e não do template (ver tabela abaixo).
 | `docs/**` | **preservar** — é conteúdo deste projeto |
 | `src/core/config.ts`, `vite.config.ts`, `index.html`, `src/index.css`, `public/` (ícones), `src/core/changelog.ts` | **preservar depois da renomeação** — são os arquivos do checklist do README |
 
-## Estado conhecido em 03/08/2026
+## Estado conhecido em 04/08/2026
 
-O `fun-backlog` foi copiado de um estado anterior do boilerplate. Nesta data
-divergiam apenas:
+Nesta data foi feito um **sync total** da árvore do boilerplate: como nenhuma
+linha de código do Fun Backlog existia ainda, dava para trazer tudo de uma vez,
+e essa era a última janela em que isso era seguro. Chegaram nesse sync o design
+system (`src/ui/design/`, tema claro/escuro, checks de classe crua e de
+contraste no `npm run lint`), a costura de LLM (`core/llm/` + Edge Function
+`llm`), atualizações de dependências (react-router 8, vite 8) e testes novos no
+core.
 
-- `package.json` e `package-lock.json` (bumps de dependências via Dependabot)
-- `.github/workflows/ci.yml`
-- `.github/dependabot.yml`
+**A partir daqui a sincronização é arquivo por arquivo, sempre** — a tabela
+acima passa a valer pra valer, e já existe código deste app misturado à árvore.
 
-Nenhum arquivo de `src/` divergia, e **nenhum código específico do Fun Backlog
-existia ainda** — ou seja, nesse momento a sincronização era de baixo risco.
-Se este parágrafo já não descrever a realidade, rode o passo 3 e reavalie.
+Um detalhe achado nesse sync, que vale para qualquer app criado do template:
+`src/core/llm/client.test.ts` vinha com o prefixo de storage escrito à mão
+(`'meu-app.llm-key'`) e quebrava na renomeação. Aqui foi trocado por
+`storageKey('llm-key')`. Se o upstream ainda não tiver a mesma correção, não
+traga esse arquivo de volta sem reaplicá-la.
 
-## Renomeação ainda pendente
+## Renomeação: feita, com duas pendências
 
-O checklist de renomeação do `README.md` (seção "Checklist de renomeação")
-**ainda não foi executado** — `package.json` ainda diz `"name":
-"app-boilerplate"`. Fazer isso faz parte do item 1 da ordem de execução do
-[briefing](./briefing.md). Depois de executado, a coluna "preservar" da tabela
-acima passa a valer pra valer.
+O checklist de renomeação do template foi executado em 04/08/2026 —
+`package.json`, `src/core/config.ts`, `vite.config.ts`, `index.html` e a
+entrada inicial do `src/core/changelog.ts` já são do Fun Backlog.
+
+Continuam pendentes, de propósito, até a sessão de identidade visual:
+
+- `src/index.css` — os primitivos (`--palette-*`) ainda são os neutros do
+  template.
+- `public/` — os ícones ainda são os placeholders de `npm run icons`.
+
+Esses dois arquivos já estão na coluna "preservar" da tabela acima: **nunca**
+traga a versão do boilerplate por cima deles depois que a paleta do Fun Backlog
+existir.

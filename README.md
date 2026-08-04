@@ -1,8 +1,16 @@
-# app-boilerplate
+# Fun Backlog
 
-Ponto de partida para apps novos (React + Vite + TS + Tailwind v4 + Supabase +
-Vercel), extraído dos padrões do **Tutor Brew** e do **Komme**. Todo app criado
-a partir daqui já nasce com:
+App para catalogar e gerenciar backlog de entretenimento — jogos, filmes,
+séries, animes e livros. O produto está descrito em
+[`docs/briefing.md`](./docs/briefing.md); as decisões técnicas já fechadas
+estão em [`docs/decisions.md`](./docs/decisions.md).
+
+Construído a partir do
+[`app-boilerplate`](https://github.com/alabreu/app-boilerplate) (React + Vite +
+TS + Tailwind v4 + Supabase + Vercel), que continua sendo a **referência
+técnica principal** — para trazer atualizações dele, veja
+[`docs/sync-boilerplate.md`](./docs/sync-boilerplate.md). O que o template já
+resolve (e este README documenta a partir daqui):
 
 - **i18n** (pt/en) com chaves tipadas — tradução faltando nunca renderiza em branco
 - **Feedback** in-app (Supabase, aceita anônimo; fallback `mailto:` sem backend)
@@ -12,7 +20,11 @@ a partir daqui já nasce com:
 - **Botão no topo direito** que abre um sheet com tudo isso (extensível por app)
 - **Painel de admin** escondido em `/admin` (KPIs: usuários, DAU/WAU/MAU,
   sessões/dia, inbox de feedback), gated por allowlist no banco
-- **Versão do build** (versão + sha + hora) no rodapé do menu — 5 toques abrem o `/admin`
+- **Versão do build** (versão + sha + hora) no rodapé do menu — 5 toques abrem a
+  referência do **design system** (`/design`); toque longo abre o `/admin`
+- **Design system** em três camadas (primitivos → tokens semânticos →
+  componentes), com **tema claro/escuro** e dois checks no `npm run lint`:
+  classe crua fora dos componentes quebra, contraste abaixo de AA quebra
 - **PWA** com toast de "nova versão disponível"
 - **Acessibilidade AA de partida** (contraste conferido nos tokens, navegação
   por teclado nos sheets, leitores de tela, reduced motion) — regras e
@@ -22,27 +34,21 @@ a partir daqui já nasce com:
 - **Segurança**: RLS por padrão, PKCE no auth, security headers (CSP etc.) no
   `vercel.json`, Dependabot — modelo completo em [`SECURITY.md`](./SECURITY.md)
 
-## Como criar um app novo
+## Como rodar
 
-1. No GitHub: **Use this template** → crie o repositório do app novo.
-2. Clone, `npm install`, `npm run dev`. O app já roda 100% em modo convidado,
-   sem nenhuma variável de ambiente.
-3. **Renomeie** (checklist abaixo).
-4. Quando quiser login/nuvem: crie o projeto no Supabase (passos abaixo).
-5. Conecte o repositório na Vercel (framework Vite é detectado; `vercel.json`
-   já cuida do rewrite de SPA) e configure as variáveis de ambiente lá também.
+```bash
+npm install
+npm run dev
+```
 
-### Checklist de renomeação
+Sem nenhuma variável de ambiente o app sobe em modo convidado. As features que
+dependem de API externa (busca de capa, recomendação) exigem login e o Supabase
+configurado — ver [`docs/decisions.md`](./docs/decisions.md).
 
-| Onde | O quê |
-| --- | --- |
-| `src/core/config.ts` | `APP_NAME` e `STORAGE_PREFIX` (slug do app) |
-| `vite.config.ts` | `APP_NAME`, `APP_DESCRIPTION`, `THEME_COLOR` (manifest PWA) |
-| `index.html` | `<title>`, `<meta name="description">`, `theme-color` |
-| `package.json` | `name` |
-| `src/index.css` | Valores da paleta em `@theme` (mantenha os nomes semânticos) |
-| `public/` | Ícones: rode `npm run icons` para placeholders, troque pela arte real antes do lançamento |
-| `src/core/changelog.ts` | Substitua a entrada inicial |
+**Pendente do checklist de renomeação do template:** a paleta em
+`src/index.css` ainda é a neutra de partida e os ícones em `public/` ainda são
+os placeholders gerados por `npm run icons`. Os dois saem junto com a
+identidade visual do Fun Backlog.
 
 ### Setup do Supabase (quando for ligar login/nuvem)
 
@@ -83,9 +89,10 @@ do Stripe vive **só** como secret da Edge Function, nunca no código.
 
 ### Painel de admin e KPIs
 
-- Rota `/admin`, **sem link na UI**: acesse pela URL ou tocando **5 vezes** no
-  rótulo de versão no rodapé do menu. O código é lazy-loaded — não entra no
-  bundle de quem nunca abre.
+- Rota `/admin`, **sem link na UI**: acesse pela URL ou com um **toque longo**
+  (~0,6s) no rótulo de versão no rodapé do menu. O código é lazy-loaded — não
+  entra no bundle de quem nunca abre.
+  (Os 5 toques rápidos no mesmo rótulo abrem o `/design` — ver Design system.)
 - A segurança real está no banco, não na UI: as RPCs `admin_metrics()` e
   `admin_feedback()` são `security definer` e negam quem não está na tabela
   `public.admins` (que não tem policies — só o SQL Editor mexe nela).
@@ -98,6 +105,113 @@ do Stripe vive **só** como secret da Edge Function, nunca no código.
   boilerplate registra só `session_start`; adicione eventos do seu produto com
   `track('nome_do_evento')` de `core/analytics.ts` — o funil do seu app é você
   quem define.
+
+### LLM (OpenRouter)
+
+Dois modos atrás de **uma única interface de streaming** (`core/llm/client.ts`).
+Quem chama não sabe qual está ativo — só recebe tokens via `streamChat()`.
+
+| Modo | Chave de quem | Quem paga | Quando vale |
+| --- | --- | --- | --- |
+| `proxy` | sua, secret no servidor | você | o caso comum: usuário logado, com cota |
+| `byok` | do próprio usuário, no localStorage dele | ele | power user que quer escapar do rate limit |
+
+A precedência é resolvida em **runtime**, não em build-time: chave própria →
+sessão válida → indisponível. Ou seja, quem cola a própria chave não consome sua
+cota — funciona como escape hatch de plano pago.
+
+**Nenhum secret entra no bundle.** Não existe `VITE_OPENROUTER_API_KEY`: env var
+`VITE_*` vira código público. A sua chave vive na Edge Function:
+
+```sh
+supabase secrets set OPENROUTER_API_KEY=sk-or-v1-...
+supabase secrets set ALLOWED_ORIGIN=https://seu-app.vercel.app
+supabase functions deploy llm
+```
+
+Rode também a migração `0003_llm_usage.sql` no SQL Editor — ela cria os
+contadores de cota. E **ponha um teto de gasto na própria chave do OpenRouter**:
+é a única defesa que sobrevive a um bug no seu código.
+
+O que a function faz, nesta ordem (a ordem importa):
+
+1. **Auth primeiro** — sem sessão, 401.
+2. **Valida o body antes de tocar no contador** — requisição malformada não
+   queima cota de ninguém.
+3. **Resolve o modelo no servidor.** O `model` que o cliente manda é
+   **ignorado** — é a proteção mais importante e a mais fácil de esquecer: sem
+   ela qualquer um força o modelo mais caro e a conta é sua.
+4. **Limites de tamanho** (nº de mensagens, chars por mensagem e no total).
+5. **Reconstrói as mensagens** com apenas `role` + `content`, um único `system`
+   e só no índice 0 — o objeto do cliente nunca é repassado.
+6. **Incrementa a cota atomicamente**, e **estorna** se estourou o limite ou se
+   o upstream falhou (modelo sobrecarregado devolve 429 o tempo todo; sem
+   estorno a cota do usuário evapora sem ele receber nada).
+7. Chama o OpenRouter e repassa o stream, com telemetria de tokens/custo num
+   ramo separado (`body.tee()` + `waitUntil`) que nunca afeta a resposta.
+
+Erros do OpenRouter **nunca** são repassados crus: um 402 vem com "you have X
+credits left" e vazaria seu estado financeiro. O mapeamento é status → código
+genérico, e toda resposta sai com CORS (sem isso, uma falha vira erro opaco de
+CORS e o seu tratamento amigável nunca roda).
+
+Para adaptar ao seu produto, mexa no bloco `CONFIG` no topo de
+`supabase/functions/llm/index.ts`: `systemPrompt`, `allowedModels`,
+`defaultModel`, `dailyLimitPerUser`, `dailyLimitGlobal`, `maxTokens` e os
+limites de tamanho. O template não traz UI de chat — isso é produto, não
+boilerplate.
+
+**Modelo padrão: `deepseek/deepseek-v4-flash-latest`** — o "Latest" da família
+DeepSeek V4 Flash, que o próprio OpenRouter redireciona para a release mais nova
+da linha. O template acompanha os lançamentos da DeepSeek sem ninguém editar
+código. O custo é a outra face: o comportamento pode mudar numa release nova, e
+se algum app precisar de saída reproduzível o certo é fixar uma versão da
+família (`deepseek/deepseek-v4-flash-0731`, por exemplo) e assumir a atualização
+manual.
+
+Trocar de modelo é uma linha em dois lugares: `defaultModel` (Edge Function) e
+`byokModel` (`core/llm/config.ts`) — mantenha os dois em sincronia, senão quem
+usa a própria chave recebe um modelo diferente de quem usa o proxy.
+
+As cotas (40/usuário/dia, 2000 global) foram dimensionadas para um modelo caro.
+Com o V4 Flash a ordem de grandeza do custo é outra — dá bastante folga para
+subir os dois limites.
+
+## Design system
+
+Duas camadas, e a regra é sempre descer da primeira para a segunda:
+
+**1. Tokens** (`@theme` em `src/index.css`) — cor, raio, espaçamento e escala
+tipográfica, todos nomeados **pelo papel, não pelo tamanho**: `rounded-card`,
+`text-body`, `px-gutter`. Trocar a identidade visual de um app novo é mudar
+valor aqui; nenhuma tela precisa saber que "card" virou 20px.
+
+**2. Primitivos** (`src/ui/design/`) — os componentes que consomem os tokens:
+
+| Primitivo | Papel |
+| --- | --- |
+| `Button` / `buttonClasses` | 3 variantes × 2 tamanhos. A receita de classe é exportada à parte porque nem todo botão é um `<button>` (o link de doação é `<a>`) |
+| `IconButton` | Botão redondo só de ícone — `aria-label` obrigatório **no tipo** |
+| `Card` | Bloco sobre `surface`, com `padding` e `bordered` |
+| `Chip` | Opção de um grupo; já emite `aria-pressed` |
+| `Field` / `Input` / `Textarea` | `Field` gera o id e faz o `htmlFor` — rótulo ligado deixa de depender de memória |
+| `SectionTitle` | Rótulo de seção; `<h2>` por padrão, para a hierarquia de headings continuar navegável |
+| `Screen` / `ScreenBody` | Casca de tela (altura cheia + corpo rolável) |
+| `Sheet` | Bottom sheet acessível: Escape, trap e retorno de foco, `invisible` quando fechado |
+
+**A regra** (também no `CLAUDE.md`): tela nova compõe componentes e usa tokens.
+Classe crua do Tailwind só para layout local (flex, grid, gap) ou quando o caso
+realmente não existe — e aí a variante entra no componente, com o porquê
+comentado, em vez de ficar solta na tela. O `UpdateToast` é o exemplo de exceção
+legítima e documentada: é o único botão sobre fundo escuro.
+
+**Vitrine em `/design`** — rota escondida e lazy (como `/admin`, sem link na
+UI): renderiza todos os tokens e componentes numa página só. Abra com **5 toques
+rápidos** no rótulo de versão no rodapé do menu (o mesmo gesto do Komme e do
+Tutor Brew) ou pela URL. Use ao trocar a
+paleta de um app novo, para conferir contraste e anel de foco de uma vez, e
+antes de escrever classe crua, para ver o que já existe. É a única tela com
+strings fora do i18n: é ferramenta de dev, não produto.
 
 ## Arquitetura: "cérebro" vs "pele"
 

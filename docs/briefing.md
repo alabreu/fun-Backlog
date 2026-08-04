@@ -1,5 +1,11 @@
 # Fun Backlog — Briefing do Projeto
 
+> **Nota de leitura (04/08/2026).** Este briefing foi escrito antes do
+> `app-boilerplate` existir na forma atual, e é preservado como está — ele é a
+> fonte da verdade sobre **produto**. Onde ele fala de **stack e arquitetura**
+> (a seção "Stack", a menção a Next.js/shadcn e a "API do Claude"), quem manda é
+> [`decisions.md`](./decisions.md).
+
 Vou construir um app chamado **Fun Backlog**. Antes de escrever qualquer código, leia este briefing inteiro, faça as perguntas que precisar, e proponha um plano de execução. Não comece a implementar até eu aprovar o plano.
 
 ## O produto
