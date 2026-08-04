@@ -19,23 +19,23 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    id: '2026-07-31-inicio',
-    date: '2026-07-31',
-    emoji: '🚀',
+    id: '2026-08-04-inicio',
+    date: '2026-08-04',
+    emoji: '🎬',
     title: {
-      pt: 'Primeira versão',
-      en: 'First release',
+      pt: 'O começo do Fun Backlog',
+      en: 'Fun Backlog begins',
     },
     items: {
       pt: [
-        'App no ar com feedback, idioma, novidades e login opcional.',
+        'O app que vai guardar seus jogos, filmes, séries, animes e livros começou a ser construído.',
+        'Por enquanto: idioma, novidades, feedback e login. O catálogo vem a seguir.',
         'Tema claro e escuro, acompanhando o sistema.',
-        'Substitua esta entrada quando lançar sua primeira feature.',
       ],
       en: [
-        'App is live with feedback, language, news and optional sign-in.',
+        'The app that will hold your games, movies, shows, anime and books is under construction.',
+        'For now: language, news, feedback and sign-in. The catalogue comes next.',
         'Light and dark themes, following your system.',
-        'Replace this entry when you ship your first feature.',
       ],
     },
   },

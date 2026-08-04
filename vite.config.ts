@@ -11,8 +11,9 @@ const pkg = JSON.parse(
 ) as { version: string }
 
 // RENOMEIE ao criar um app novo — mantenha em sincronia com src/core/config.ts.
-const APP_NAME = 'Meu App'
-const APP_DESCRIPTION = 'Descrição curta do app (aparece no manifest e na busca).'
+const APP_NAME = 'Fun Backlog'
+const APP_DESCRIPTION =
+  'Catálogo do seu backlog de jogos, filmes, séries, animes e livros.'
 const THEME_COLOR = '#f7f6f3'
 
 // Sha do commit para o rótulo de versão: CI (Vercel/GitHub) fornece por env

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { storageKey } from '@core/config'
 import {
   getUserKey,
   proxyConfigured,
@@ -30,7 +31,9 @@ describe('chave BYOK', () => {
   it('grava e apaga sob o prefixo do app', () => {
     setUserKey('sk-or-v1-exemplo')
     expect(getUserKey()).toBe('sk-or-v1-exemplo')
-    expect(store.has('meu-app.llm-key')).toBe(true)
+    // Derivado de STORAGE_PREFIX, não escrito à mão: o prefixo muda em todo
+    // app criado a partir do template, e o literal quebrava na renomeação.
+    expect(store.has(storageKey('llm-key'))).toBe(true)
 
     setUserKey(null)
     expect(getUserKey()).toBeNull()
