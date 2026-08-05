@@ -12,6 +12,11 @@ Duas leituras obrigatórias antes de mexer em qualquer coisa:
 - [`docs/decisions.md`](./docs/decisions.md) — as decisões **técnicas** já
   fechadas (Vite, Edge Functions, login, LLM). Onde o briefing divergir daqui,
   este arquivo vale.
+- [`docs/backlogs.md`](./docs/backlogs.md) — o que falta, em duas listas:
+  **backlog manual** (só o usuário executa: credencial, secret, arte) e
+  **backlog do projeto** (o agente executa). Quando ele pedir "status dos
+  backlogs", responda com as duas tabelas, com os emojis de prioridade
+  (🔴/🟡/🟢). Item novo que aparecer em conversa entra lá; item entregue sai.
 
 O template de partida é o `app-boilerplate` (`alabreu/app-boilerplate`), e ele
 é a **referência técnica principal**: o que ele estabelece, este app segue. Para
