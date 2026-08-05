@@ -44,7 +44,8 @@ export const en: Record<keyof typeof pt, string> = {
     'Add the first game, movie, series, anime or book you want to get to.',
   'catalog.emptyAction': 'Add the first one',
   'catalog.noMatchTitle': 'Nothing matches',
-  'catalog.noMatchBody': 'Try another medium, another status or another search.',
+  'catalog.noMatchBody':
+    'Try another medium, another status or another search.',
   'catalog.guestNote': 'Your items live on this device only. Sign in to sync.',
   'catalog.loadError': 'Could not load your shelf right now.',
 
@@ -66,6 +67,18 @@ export const en: Record<keyof typeof pt, string> = {
   'add.manualTitlePlaceholder': 'Name of the game, movie, book…',
   'add.manualMediaLabel': 'Medium',
   'add.manualSubmit': 'Add to shelf',
+
+  // Guest -> account migration
+  'merge.title': 'We found {count} items on this device',
+  'merge.body':
+    'They were catalogued before you signed in. Bring them to your account?',
+  'merge.andMore': 'and {count} more',
+  'merge.confirm': 'Bring them to my account',
+  'merge.later': 'Not now',
+  'merge.working': 'Bringing them over…',
+  'merge.note':
+    'Nothing is deleted from this device until everything is saved.',
+  'merge.failed': 'Some items did not make it. Try again in a moment.',
 
   // Item (detail)
   'item.statusLabel': 'Status',
@@ -101,7 +114,7 @@ export const en: Record<keyof typeof pt, string> = {
   'auth.password': 'Password',
   'auth.signIn': 'Sign in',
   'auth.signUp': 'Create account',
-  'auth.toSignUp': "No account? Create one",
+  'auth.toSignUp': 'No account? Create one',
   'auth.toSignIn': 'Already have an account? Sign in',
   'auth.guestNote': 'You can keep using the app without an account.',
   'auth.soon': 'Sign-in will be available soon.',
@@ -111,7 +124,8 @@ export const en: Record<keyof typeof pt, string> = {
 
   // Feedback
   'feedback.title': 'Send feedback',
-  'feedback.intro': 'Your feedback helps improve the app. Tell us what you think.',
+  'feedback.intro':
+    'Your feedback helps improve the app. Tell us what you think.',
   'feedback.typeLabel': 'Type',
   'feedback.type.bug': 'Bug',
   'feedback.type.idea': 'Idea',
@@ -123,7 +137,8 @@ export const en: Record<keyof typeof pt, string> = {
   'feedback.send': 'Send',
   'feedback.sentTitle': 'Thank you!',
   'feedback.sentBody': 'We received your feedback. 🙌',
-  'feedback.sentMailBody': 'We opened your email with the feedback — just hit send. 🙌',
+  'feedback.sentMailBody':
+    'We opened your email with the feedback — just hit send. 🙌',
   'feedback.error': "Couldn't send right now. Try again in a moment.",
   'feedback.another': 'Send another',
 

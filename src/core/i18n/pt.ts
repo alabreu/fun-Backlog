@@ -66,6 +66,18 @@ export const pt = {
   'add.manualMediaLabel': 'Mídia',
   'add.manualSubmit': 'Adicionar à estante',
 
+  // Migração convidado -> conta
+  'merge.title': 'Encontramos {count} itens neste aparelho',
+  'merge.body':
+    'Eles foram catalogados antes de você entrar. Quer trazer para a sua conta?',
+  'merge.andMore': 'e mais {count}',
+  'merge.confirm': 'Trazer para a minha conta',
+  'merge.later': 'Agora não',
+  'merge.working': 'Trazendo…',
+  'merge.note':
+    'Nada é apagado deste aparelho enquanto tudo não estiver na conta.',
+  'merge.failed': 'Alguns itens não subiram. Tente de novo daqui a pouco.',
+
   // Item (detalhe)
   'item.statusLabel': 'Status',
   'item.progressLabel': 'Progresso',
@@ -123,7 +135,8 @@ export const pt = {
   'feedback.sentTitle': 'Obrigado!',
   'feedback.sentBody': 'Recebemos seu feedback. 🙌',
   'feedback.sentMailBody': 'Abrimos seu email com o feedback — é só enviar. 🙌',
-  'feedback.error': 'Não foi possível enviar agora. Tente de novo em instantes.',
+  'feedback.error':
+    'Não foi possível enviar agora. Tente de novo em instantes.',
   'feedback.another': 'Enviar outro',
 
   // Doações

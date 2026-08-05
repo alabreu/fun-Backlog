@@ -1,5 +1,10 @@
 import { create } from 'zustand'
-import { itemsRepository } from '@core/items/repository'
+import { itemsToMigrate, toNewItem } from '@core/items/merge'
+import {
+  clearLocalItems,
+  itemsRepository,
+  readLocalItems,
+} from '@core/items/repository'
 import { datesForStatus } from '@core/items/status'
 import type { Item, ItemPatch, NewItem } from '@core/items/types'
 
@@ -19,11 +24,17 @@ interface ItemsState {
   /** Sessão ativa, resolvida pela UI — decide o repositório de cada chamada. */
   signedIn: boolean
 
+  /** Itens do modo convidado que ainda não estão na conta (vazio = nada a fazer). */
+  pendingLocal: Item[]
+  migrating: boolean
+
   load: (signedIn: boolean) => Promise<void>
   add: (input: NewItem) => Promise<Item>
   update: (id: string, patch: ItemPatch) => Promise<void>
   setStatus: (id: string, status: Item['status']) => Promise<void>
   remove: (id: string) => Promise<void>
+  migrateLocal: () => Promise<void>
+  dismissLocal: () => void
 }
 
 export const useItemsStore = create<ItemsState>((set, get) => ({
@@ -31,12 +42,21 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
   loading: true,
   error: null,
   signedIn: false,
+  pendingLocal: [],
+  migrating: false,
 
   async load(signedIn) {
     set({ loading: true, error: null, signedIn })
     try {
       const items = await itemsRepository(signedIn).list()
-      set({ items, loading: false })
+
+      // Logado, olha também o storage local: se sobrou estante de convidado
+      // que a conta ainda não tem, a UI pergunta o que fazer com ela.
+      const pendingLocal = signedIn
+        ? itemsToMigrate(readLocalItems(), items)
+        : []
+
+      set({ items, pendingLocal, loading: false })
     } catch {
       set({ loading: false, error: 'load-failed' })
     }
@@ -83,5 +103,52 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
     } catch {
       set({ items: previous, error: 'save-failed' })
     }
+  },
+
+  /**
+   * Sobe a estante de convidado para a conta. Um item por vez, e sem otimismo:
+   * aqui a confirmação do servidor é o que importa, porque o storage local só
+   * pode ser limpo depois que TUDO subiu. Se um item falhar, o local fica
+   * intacto e a pergunta reaparece na próxima abertura — perder a estante de
+   * alguém por causa de um 500 no meio da lista seria imperdoável.
+   */
+  async migrateLocal() {
+    const { pendingLocal, signedIn } = get()
+    if (!signedIn || pendingLocal.length === 0) return
+
+    set({ migrating: true, error: null })
+    const repository = itemsRepository(true)
+    const created: Item[] = []
+
+    try {
+      for (const item of pendingLocal) {
+        created.push(await repository.add(toNewItem(item)))
+      }
+    } catch {
+      // Parcial: o que subiu aparece na estante, o local continua guardado.
+      set((state) => ({
+        items: [...created, ...state.items],
+        pendingLocal: itemsToMigrate(readLocalItems(), [
+          ...created,
+          ...state.items,
+        ]),
+        migrating: false,
+        error: 'migrate-failed',
+      }))
+      return
+    }
+
+    clearLocalItems()
+    set((state) => ({
+      items: [...created, ...state.items],
+      pendingLocal: [],
+      migrating: false,
+    }))
+  },
+
+  /** "Agora não": some com a pergunta desta sessão, sem apagar nada. Ela volta
+   *  na próxima abertura, de propósito — item invisível para sempre seria pior. */
+  dismissLocal() {
+    set({ pendingLocal: [] })
   },
 }))

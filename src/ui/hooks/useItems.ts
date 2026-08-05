@@ -34,5 +34,10 @@ export function useItems() {
     update: useItemsStore((s) => s.update),
     setStatus: useItemsStore((s) => s.setStatus),
     remove: useItemsStore((s) => s.remove),
+    // Migração convidado -> conta (ver MergeSheet).
+    pendingLocal: useItemsStore((s) => s.pendingLocal),
+    migrating: useItemsStore((s) => s.migrating),
+    migrateLocal: useItemsStore((s) => s.migrateLocal),
+    dismissLocal: useItemsStore((s) => s.dismissLocal),
   }
 }

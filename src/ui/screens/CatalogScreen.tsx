@@ -25,6 +25,7 @@ import {
 } from '@ui/design'
 import { ItemSheet } from '@ui/components/ItemSheet'
 import { MenuSheet } from '@ui/components/MenuSheet'
+import { MergeSheet } from '@ui/components/MergeSheet'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
@@ -225,6 +226,8 @@ export function CatalogScreen() {
 
       <ItemSheet item={openItem} onClose={() => setSelected(null)} />
       <MenuSheet open={menuOpen} onClose={() => setMenuOpen(false)} />
+      {/* Só aparece sozinho, e só quando há estante de convidado a resgatar. */}
+      <MergeSheet />
     </Screen>
   )
 }

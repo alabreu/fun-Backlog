@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-05-conta',
+    date: '2026-08-05',
+    emoji: '☁️',
+    title: {
+      pt: 'Sua estante em qualquer aparelho',
+      en: 'Your shelf on any device',
+    },
+    items: {
+      pt: [
+        'Agora dá para criar conta e ver a mesma estante no celular e no computador.',
+        'Já catalogou sem conta? Ao entrar, o app pergunta se você quer trazer esses itens junto — nada é apagado antes de estar salvo.',
+        'Continua funcionando sem conta, como antes.',
+      ],
+      en: [
+        'You can create an account now and see the same shelf on your phone and computer.',
+        'Catalogued without an account? On sign-in the app asks whether to bring those items along — nothing is deleted before it is saved.',
+        'It still works with no account, just like before.',
+      ],
+    },
+  },
+  {
     id: '2026-08-04-catalogo',
     date: '2026-08-04',
     emoji: '📚',

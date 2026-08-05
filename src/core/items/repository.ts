@@ -35,7 +35,7 @@ function hydrate(input: NewItem): Item {
     id: newId(),
     status: input.status ?? 'backlog',
     tags: input.tags ?? [],
-    addedAt: new Date().toISOString(),
+    addedAt: input.addedAt ?? new Date().toISOString(),
   }
 }
 
@@ -59,6 +59,20 @@ function writeLocal(items: Item[]): void {
   } catch {
     // Quota estourada ou modo privado: a sessão continua em memória.
   }
+}
+
+/**
+ * O que está guardado localmente, independente de quem está logado. Existe para
+ * a migração convidado→conta: ela precisa olhar o storage local ENQUANTO o
+ * repositório ativo já é o da nuvem.
+ */
+export function readLocalItems(): Item[] {
+  return readLocal()
+}
+
+/** Esvazia a estante local (chamado depois de migrar para a conta). */
+export function clearLocalItems(): void {
+  writeLocal([])
 }
 
 export const localItemsRepository: ItemsRepository = {
@@ -140,6 +154,9 @@ function toRow(patch: ItemPatch & Partial<NewItem>): Record<string, unknown> {
   if (patch.rating !== undefined) row.rating = patch.rating ?? null
   if (patch.notes !== undefined) row.notes = patch.notes ?? null
   if (patch.tags !== undefined) row.tags = patch.tags
+  // Só na criação (a migração convidado→conta manda a data original); num
+  // update comum `addedAt` nunca vem, e a coluna fica com o default do banco.
+  if (patch.addedAt !== undefined) row.added_at = patch.addedAt
   if (patch.startedAt !== undefined) row.started_at = patch.startedAt ?? null
   if (patch.completedAt !== undefined)
     row.completed_at = patch.completedAt ?? null

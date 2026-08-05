@@ -60,9 +60,14 @@ export interface Item {
   completedAt?: string
 }
 
-/** O que a UI precisa fornecer para criar um item; o resto o repositório põe. */
+/**
+ * O que a UI precisa fornecer para criar um item; o resto o repositório põe.
+ * `addedAt` é opcional e não omitido porque a migração convidado→conta precisa
+ * PRESERVAR a data original — "adicionei isso em janeiro" é informação do
+ * usuário, não detalhe de implementação.
+ */
 export type NewItem = Omit<Item, 'id' | 'addedAt' | 'tags' | 'status'> &
-  Partial<Pick<Item, 'tags' | 'status'>>
+  Partial<Pick<Item, 'tags' | 'status' | 'addedAt'>>
 
 /** Campos editáveis de um item existente. */
 export type ItemPatch = Partial<
