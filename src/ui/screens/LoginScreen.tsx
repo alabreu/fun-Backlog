@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { GoogleLogo, SignOut } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
+import {
+  AUTH_RULES,
+  authErrorKey,
+  toAuthErrorCode,
+  type AuthErrorCode,
+} from '@core/auth/errors'
 import { Button, Input, Screen, ScreenBody } from '@ui/design'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useAuth } from '@ui/hooks/useAuth'
@@ -20,31 +26,41 @@ export function LoginScreen() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<AuthErrorCode | null>(null)
   const [busy, setBusy] = useState(false)
+
+  const signingUp = mode === 'signup'
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (busy || !email || !password) return
+
+    // Comprimento é conferido aqui antes de ir à rede: o servidor recusaria do
+    // mesmo jeito, mas devolver na hora poupa um round-trip e um erro genérico.
+    if (signingUp && password.length < AUTH_RULES.minPasswordLength) {
+      setError('password-too-short')
+      return
+    }
+
     setBusy(true)
-    setError(false)
+    setError(null)
     try {
-      if (mode === 'signup') await signUp(email, password)
+      if (signingUp) await signUp(email, password)
       else await signIn(email, password)
       navigate('/')
-    } catch {
-      setError(true)
+    } catch (failure) {
+      setError(toAuthErrorCode(failure))
     } finally {
       setBusy(false)
     }
   }
 
   async function google() {
-    setError(false)
+    setError(null)
     try {
       await signInWithGoogle()
-    } catch {
-      setError(true)
+    } catch (failure) {
+      setError(toAuthErrorCode(failure))
     }
   }
 
@@ -87,7 +103,9 @@ export function LoginScreen() {
           </div>
         ) : (
           <>
-            <p className="mb-5 mt-1 text-body text-muted">{t('auth.subtitle')}</p>
+            <p className="mb-5 mt-1 text-body text-muted">
+              {t('auth.subtitle')}
+            </p>
 
             <Button variant="secondary" fullWidth onClick={google}>
               <GoogleLogo size={20} weight="bold" />
@@ -111,17 +129,34 @@ export function LoginScreen() {
               />
               <Input
                 type="password"
-                autoComplete={
-                  mode === 'signup' ? 'new-password' : 'current-password'
-                }
+                autoComplete={signingUp ? 'new-password' : 'current-password'}
                 aria-label={t('auth.password')}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  // Some com o erro assim que a pessoa mexe: manter "senha
+                  // curta demais" na tela enquanto ela digita é o app brigando.
+                  if (error) setError(null)
+                }}
                 placeholder={t('auth.password')}
               />
 
+              {/* A dica aparece ANTES de errar, só ao criar conta — quem está
+                  entrando já tem a senha e não precisa saber a regra. */}
+              {signingUp && !error && (
+                <p className="text-label text-muted">
+                  {t('auth.passwordHint', {
+                    min: AUTH_RULES.minPasswordLength,
+                  })}
+                </p>
+              )}
+
               {error && (
-                <p className="text-body text-danger">{t('auth.error')}</p>
+                <p role="alert" className="text-body text-danger">
+                  {t(authErrorKey(error), {
+                    min: AUTH_RULES.minPasswordLength,
+                  })}
+                </p>
               )}
 
               <Button
@@ -139,7 +174,7 @@ export function LoginScreen() {
               fullWidth
               onClick={() => {
                 setMode(mode === 'signin' ? 'signup' : 'signin')
-                setError(false)
+                setError(null)
               }}
               className="mt-4"
             >

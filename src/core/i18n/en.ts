@@ -118,7 +118,25 @@ export const en: Record<keyof typeof pt, string> = {
   'auth.toSignIn': 'Already have an account? Sign in',
   'auth.guestNote': 'You can keep using the app without an account.',
   'auth.soon': 'Sign-in will be available soon.',
-  'auth.error': "Couldn't sign in. Check your details and try again.",
+  'auth.passwordHint': 'At least {min} characters.',
+  'auth.error.passwordTooShort':
+    'The password needs at least {min} characters.',
+  'auth.error.passwordLeaked':
+    'That password shows up in known breaches. Pick another one.',
+  'auth.error.passwordWeak': 'That password is too weak. Pick another one.',
+  'auth.error.invalidCredentials': 'Email or password does not match.',
+  'auth.error.emailTaken':
+    'There is already an account with that email. Try signing in instead.',
+  'auth.error.emailInvalid': 'That email does not look valid.',
+  'auth.error.emailNotConfirmed':
+    'Confirm your email through the link we sent before signing in.',
+  'auth.error.rateLimited':
+    'Too many attempts in a row. Wait a few minutes and try again.',
+  'auth.error.providerDisabled':
+    'That sign-in method is not available yet. Use email and password.',
+  'auth.error.notConfigured': 'Sign-in will be available soon.',
+  'auth.error.offline': 'No connection to the server. Check your internet.',
+  'auth.error.unknown': "Couldn't sign in. Try again in a moment.",
   'auth.signedInAs': 'Signed in as',
   'auth.signOut': 'Sign out',
 

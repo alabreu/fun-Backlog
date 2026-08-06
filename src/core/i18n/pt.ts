@@ -116,7 +116,25 @@ export const pt = {
   'auth.toSignIn': 'Já tem conta? Entrar',
   'auth.guestNote': 'Você pode continuar usando sem conta.',
   'auth.soon': 'O login estará disponível em breve.',
-  'auth.error': 'Não deu para entrar. Confira os dados e tente de novo.',
+  'auth.passwordHint': 'Mínimo de {min} caracteres.',
+  'auth.error.passwordTooShort':
+    'A senha precisa de pelo menos {min} caracteres.',
+  'auth.error.passwordLeaked':
+    'Essa senha aparece em vazamentos conhecidos. Escolha outra.',
+  'auth.error.passwordWeak': 'Essa senha é fraca demais. Escolha outra.',
+  'auth.error.invalidCredentials': 'Email ou senha não conferem.',
+  'auth.error.emailTaken':
+    'Já existe uma conta com esse email. Tente entrar em vez de criar.',
+  'auth.error.emailInvalid': 'Esse email não parece válido.',
+  'auth.error.emailNotConfirmed':
+    'Confirme seu email pelo link que enviamos antes de entrar.',
+  'auth.error.rateLimited':
+    'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.',
+  'auth.error.providerDisabled':
+    'Esse jeito de entrar ainda não está disponível. Use email e senha.',
+  'auth.error.notConfigured': 'O login estará disponível em breve.',
+  'auth.error.offline': 'Sem conexão com o servidor. Confira sua internet.',
+  'auth.error.unknown': 'Não deu para entrar. Tente de novo em instantes.',
   'auth.signedInAs': 'Conectado como',
   'auth.signOut': 'Sair',
 

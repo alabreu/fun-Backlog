@@ -1,6 +1,7 @@
 import type { User } from '@supabase/supabase-js'
 import { backendConfigured, supabase } from '@core/backend/client'
 import type { AuthUser } from '@core/domain/user'
+import { AuthFailure, toAuthErrorCode } from './errors'
 
 /**
  * Camada de auth sobre o backend. Opcional: o app é totalmente usável como
@@ -40,28 +41,30 @@ export const authClient = {
   },
 
   async signUp(email: string, password: string): Promise<void> {
-    if (!supabase) throw new Error('auth-not-configured')
+    if (!supabase) throw new AuthFailure('not-configured')
     const { error } = await supabase.auth.signUp({ email, password })
-    if (error) throw error
+    // Traduz aqui, e não na tela: o objeto de erro do provedor não atravessa
+    // esta costura. A UI recebe um código nosso e escolhe a mensagem.
+    if (error) throw new AuthFailure(toAuthErrorCode(error))
   },
 
   async signIn(email: string, password: string): Promise<void> {
-    if (!supabase) throw new Error('auth-not-configured')
+    if (!supabase) throw new AuthFailure('not-configured')
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-    if (error) throw error
+    if (error) throw new AuthFailure(toAuthErrorCode(error))
   },
 
   /** Fluxo OAuth por redirect; `redirectTo` é a origin do app (fornecida pela UI). */
   async signInWithGoogle(redirectTo: string): Promise<void> {
-    if (!supabase) throw new Error('auth-not-configured')
+    if (!supabase) throw new AuthFailure('not-configured')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo },
     })
-    if (error) throw error
+    if (error) throw new AuthFailure(toAuthErrorCode(error))
   },
 
   async signOut(): Promise<void> {
