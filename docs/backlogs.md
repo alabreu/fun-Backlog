@@ -30,7 +30,7 @@ a migração convidado→conta verificados em produção) e allowlist de admin.
 | 🟢 | `ALLOWED_ORIGIN` da Edge Function `llm` | Restringe o CORS à origin do app em vez de `*` | Supabase → Edge Functions → Secrets |
 | 🟢 | SMTP customizado (ex.: Resend) | O SMTP padrão do Supabase é lento e limitado — problema real antes de abrir para outras pessoas | Supabase → Auth → SMTP |
 | 🟢 | Arte real dos ícones do PWA | Hoje são os placeholders de `npm run icons` | `public/` — sai junto da identidade visual |
-| 🟢 | Levar a correção do teste ao `app-boilerplate` | `client.test.ts` tinha o prefixo de storage escrito à mão e quebrava na renomeação. Corrigido aqui, não lá | repo `alabreu/app-boilerplate` |
+| 🟢 | Levar duas correções ao `app-boilerplate` | (1) `client.test.ts` tinha o prefixo de storage escrito à mão e quebrava na renomeação; (2) a `LoginScreen` engolia o motivo do erro de auth. Ambas corrigidas aqui, nenhuma lá | repo `alabreu/app-boilerplate` |
 | 🟢 | Stripe Payment Link (`VITE_STRIPE_DONATE_URL`) | Só se quiser o item "Apoiar o app" no menu | Stripe → Vercel |
 
 ---
@@ -44,7 +44,6 @@ a migração convidado→conta verificados em produção) e allowlist de admin.
 | 🟡 | Edge Functions `igdb` e `tmdb` | Código pode ser escrito e implantado agora; só ganha vida com as chaves do backlog manual |
 | 🟡 | Mood picker + recomendação | Feature 4, a assinatura do produto. O mood picker não pode ser formulário. Depende da chave do OpenRouter para funcionar de fato |
 | 🟡 | Identidade visual | Paleta (primitivos em `index.css`), ícones e a linguagem do grid. O usuário pediu para deixar por último |
-| 🟡 | Mensagem de erro real no login | A `LoginScreen` engole o motivo que o servidor manda e mostra sempre "confira os dados". Uma senha recusada por ter menos de 12 caracteres vira uma mensagem que não ajuda em nada — visto na prática no primeiro cadastro. Vale corrigir aqui e levar ao `app-boilerplate` |
 | 🟡 | Eventos de analytics do produto | `track()` em adicionar, concluir e recomendar — hoje só existe `session_start`, então o `/admin` não conta nada de útil |
 | 🟢 | Densidade por peso da mídia | Briefing: um RPG de 80h não pode ocupar o mesmo espaço que um filme de 90min. Decisão visual — vai junto da identidade |
 | 🟢 | Imports de biblioteca | Steam (`GetOwnedGames`), Letterboxd (CSV), AniList (username). Todos precisam de tela de revisão antes de commitar |
