@@ -54,5 +54,6 @@ terceiro, colar secret, produzir arte.
 | 🟢 | Google Books como fallback de livros | Open Library tem buracos de cobertura e capa ruim — o briefing já previa |
 | 🟢 | HowLongToBeat | Sem API oficial. Avaliar viabilidade antes de prometer tempo estimado |
 | 🟢 | Web Share Target | Compartilhar do navegador do celular direto para o app (PWA) |
+| 🟢 | Code splitting do cliente Supabase | Ligar as variáveis levou o bundle de 337 kB para 539 kB (105 → 156 kB comprimido): sem elas o Rollup prova que `backendConfigured` é `false` e remove a biblioteca inteira. Um import dinâmico tira esse peso do caminho crítico de quem abre o app sem sessão |
 | 🟢 | Virtualização do grid | Só quando o backlog passar de algumas centenas de itens |
 | 🟢 | Sync periódico do boilerplate | Agora é arquivo por arquivo — ver `sync-boilerplate.md` |
