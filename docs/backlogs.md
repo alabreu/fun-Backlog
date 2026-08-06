@@ -18,15 +18,16 @@ sai daqui e vira linha no `core/changelog.ts` (se for visível ao usuário) ou e
 Coisas que o agente não consegue fazer: criar credencial em serviço de
 terceiro, colar secret, produzir arte.
 
+Entregues: variáveis do Supabase na Vercel (06/08/2026 — login, sincronização e
+a migração convidado→conta verificados em produção) e allowlist de admin.
+
 | | Item | Por que importa | Onde |
 | --- | --- | --- | --- |
-| 🔴 | `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` + **redeploy** | Sem isso, produção segue sem login. Variável `VITE_*` é lida no build: deploy antigo não enxerga | Vercel → Project Settings → Environment Variables |
 | 🟡 | Credenciais OAuth do Google | Habilita "Continuar com Google". Email+senha já funciona sem | Google Cloud Console → Supabase → Auth → Providers |
 | 🟡 | `client_id` + `client_secret` do IGDB (via Twitch) | Destrava busca com capa para **jogos** | Twitch Developers → secret da Edge Function |
 | 🟡 | Chave da API do TMDB | Destrava busca com capa para **filmes e séries** | TMDB → secret da Edge Function |
 | 🟡 | `OPENROUTER_API_KEY` como secret + **teto de gasto na chave** | Destrava "Me ajude a escolher". O teto é a única defesa que sobrevive a um bug no código | Supabase → Edge Functions → Secrets |
 | 🟢 | `ALLOWED_ORIGIN` da Edge Function `llm` | Restringe o CORS à origin do app em vez de `*` | Supabase → Edge Functions → Secrets |
-| 🟢 | Criar sua conta no app e avisar | Aí eu te insiro em `public.admins` e o `/admin` passa a mostrar KPIs | app + me avisar |
 | 🟢 | SMTP customizado (ex.: Resend) | O SMTP padrão do Supabase é lento e limitado — problema real antes de abrir para outras pessoas | Supabase → Auth → SMTP |
 | 🟢 | Arte real dos ícones do PWA | Hoje são os placeholders de `npm run icons` | `public/` — sai junto da identidade visual |
 | 🟢 | Levar a correção do teste ao `app-boilerplate` | `client.test.ts` tinha o prefixo de storage escrito à mão e quebrava na renomeação. Corrigido aqui, não lá | repo `alabreu/app-boilerplate` |
