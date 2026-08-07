@@ -41,6 +41,21 @@ export interface SearchOptions {
  *  ordenar por quantidade de resultados. */
 const GROUP_ORDER: MediaType[] = ['game', 'movie', 'series', 'anime', 'book']
 
+/**
+ * Existe alguma fonte capaz de buscar esta mídia agora? Serve ao estado vazio
+ * da tela: "nada encontrado" seria mentira quando o problema é que ninguém
+ * procurou — jogos, filmes e séries ainda não têm provider registrado. A conta
+ * inclui a sessão porque provider com chave não conta para quem está sem login.
+ */
+export function hasProviderFor(
+  mediaType: MediaType,
+  signedIn: boolean,
+): boolean {
+  return PROVIDERS.some(
+    (p) => p.mediaTypes.includes(mediaType) && (!p.requiresServer || signedIn),
+  )
+}
+
 export async function searchAll(
   query: string,
   options: SearchOptions = {},

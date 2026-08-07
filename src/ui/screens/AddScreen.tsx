@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, Plus } from '@phosphor-icons/react'
 import { mediaLabelKey, progressUnitFor } from '@core/items/status'
 import { MEDIA_TYPES, type MediaType } from '@core/items/types'
-import { searchAll, type SearchOutcome } from '@core/media/search'
+import {
+  hasProviderFor,
+  searchAll,
+  type SearchOutcome,
+} from '@core/media/search'
 import type { MediaSearchResult } from '@core/media/types'
 import {
   Badge,
@@ -16,6 +20,7 @@ import {
   ScreenBody,
   SectionTitle,
 } from '@ui/design'
+import { ManualAddSheet } from '@ui/components/ManualAddSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -27,24 +32,24 @@ const DEBOUNCE_MS = 350
 const EMPTY: SearchOutcome = { groups: [], failed: [], skippedNeedingAuth: [] }
 
 /**
- * Adicionar item. Uma caixa só, todas as mídias — "fricção zero para
- * adicionar": quem está no sofá não quer escolher a aba certa antes de digitar.
+ * Buscar e adicionar — a mesma intenção vista de dois ângulos: se a obra já
+ * existe numa fonte, um toque no resultado a põe na estante.
  *
- * Hoje as fontes públicas (AniList, Open Library) respondem sem login. As que
- * exigem chave (jogos, filmes, séries) entram quando as Edge Functions
- * existirem; até lá o formulário à mão cobre as cinco mídias.
+ * A adição à mão é a EXCEÇÃO, e a tela trata assim: ela só aparece como um
+ * link discreto no fim dos resultados, depois de a pessoa ter procurado e não
+ * encontrado. Deixar o formulário aberto no topo, como estava, competia com os
+ * resultados e sugeria que digitar tudo à mão fosse o caminho normal.
  */
 export function AddScreen() {
   const { t } = useTranslation()
   const { items, add, signedIn } = useItems()
 
   const [query, setQuery] = useState('')
+  const [media, setMedia] = useState<MediaType | undefined>()
   const [outcome, setOutcome] = useState<SearchOutcome>(EMPTY)
   const [searching, setSearching] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
-
-  const [manualTitle, setManualTitle] = useState('')
-  const [manualMedia, setManualMedia] = useState<MediaType>('game')
+  const [manualOpen, setManualOpen] = useState(false)
 
   const abortRef = useRef<AbortController | null>(null)
 
@@ -60,14 +65,14 @@ export function AddScreen() {
 
   const trimmed = query.trim()
   const active = trimmed.length >= 2
-
-  // Busca curta demais não é um estado a guardar, é um estado a DERIVAR: por
-  // isso `active` filtra na renderização em vez de um setState no effect
-  // (que dispararia render em cascata — e o lint de hooks reclama com razão).
   const shown = active ? outcome : EMPTY
 
+  // Mídia escolhida que ainda não tem fonte: "nada encontrado" seria mentira,
+  // porque ninguém chegou a procurar.
+  const noSource = media !== undefined && !hasProviderFor(media, signedIn)
+
   useEffect(() => {
-    if (!active) return
+    if (!active || noSource) return
 
     const timer = setTimeout(() => {
       setSearching(true)
@@ -77,7 +82,11 @@ export function AddScreen() {
       const controller = new AbortController()
       abortRef.current = controller
 
-      searchAll(trimmed, { signedIn, signal: controller.signal })
+      searchAll(trimmed, {
+        mediaType: media,
+        signedIn,
+        signal: controller.signal,
+      })
         .then((result) => {
           if (!controller.signal.aborted) {
             setOutcome(result)
@@ -90,7 +99,7 @@ export function AddScreen() {
     }, DEBOUNCE_MS)
 
     return () => clearTimeout(timer)
-  }, [trimmed, active, signedIn])
+  }, [trimmed, active, media, noSource, signedIn])
 
   async function addResult(result: MediaSearchResult) {
     // O total que o provider já sabe (episódios, páginas) entra junto: é o que
@@ -113,18 +122,9 @@ export function AddScreen() {
     }
   }
 
-  async function addManual(e: React.FormEvent) {
-    e.preventDefault()
-    const title = manualTitle.trim()
-    if (!title) return
-    try {
-      await add({ mediaType: manualMedia, title, externalIds: {} })
-      setFlash(t('add.added', { title }))
-      setManualTitle('')
-    } catch {
-      setFlash(t('add.addFailed'))
-    }
-  }
+  // O link de "não achou" só faz sentido depois de uma busca de verdade: é a
+  // saída de quem procurou e não encontrou, não uma alternativa à busca.
+  const searched = active && !searching
 
   return (
     <Screen>
@@ -143,12 +143,29 @@ export function AddScreen() {
           )}
         </Field>
 
-        <p className="mt-2 text-label text-muted">
-          {signedIn ? t('add.hint') : t('add.needsLogin')}
-        </p>
+        {/* Filtro de mídia logo abaixo do campo: escolher antes de digitar é o
+            gesto natural de quem já sabe o que procura. */}
+        <div className="-mx-gutter mt-3 flex gap-2 overflow-x-auto px-gutter pb-1">
+          <Chip
+            selected={media === undefined}
+            onClick={() => setMedia(undefined)}
+          >
+            {t('catalog.filterAll')}
+          </Chip>
+          {MEDIA_TYPES.map((type) => (
+            <Chip
+              key={type}
+              selected={media === type}
+              onClick={() => setMedia(type)}
+              className="whitespace-nowrap"
+            >
+              {t(mediaLabelKey(type))}
+            </Chip>
+          ))}
+        </div>
 
-        {/* Uma região viva: quem usa leitor de tela ouve o resultado da adição
-            sem precisar caçar a mudança na lista. */}
+        {/* Região viva: quem usa leitor de tela ouve o resultado da adição sem
+            precisar caçar a mudança na lista. */}
         <p
           role="status"
           aria-live="polite"
@@ -157,113 +174,101 @@ export function AddScreen() {
           {flash}
         </p>
 
-        {active && searching && (
-          <p className="mt-4 text-body text-muted">{t('add.searching')}</p>
-        )}
-
-        {shown.failed.length > 0 && (
-          <p className="mt-2 text-label text-muted">{t('add.someFailed')}</p>
-        )}
-
-        {active && !searching && shown.groups.length === 0 && (
-          <p className="mt-4 text-body text-muted">
-            {t('add.noResults', { query: trimmed })}
+        {noSource ? (
+          <p className="mt-6 text-body text-muted">
+            {t('add.noSource', { media: t(mediaLabelKey(media)) })}
           </p>
+        ) : (
+          <>
+            {active && searching && (
+              <p className="mt-4 text-body text-muted">{t('add.searching')}</p>
+            )}
+
+            {shown.failed.length > 0 && (
+              <p className="mt-2 text-label text-muted">
+                {t('add.someFailed')}
+              </p>
+            )}
+
+            {searched && shown.groups.length === 0 && (
+              <p className="mt-4 text-body text-muted">
+                {t('add.noResults', { query: trimmed })}
+              </p>
+            )}
+
+            {shown.groups.map((group) => (
+              <section key={group.mediaType} className="mt-5">
+                <SectionTitle className="mb-2">
+                  {t(mediaLabelKey(group.mediaType))}
+                </SectionTitle>
+                <CoverGrid>
+                  {group.results.map((result) => {
+                    const known = alreadyIn.has(
+                      `${result.provider}:${result.externalId}`,
+                    )
+                    return (
+                      <li key={`${result.provider}:${result.externalId}`}>
+                        <button
+                          type="button"
+                          disabled={known}
+                          onClick={() => void addResult(result)}
+                          className="w-full text-left transition active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                        >
+                          <div className="relative">
+                            <Cover src={result.coverUrl} title={result.title} />
+                            <Badge
+                              tone="onCover"
+                              className="absolute bottom-1.5 left-1.5"
+                            >
+                              {known ? (
+                                <Check size={12} weight="bold" />
+                              ) : (
+                                <Plus size={12} weight="bold" />
+                              )}
+                              <span className="sr-only">
+                                {known ? t('add.alreadyIn') : t('catalog.add')}
+                              </span>
+                            </Badge>
+                          </div>
+                          <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
+                            {result.title}
+                          </span>
+                          {(result.year || result.subtitle) && (
+                            <span className="line-clamp-1 block text-label text-muted">
+                              {[result.year, result.subtitle]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    )
+                  })}
+                </CoverGrid>
+              </section>
+            ))}
+          </>
         )}
 
-        {shown.groups.map((group) => (
-          <section key={group.mediaType} className="mt-5">
-            <SectionTitle className="mb-2">
-              {t(mediaLabelKey(group.mediaType))}
-            </SectionTitle>
-            <CoverGrid>
-              {group.results.map((result) => {
-                const known = alreadyIn.has(
-                  `${result.provider}:${result.externalId}`,
-                )
-                return (
-                  <li key={`${result.provider}:${result.externalId}`}>
-                    <button
-                      type="button"
-                      disabled={known}
-                      onClick={() => void addResult(result)}
-                      className="w-full text-left transition active:scale-95 disabled:opacity-50 disabled:active:scale-100"
-                    >
-                      <div className="relative">
-                        <Cover src={result.coverUrl} title={result.title} />
-                        <Badge
-                          tone="onCover"
-                          className="absolute bottom-1.5 left-1.5"
-                        >
-                          {known ? (
-                            <Check size={12} weight="bold" />
-                          ) : (
-                            <Plus size={12} weight="bold" />
-                          )}
-                          <span className="sr-only">
-                            {known ? t('add.alreadyIn') : t('catalog.add')}
-                          </span>
-                        </Badge>
-                      </div>
-                      <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
-                        {result.title}
-                      </span>
-                      {(result.year || result.subtitle) && (
-                        <span className="line-clamp-1 block text-label text-muted">
-                          {[result.year, result.subtitle]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </span>
-                      )}
-                    </button>
-                  </li>
-                )
-              })}
-            </CoverGrid>
-          </section>
-        ))}
-
-        <form onSubmit={addManual} className="mt-8">
-          <SectionTitle className="mb-2">{t('add.manualTitle')}</SectionTitle>
-
-          <Field label={t('add.manualTitleLabel')}>
-            {(id) => (
-              <Input
-                id={id}
-                value={manualTitle}
-                placeholder={t('add.manualTitlePlaceholder')}
-                onChange={(e) => setManualTitle(e.target.value)}
-              />
-            )}
-          </Field>
-
-          <fieldset className="mt-3">
-            <legend className="mb-2 text-label font-semibold uppercase tracking-wide text-muted">
-              {t('add.manualMediaLabel')}
-            </legend>
-            <div className="flex flex-wrap gap-2">
-              {MEDIA_TYPES.map((type) => (
-                <Chip
-                  key={type}
-                  selected={manualMedia === type}
-                  onClick={() => setManualMedia(type)}
-                >
-                  {t(mediaLabelKey(type))}
-                </Chip>
-              ))}
-            </div>
-          </fieldset>
-
+        {/* No fim de tudo, e só depois de procurar: discreto de propósito. */}
+        {(searched || noSource) && (
           <Button
-            type="submit"
+            variant="ghost"
             fullWidth
-            disabled={!manualTitle.trim()}
-            className="mt-4"
+            className="mt-8"
+            onClick={() => setManualOpen(true)}
           >
-            {t('add.manualSubmit')}
+            {t('add.manualLink')}
           </Button>
-        </form>
+        )}
       </ScreenBody>
+
+      <ManualAddSheet
+        open={manualOpen}
+        onClose={() => setManualOpen(false)}
+        initialTitle={trimmed}
+        initialMedia={media}
+      />
     </Screen>
   )
 }
