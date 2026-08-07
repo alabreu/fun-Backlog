@@ -13,6 +13,9 @@ import {
   Sheet,
   Textarea,
 } from '@ui/design'
+import { useThemeStore } from '@core/state/themeStore'
+import { THEMES, type Theme } from '@core/theme'
+import { applyTheme } from '@ui/theme'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 
 /**
@@ -58,27 +61,18 @@ const TOKENS_TEXT = [
   { name: 'display', cls: 'text-display' },
 ] as const
 
-type Theme = 'system' | 'light' | 'dark'
-
-/** Força o tema via `data-theme` no <html> — o mesmo gancho que um app usaria
- *  para expor um seletor de tema ao usuário. `system` remove o atributo e
- *  devolve o controle ao `prefers-color-scheme`. */
-function applyTheme(theme: Theme) {
-  const root = document.documentElement
-  if (theme === 'system') root.removeAttribute('data-theme')
-  else root.dataset.theme = theme
-}
 
 export function DesignScreen() {
   const [chip, setChip] = useState('a')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [theme, setTheme] = useState<Theme>('system')
 
-  // Só a vitrine mexe no tema; ao sair, devolve ao sistema para não vazar o
-  // estado de teste para o resto do app.
+  // A vitrine sobrepõe o tema para dar para conferir os dois lados sem mexer
+  // na preferência de ninguém. Ao sair, RESTAURA o que o usuário escolheu em
+  // Configurações — voltar para 'system' apagaria a escolha dele.
   useEffect(() => {
     applyTheme(theme)
-    return () => applyTheme('system')
+    return () => applyTheme(useThemeStore.getState().theme)
   }, [theme])
 
   return (
@@ -95,7 +89,7 @@ export function DesignScreen() {
         <section>
           <SectionTitle className="mb-2">Tema</SectionTitle>
           <div className="flex flex-wrap gap-2">
-            {(['system', 'light', 'dark'] as const).map((t) => (
+            {THEMES.map((t) => (
               <Chip key={t} selected={theme === t} onClick={() => setTheme(t)}>
                 {t}
               </Chip>
@@ -198,6 +192,18 @@ export function DesignScreen() {
           <div className="flex flex-col gap-4">
             <Field label="Rótulo do campo">
               {(id) => <Input id={id} placeholder="Input com rótulo ligado" />}
+            </Field>
+            <Field
+              label="Campo com dica"
+              hint="A dica é ligada ao controle por aria-describedby — o leitor de tela lê as duas coisas juntas."
+            >
+              {(id, describedBy) => (
+                <Input
+                  id={id}
+                  aria-describedby={describedBy}
+                  placeholder="Input com dica"
+                />
+              )}
             </Field>
             <Field label="Área de texto">
               {(id) => <Textarea id={id} rows={3} placeholder="Textarea" />}

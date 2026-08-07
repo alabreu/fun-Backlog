@@ -36,13 +36,25 @@ export function Textarea({
 
 export interface FieldProps {
   label: string
-  /** Recebe o id gerado — passe para o controle. */
-  children: (id: string) => ReactNode
+  /**
+   * Explicação curta abaixo do controle (limite de caracteres, formato). NÃO
+   * use para mensagem de erro: erro precisa de `role="alert"` para ser
+   * anunciado na hora, e isto aqui é texto estático.
+   */
+  hint?: string
+  /**
+   * Recebe o id gerado — passe para o controle. O segundo argumento é o id da
+   * dica, quando há uma: repasse como `aria-describedby` para que o leitor de
+   * tela leia a dica junto do campo, em vez de deixá-la órfã na página.
+   */
+  children: (id: string, describedBy?: string) => ReactNode
   className?: string
 }
 
-export function Field({ label, children, className = '' }: FieldProps) {
+export function Field({ label, hint, children, className = '' }: FieldProps) {
   const id = useId()
+  const hintId = hint ? `${id}-hint` : undefined
+
   return (
     <div className={className}>
       <label
@@ -51,7 +63,12 @@ export function Field({ label, children, className = '' }: FieldProps) {
       >
         {label}
       </label>
-      {children(id)}
+      {children(id, hintId)}
+      {hint && (
+        <p id={hintId} className="mt-1.5 text-label text-muted">
+          {hint}
+        </p>
+      )}
     </div>
   )
 }

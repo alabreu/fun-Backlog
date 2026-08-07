@@ -41,12 +41,11 @@ da TMDB, cadastrados como secrets do Supabase.
 
 | | Item | Notas |
 | --- | --- | --- |
-| 🟡 | Busca unificada (fase 2 da home) | Uma seção "na sua estante" antes dos resultados externos, para não adicionar duplicata do que já se tem |
-| 🟡 | "Como quer ser chamado" (fase 3 da home) | Tela nas configurações: lista dos vocativos + campo livre. O `core/greeting.ts` já aceita o apelido |
-| 🟡 | Colar link | Feature 3. Falta só a UI: `findByImdbId()` em `core/media/tmdb.ts` já resolve link do IMDb e do Letterboxd (extrair o `tt…` da URL), e AniList e Open Library já têm provider. Steam espera `appdetails`; Goodreads espera fallback de Open Graph |
 | 🟡 | Mood picker + recomendação | Feature 4, a assinatura do produto. O mood picker não pode ser formulário. Depende da chave do OpenRouter para funcionar de fato |
 | 🟡 | Identidade visual | Paleta (primitivos em `index.css`), ícones e a linguagem do grid. O usuário pediu para deixar por último |
 | 🟡 | Eventos de analytics do produto | `track()` em adicionar, concluir e recomendar — hoje só existe `session_start`, então o `/admin` não conta nada de útil |
+| 🟢 | Preferências na conta, não no aparelho | Tema e vocativo hoje vivem no localStorage: trocar de celular perde os dois. Levar para a nuvem custa uma migração e uma tabela `profiles` — vale quando houver uma terceira preferência |
+| 🟢 | Resolver link por id, não por slug | Hoje só o IMDb resolve exato; Steam, IGDB e TMDB caem na busca por título extraído da URL. Resolver pelo id daria a obra certa sempre, ao custo de um caminho por site |
 | 🟢 | Logo oficial da TMDB no crédito | O texto exigido já está na tela de busca (`add.sources`). O guia de marca deles pede também o logo — precisa do arquivo oficial, que é arte a baixar |
 | 🟢 | Densidade por peso da mídia | Briefing: um RPG de 80h não pode ocupar o mesmo espaço que um filme de 90min. Decisão visual — vai junto da identidade |
 | 🟢 | Imports de biblioteca | Steam (`GetOwnedGames`: biblioteca + horas jogadas; sem login — basta perfil público, ver decisão 8), Letterboxd (CSV), AniList (username). É **aqui** que um login de terceiro se paga, e não na IGDB (decisão 7): do outro lado existe uma biblioteca sua. Todos precisam de tela de revisão antes de commitar |

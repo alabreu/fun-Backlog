@@ -77,6 +77,10 @@ export const pt = {
   'add.alreadyIn': 'Já está na estante',
   'add.noSource':
     'Ainda não dá para buscar {media} por aqui. Você pode adicionar à mão.',
+  'add.onShelf': 'Na sua estante',
+  'add.needsLogin': 'Entre para buscar jogos, filmes e séries.',
+  'add.fromLink': 'Link reconhecido — procurando pelo título.',
+  'add.linkNotFound': 'Não encontramos essa obra a partir do link.',
   'add.manualLink': 'Não achou? Adicione à mão',
   'add.manualTitle': 'Adicionar à mão',
   'add.manualTitleLabel': 'Título',
@@ -136,6 +140,8 @@ export const pt = {
   'menu.language': 'Idioma',
   'menu.news': 'Novidades',
   'menu.completed': 'Concluídos',
+  'menu.nickname': 'Como me chamar',
+  'menu.settings': 'Configurações',
   'menu.donate': 'Apoiar o app',
   'menu.login': 'Entrar',
 
@@ -200,6 +206,29 @@ export const pt = {
   'donate.button': 'Fazer uma doação',
   'donate.thanks': 'Qualquer valor faz diferença. Obrigado! 💜',
   'donate.soon': 'As doações estarão disponíveis em breve.',
+
+  // Como quer ser chamado (vocativo da saudação)
+  'nickname.title': 'Como quer ser chamado',
+  'nickname.subtitle':
+    'É assim que a home vai te cumprimentar. Escolha um da lista ou escreva o seu.',
+  'nickname.previewLabel': 'Prévia',
+  'nickname.rotating': 'Surpreenda-me',
+  'nickname.rotatingHint': 'Um vocativo diferente a cada dia',
+  'nickname.listLabel': 'Sugestões',
+  'nickname.customLabel': 'Ou escreva o seu',
+  'nickname.customPlaceholder': 'Capitã, Xerife, Mestre…',
+  'nickname.customHint': 'Até {max} caracteres.',
+  'nickname.reroll': 'Sortear outro para hoje',
+
+  // Configurações
+  'settings.title': 'Configurações',
+  'settings.themeLabel': 'Aparência',
+  'settings.theme.system': 'Seguir o sistema',
+  'settings.theme.light': 'Claro',
+  'settings.theme.dark': 'Escuro',
+  'settings.themeHint':
+    'Seguir o sistema acompanha o ajuste do seu aparelho, inclusive a troca automática à noite.',
+  'settings.greetingLabel': 'Saudação',
 
   // Idioma
   'language.title': 'Idioma',

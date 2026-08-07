@@ -19,6 +19,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-07-busca-e-ajustes',
+    date: '2026-08-07',
+    emoji: '🔗',
+    title: {
+      pt: 'Cole um link, e o app se ajusta a você',
+      en: 'Paste a link, and the app adapts to you',
+    },
+    items: {
+      pt: [
+        'A busca agora mostra primeiro o que já está na sua estante — sem risco de adicionar a mesma obra duas vezes.',
+        'Cole o link da Steam, do Letterboxd, do IMDb ou de quase qualquer site: o app entende e procura sozinho.',
+        'Nova tela de Configurações, com tema claro, escuro ou seguindo o aparelho.',
+        'Escolha como quer ser chamado na saudação — da lista, do seu jeito, ou sorteando outro quando não gostar do dia.',
+      ],
+      en: [
+        'Search now shows what is already on your shelf first — no more adding the same thing twice.',
+        'Paste a link from Steam, Letterboxd, IMDb or almost any site: the app understands it and searches on its own.',
+        'New Settings screen, with a light theme, a dark one, or following your device.',
+        'Choose what we call you in the greeting — from the list, in your own words, or draw another when today’s does not fit.',
+      ],
+    },
+  },
+  {
     id: '2026-08-07-jogos-filmes-series',
     date: '2026-08-07',
     emoji: '🎬',

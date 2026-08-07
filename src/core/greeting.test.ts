@@ -4,6 +4,9 @@ import {
   dayNumber,
   greetingKey,
   periodFor,
+  NICKNAME_MAX,
+  rerollVocative,
+  sanitizeNickname,
   VOCATIVES,
   vocativeFor,
 } from './greeting'
@@ -88,5 +91,61 @@ describe('vocativeFor', () => {
   it('data anterior à época não estoura o índice', () => {
     expect(vocativeFor(new Date(1969, 0, 1, 10), 'pt')).toBeTruthy()
     expect(dayNumber(new Date(1969, 0, 1))).toBeLessThan(0)
+  })
+})
+
+describe('sanitizeNickname', () => {
+  it('devolve null para o que não é escolha', () => {
+    expect(sanitizeNickname('')).toBeNull()
+    expect(sanitizeNickname('   ')).toBeNull()
+    expect(sanitizeNickname(null)).toBeNull()
+    expect(sanitizeNickname(undefined)).toBeNull()
+  })
+
+  it('achata espaço e quebra de linha coladas de outro lugar', () => {
+    expect(sanitizeNickname('  Capit\u00e3   Marvel \n')).toBe('Capit\u00e3 Marvel')
+  })
+
+  it('corta no teto em vez de deixar a sauda\u00e7\u00e3o tomar a tela', () => {
+    const longo = 'a'.repeat(NICKNAME_MAX + 20)
+    expect(sanitizeNickname(longo)).toHaveLength(NICKNAME_MAX)
+  })
+})
+
+describe('rerollVocative', () => {
+  const dia = new Date(2026, 7, 7, 20)
+
+  it('carimba o dia do sorteio, que \u00e9 o que o faz expirar', () => {
+    const sorteio = rerollVocative(dia, 'pt', 'Comandante', () => 0)
+    expect(sorteio.day).toBe(dayNumber(dia))
+    expect(VOCATIVES.pt).toContain(sorteio.vocative)
+  })
+
+  it('nunca devolve a palavra que j\u00e1 est\u00e1 na tela', () => {
+    for (const atual of VOCATIVES.pt) {
+      for (const r of [0, 0.5, 0.999]) {
+        expect(rerollVocative(dia, 'pt', atual, () => r).vocative).not.toBe(atual)
+      }
+    }
+  })
+
+  it('random devolvendo 1 n\u00e3o estoura o fim da lista', () => {
+    const sorteio = rerollVocative(dia, 'en', 'Captain', () => 1)
+    expect(VOCATIVES.en).toContain(sorteio.vocative)
+  })
+
+  it('o sorteio vale hoje e s\u00f3 hoje', () => {
+    const sorteio = rerollVocative(dia, 'pt', 'Comandante', () => 0)
+    expect(vocativeFor(dia, 'pt', null, sorteio)).toBe(sorteio.vocative)
+
+    const amanha = new Date(2026, 7, 8, 20)
+    expect(vocativeFor(amanha, 'pt', null, sorteio)).toBe(
+      vocativeFor(amanha, 'pt'),
+    )
+  })
+
+  it('apelido fixo ganha do sorteio', () => {
+    const sorteio = rerollVocative(dia, 'pt', 'Comandante', () => 0)
+    expect(vocativeFor(dia, 'pt', 'Capit\u00e3', sorteio)).toBe('Capit\u00e3')
   })
 })

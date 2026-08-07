@@ -3,6 +3,7 @@ import { MagnifyingGlass, User } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
 import { getUnreadCount } from '@core/changelog'
 import { greetingKey, vocativeFor } from '@core/greeting'
+import { useNicknameStore } from '@core/state/nicknameStore'
 import { mediaLabelKey, progressLabelKey } from '@core/items/status'
 import {
   inProgress,
@@ -41,6 +42,8 @@ export function HomeScreen() {
   const { t, locale } = useTranslation()
   const navigate = useNavigate()
   const { items, loading } = useItems()
+  const nickname = useNicknameStore((s) => s.nickname)
+  const reroll = useNicknameStore((s) => s.reroll)
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [selected, setSelected] = useState<Item | null>(null)
@@ -70,7 +73,7 @@ export function HomeScreen() {
             {t(greetingKey(now))},
           </h1>
           <p className="text-display font-extrabold tracking-tight text-accent">
-            {vocativeFor(now, locale)}
+            {vocativeFor(now, locale, nickname, reroll)}
           </p>
         </div>
         <IconButton

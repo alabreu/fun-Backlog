@@ -2,8 +2,13 @@ import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { trackSessionStart } from '@core/analytics'
 import { storageKey } from '@core/config'
+import type { DailyReroll } from '@core/greeting'
 import { DEFAULT_LOCALE, normalizeLocale } from '@core/i18n'
 import { useLocaleStore } from '@core/state/localeStore'
+import { useNicknameStore } from '@core/state/nicknameStore'
+import { useThemeStore } from '@core/state/themeStore'
+import { DEFAULT_THEME, normalizeTheme } from '@core/theme'
+import { applyTheme } from '@ui/theme'
 import { UpdateToast } from '@ui/components/UpdateToast'
 import { useAuthInit } from '@ui/hooks/useAuth'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -16,9 +21,47 @@ import { LanguageScreen } from '@ui/screens/LanguageScreen'
 import { HomeScreen } from '@ui/screens/HomeScreen'
 import { LoginScreen } from '@ui/screens/LoginScreen'
 import { NewsScreen } from '@ui/screens/NewsScreen'
+import { NicknameScreen } from '@ui/screens/NicknameScreen'
+import { SettingsScreen } from '@ui/screens/SettingsScreen'
 import { ShelfScreen } from '@ui/screens/ShelfScreen'
 
 const LOCALE_STORAGE_KEY = storageKey('locale')
+const THEME_STORAGE_KEY = storageKey('theme')
+const NICKNAME_STORAGE_KEY = storageKey('nickname')
+const REROLL_STORAGE_KEY = storageKey('nickname-reroll')
+
+/** localStorage falha de verdade: modo privado, cota cheia, política do
+ *  navegador. Preferência é um "seria bom", nunca um motivo para a tela não
+ *  abrir — por isso toda leitura e escrita é engolida. */
+function readStored(key: string): string | null {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function writeStored(key: string, value: string | null): void {
+  try {
+    if (value === null) localStorage.removeItem(key)
+    else localStorage.setItem(key, value)
+  } catch {
+    // Ignora falhas de storage.
+  }
+}
+
+function readReroll(): DailyReroll | null {
+  const raw = readStored(REROLL_STORAGE_KEY)
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw) as Partial<DailyReroll>
+    return typeof parsed?.day === 'number' && typeof parsed?.vocative === 'string'
+      ? { day: parsed.day, vocative: parsed.vocative }
+      : null
+  } catch {
+    return null
+  }
+}
 
 // Lazy: nem o painel de admin nem a vitrine do design system entram no bundle
 // dos usuários comuns. Ambas são rotas escondidas, sem link na UI.
@@ -37,20 +80,24 @@ const DesignScreen = lazy(() =>
 export function App() {
   const { locale } = useTranslation()
   const setLocale = useLocaleStore((s) => s.setLocale)
+  const theme = useThemeStore((s) => s.theme)
+  const setTheme = useThemeStore((s) => s.setTheme)
+  const nickname = useNicknameStore((s) => s.nickname)
+  const setNickname = useNicknameStore((s) => s.setNickname)
+  const reroll = useNicknameStore((s) => s.reroll)
+  const setReroll = useNicknameStore((s) => s.setReroll)
 
-  // Semeia o idioma de uma escolha salva, senão do navegador, uma vez no boot.
+  // Semeia as preferências salvas uma vez no boot. Idioma cai para o do
+  // navegador; tema cai para "seguir o sistema".
   useEffect(() => {
-    let stored: string | null = null
-    try {
-      stored = localStorage.getItem(LOCALE_STORAGE_KEY)
-    } catch {
-      stored = null
-    }
     setLocale(
-      normalizeLocale(stored) ??
+      normalizeLocale(readStored(LOCALE_STORAGE_KEY)) ??
         normalizeLocale(navigator.language) ??
         DEFAULT_LOCALE,
     )
+    setTheme(normalizeTheme(readStored(THEME_STORAGE_KEY)) ?? DEFAULT_THEME)
+    setNickname(readStored(NICKNAME_STORAGE_KEY))
+    setReroll(readReroll())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -65,12 +112,24 @@ export function App() {
   // Reflete + persiste o idioma.
   useEffect(() => {
     document.documentElement.lang = locale
-    try {
-      localStorage.setItem(LOCALE_STORAGE_KEY, locale)
-    } catch {
-      // Ignora falhas de storage (modo privado, etc.).
-    }
+    writeStored(LOCALE_STORAGE_KEY, locale)
   }, [locale])
+
+  // Aplica + persiste o tema.
+  useEffect(() => {
+    applyTheme(theme)
+    writeStored(THEME_STORAGE_KEY, theme)
+  }, [theme])
+
+  // Persiste o vocativo. `null` REMOVE a chave em vez de gravar "null": assim
+  // uma leitura futura não precisa distinguir a string do valor.
+  useEffect(() => {
+    writeStored(NICKNAME_STORAGE_KEY, nickname)
+  }, [nickname])
+
+  useEffect(() => {
+    writeStored(REROLL_STORAGE_KEY, reroll ? JSON.stringify(reroll) : null)
+  }, [reroll])
 
   return (
     <BrowserRouter>
@@ -80,6 +139,8 @@ export function App() {
           <Route path="/estante/:media" element={<ShelfScreen />} />
           <Route path="/buscar" element={<AddScreen />} />
           <Route path="/concluidos" element={<CompletedScreen />} />
+          <Route path="/configuracoes" element={<SettingsScreen />} />
+          <Route path="/como-me-chamar" element={<NicknameScreen />} />
           <Route path="/feedback" element={<FeedbackScreen />} />
           <Route path="/idioma" element={<LanguageScreen />} />
           <Route path="/novidades" element={<NewsScreen />} />

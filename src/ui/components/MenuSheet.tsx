@@ -4,6 +4,7 @@ import {
   ChatCircleDots,
   Heart,
   Megaphone,
+  GearSix,
   SignIn,
   Translate,
   Trophy,
@@ -32,6 +33,7 @@ interface MenuItem {
 // Doação só aparece quando o Payment Link está configurado (build-time).
 const ITEMS: MenuItem[] = [
   { icon: Trophy, labelKey: 'menu.completed', to: '/concluidos' },
+  { icon: GearSix, labelKey: 'menu.settings', to: '/configuracoes' },
   { icon: ChatCircleDots, labelKey: 'menu.feedback', to: '/feedback' },
   { icon: Translate, labelKey: 'menu.language', to: '/idioma' },
   { icon: Megaphone, labelKey: 'menu.news', to: '/novidades' },

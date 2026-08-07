@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Plus } from '@phosphor-icons/react'
-import { mediaLabelKey, progressUnitFor } from '@core/items/status'
-import { MEDIA_TYPES, type MediaType } from '@core/items/types'
+import { Check, LinkSimple, Plus } from '@phosphor-icons/react'
+import { filterItems } from '@core/items/filter'
+import { mediaLabelKey, progressUnitFor, statusLabelKey } from '@core/items/status'
+import { MEDIA_TYPES, type Item, type MediaType } from '@core/items/types'
+import { parseMediaLink } from '@core/media/link'
 import {
   hasProviderFor,
   searchAll,
   type SearchOutcome,
 } from '@core/media/search'
+import { findByImdbId } from '@core/media/tmdb'
 import type { MediaSearchResult } from '@core/media/types'
+import { ItemSheet } from '@ui/components/ItemSheet'
 import {
   Badge,
   Button,
@@ -35,10 +39,15 @@ const EMPTY: SearchOutcome = { groups: [], failed: [], skippedNeedingAuth: [] }
  * Buscar e adicionar — a mesma intenção vista de dois ângulos: se a obra já
  * existe numa fonte, um toque no resultado a põe na estante.
  *
- * A adição à mão é a EXCEÇÃO, e a tela trata assim: ela só aparece como um
- * link discreto no fim dos resultados, depois de a pessoa ter procurado e não
- * encontrado. Deixar o formulário aberto no topo, como estava, competia com os
- * resultados e sugeria que digitar tudo à mão fosse o caminho normal.
+ * A busca é UNIFICADA em três sentidos:
+ *
+ * 1. Ela procura ANTES na própria estante. Sem isso, quem já tem "Hollow
+ *    Knight" catalogado busca, vê o resultado externo e adiciona de novo — o
+ *    app deixando a pessoa duplicar o próprio acervo.
+ * 2. Ela aceita LINK COLADO. Quem viu o jogo na Steam ou o filme no Letterboxd
+ *    não deveria ter que reler o título e redigitar (ver core/media/link.ts).
+ * 3. A adição à mão é a EXCEÇÃO, e só aparece no fim, depois de a pessoa ter
+ *    procurado e não encontrado.
  */
 export function AddScreen() {
   const { t } = useTranslation()
@@ -50,6 +59,7 @@ export function AddScreen() {
   const [searching, setSearching] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
   const [manualOpen, setManualOpen] = useState(false)
+  const [selected, setSelected] = useState<Item | null>(null)
 
   const abortRef = useRef<AbortController | null>(null)
 
@@ -67,9 +77,28 @@ export function AddScreen() {
   const active = trimmed.length >= 2
   const shown = active ? outcome : EMPTY
 
+  // Link colado: derivado, não estado. O que a pessoa digitou já É a resposta.
+  const link = useMemo(() => parseMediaLink(trimmed), [trimmed])
+
+  // Com link na mão, o chip de mídia não manda: quem colou um endereço da
+  // Steam quer aquele jogo, e não o que estava filtrado na tela.
+  const searchQuery = link?.kind === 'query' ? link.query : trimmed
+  const searchMedia = link?.kind === 'query' ? link.mediaType : media
+
   // Mídia escolhida que ainda não tem fonte: "nada encontrado" seria mentira,
   // porque ninguém chegou a procurar.
-  const noSource = media !== undefined && !hasProviderFor(media, signedIn)
+  const noSource =
+    !link && media !== undefined && !hasProviderFor(media, signedIn)
+
+  // O que já está na estante, casando com o mesmo texto. Local e instantâneo:
+  // não passa por rede nem espera o debounce.
+  const onShelf = useMemo(
+    () =>
+      active
+        ? filterItems(items, { query: searchQuery, mediaType: searchMedia })
+        : [],
+    [items, active, searchQuery, searchMedia],
+  )
 
   useEffect(() => {
     if (!active || noSource) return
@@ -82,11 +111,29 @@ export function AddScreen() {
       const controller = new AbortController()
       abortRef.current = controller
 
-      searchAll(trimmed, {
-        mediaType: media,
-        signedIn,
-        signal: controller.signal,
-      })
+      // Link do IMDb é o único caso EXATO: em vez de procurar por texto e
+      // torcer, resolvemos o id pela TMDB e devolvemos a obra certa.
+      const running =
+        link?.kind === 'imdb'
+          ? findByImdbId(link.imdbId, controller.signal).then(
+              (found): SearchOutcome =>
+                found
+                  ? {
+                      groups: [
+                        { mediaType: found.mediaType, results: [found] },
+                      ],
+                      failed: [],
+                      skippedNeedingAuth: [],
+                    }
+                  : EMPTY,
+            )
+          : searchAll(searchQuery, {
+              mediaType: searchMedia,
+              signedIn,
+              signal: controller.signal,
+            })
+
+      running
         .then((result) => {
           if (!controller.signal.aborted) {
             setOutcome(result)
@@ -94,12 +141,23 @@ export function AddScreen() {
           }
         })
         .catch(() => {
-          if (!controller.signal.aborted) setSearching(false)
+          if (!controller.signal.aborted) {
+            // Só o caminho do IMDb chega aqui — `searchAll` já engole a falha
+            // de cada provider. Sem sessão a Edge Function recusa, e dizer
+            // "pulado por falta de login" é a verdade; com sessão, é a fonte
+            // que caiu.
+            setOutcome({
+              groups: [],
+              failed: signedIn ? ['tmdb'] : [],
+              skippedNeedingAuth: signedIn ? [] : ['tmdb'],
+            })
+            setSearching(false)
+          }
         })
     }, DEBOUNCE_MS)
 
     return () => clearTimeout(timer)
-  }, [trimmed, active, media, noSource, signedIn])
+  }, [searchQuery, searchMedia, active, link, noSource, signedIn])
 
   async function addResult(result: MediaSearchResult) {
     // O total que o provider já sabe (episódios, páginas) entra junto: é o que
@@ -144,25 +202,34 @@ export function AddScreen() {
         </Field>
 
         {/* Filtro de mídia logo abaixo do campo: escolher antes de digitar é o
-            gesto natural de quem já sabe o que procura. */}
-        <div className="-mx-gutter mt-3 flex gap-2 overflow-x-auto px-gutter pb-1">
-          <Chip
-            selected={media === undefined}
-            onClick={() => setMedia(undefined)}
-          >
-            {t('catalog.filterAll')}
-          </Chip>
-          {MEDIA_TYPES.map((type) => (
+            gesto natural de quem já sabe o que procura. Com um link colado ele
+            some — o endereço já disse a mídia, e deixar um chip aceso que não
+            manda em nada seria a interface mentindo. */}
+        {link ? (
+          <p className="mt-3 flex items-center gap-1.5 text-label text-muted">
+            <LinkSimple size={14} aria-hidden />
+            {t('add.fromLink')}
+          </p>
+        ) : (
+          <div className="-mx-gutter mt-3 flex gap-2 overflow-x-auto px-gutter pb-1">
             <Chip
-              key={type}
-              selected={media === type}
-              onClick={() => setMedia(type)}
-              className="whitespace-nowrap"
+              selected={media === undefined}
+              onClick={() => setMedia(undefined)}
             >
-              {t(mediaLabelKey(type))}
+              {t('catalog.filterAll')}
             </Chip>
-          ))}
-        </div>
+            {MEDIA_TYPES.map((type) => (
+              <Chip
+                key={type}
+                selected={media === type}
+                onClick={() => setMedia(type)}
+                className="whitespace-nowrap"
+              >
+                {t(mediaLabelKey(type))}
+              </Chip>
+            ))}
+          </div>
+        )}
 
         {/* Região viva: quem usa leitor de tela ouve o resultado da adição sem
             precisar caçar a mudança na lista. */}
@@ -180,6 +247,40 @@ export function AddScreen() {
           </p>
         ) : (
           <>
+            {/* A estante ANTES das fontes: o que você já tem é sempre a
+                resposta mais relevante para o que você acabou de digitar. */}
+            {onShelf.length > 0 && (
+              <section className="mt-5">
+                <SectionTitle className="mb-2">
+                  {t('add.onShelf')}
+                </SectionTitle>
+                <CoverGrid>
+                  {onShelf.map((item) => (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelected(item)}
+                        className="w-full text-left transition active:scale-95"
+                      >
+                        <div className="relative">
+                          <Cover src={item.coverUrl} title={item.title} />
+                          <Badge
+                            tone="onCover"
+                            className="absolute bottom-1.5 left-1.5"
+                          >
+                            {t(statusLabelKey(item.status, item.mediaType))}
+                          </Badge>
+                        </div>
+                        <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
+                          {item.title}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </CoverGrid>
+              </section>
+            )}
+
             {active && searching && (
               <p className="mt-4 text-body text-muted">{t('add.searching')}</p>
             )}
@@ -190,11 +291,23 @@ export function AddScreen() {
               </p>
             )}
 
-            {searched && shown.groups.length === 0 && (
+            {/* Convidado buscando jogo ou filme: dizer "nada encontrado" seria
+                mentira — ninguém procurou, a fonte exige login (decisão 3). */}
+            {searched && shown.skippedNeedingAuth.length > 0 && (
               <p className="mt-4 text-body text-muted">
-                {t('add.noResults', { query: trimmed })}
+                {t('add.needsLogin')}
               </p>
             )}
+
+            {searched &&
+              shown.groups.length === 0 &&
+              shown.skippedNeedingAuth.length === 0 && (
+                <p className="mt-4 text-body text-muted">
+                  {link
+                    ? t('add.linkNotFound')
+                    : t('add.noResults', { query: trimmed })}
+                </p>
+              )}
 
             {shown.groups.map((group) => (
               <section key={group.mediaType} className="mt-5">
@@ -265,14 +378,25 @@ export function AddScreen() {
         {/* Crédito das fontes. A parte da TMDB é EXIGIDA pela licença gratuita
             deles e fica nesta tela porque é aqui que os dados aparecem — não é
             rodapé decorativo. Ver docs/decisions.md, decisão 8. */}
-        <p className="mt-10 mb-2 text-label text-muted">{t('add.sources')}</p>
+        <p className="mt-10 mb-2 border-t border-ink/10 pt-4 text-label text-muted">
+          {t('add.sources')}
+        </p>
       </ScreenBody>
 
       <ManualAddSheet
         open={manualOpen}
         onClose={() => setManualOpen(false)}
-        initialTitle={trimmed}
-        initialMedia={media}
+        initialTitle={searchQuery}
+        initialMedia={searchMedia}
+      />
+
+      {/* O detalhe do item vem do mesmo componente da estante: tocar em algo
+          que você já tem tem que fazer a MESMA coisa em qualquer tela. */}
+      <ItemSheet
+        item={
+          selected ? (items.find((i) => i.id === selected.id) ?? null) : null
+        }
+        onClose={() => setSelected(null)}
       />
     </Screen>
   )

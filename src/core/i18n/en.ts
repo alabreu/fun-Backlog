@@ -79,6 +79,10 @@ export const en: Record<keyof typeof pt, string> = {
   'add.alreadyIn': 'Already on the shelf',
   'add.noSource':
     'Searching {media} is not available here yet. You can add it by hand.',
+  'add.onShelf': 'On your shelf',
+  'add.needsLogin': 'Sign in to search games, movies and series.',
+  'add.fromLink': 'Link recognised — searching by title.',
+  'add.linkNotFound': 'We could not find that from the link.',
   'add.manualLink': 'Not there? Add it by hand',
   'add.manualTitle': 'Add by hand',
   'add.manualTitleLabel': 'Title',
@@ -136,6 +140,8 @@ export const en: Record<keyof typeof pt, string> = {
   'menu.language': 'Language',
   'menu.news': "What's new",
   'menu.completed': 'Completed',
+  'menu.nickname': 'What to call me',
+  'menu.settings': 'Settings',
   'menu.donate': 'Support the app',
   'menu.login': 'Sign in',
 
@@ -201,6 +207,29 @@ export const en: Record<keyof typeof pt, string> = {
   'donate.button': 'Make a donation',
   'donate.thanks': 'Every amount makes a difference. Thank you! 💜',
   'donate.soon': 'Donations will be available soon.',
+
+  // What to call me (the greeting vocative)
+  'nickname.title': 'What should we call you',
+  'nickname.subtitle':
+    "That's how the home screen will greet you. Pick one from the list or write your own.",
+  'nickname.previewLabel': 'Preview',
+  'nickname.rotating': 'Surprise me',
+  'nickname.rotatingHint': 'A different one every day',
+  'nickname.listLabel': 'Suggestions',
+  'nickname.customLabel': 'Or write your own',
+  'nickname.customPlaceholder': 'Captain, Sheriff, Master…',
+  'nickname.customHint': 'Up to {max} characters.',
+  'nickname.reroll': 'Draw another one for today',
+
+  // Settings
+  'settings.title': 'Settings',
+  'settings.themeLabel': 'Appearance',
+  'settings.theme.system': 'Follow the system',
+  'settings.theme.light': 'Light',
+  'settings.theme.dark': 'Dark',
+  'settings.themeHint':
+    'Following the system matches your device, including the automatic switch at night.',
+  'settings.greetingLabel': 'Greeting',
 
   // Language
   'language.title': 'Language',
