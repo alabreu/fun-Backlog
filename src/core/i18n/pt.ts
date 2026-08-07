@@ -6,9 +6,27 @@ export const pt = {
   'common.close': 'Fechar',
   'common.remove': 'Remover',
 
-  // Cabeçalho (o botão do menu vive no topo do catálogo)
+  // Home
   'home.menuButton': 'Menu',
   'home.menuButtonUnread': 'Menu — há novidades não lidas',
+  'home.greeting.morning': 'Bom dia',
+  'home.greeting.afternoon': 'Boa tarde',
+  'home.greeting.evening': 'Boa noite',
+  'home.greeting.night': 'Boa noite',
+  'home.inProgress': 'Continue de onde parou',
+  'home.suggestionsTitle': 'Que tal um destes?',
+  'home.suggestionsBody': 'Da sua fila, para você começar hoje.',
+  'home.shelves': 'Suas estantes',
+  'home.searchFab': 'Buscar ou adicionar',
+  'home.progressHours': '{current} h',
+  'home.emptyTitle': 'Sua estante está vazia',
+  'home.emptyBody':
+    'Adicione o primeiro jogo, filme, série, anime ou livro que você quer consumir.',
+  'home.emptyAction': 'Adicionar o primeiro',
+
+  // Estante de uma mídia
+  'shelf.emptyTitle': 'Nada nesta estante ainda',
+  'shelf.emptyBody': 'O que você adicionar desta mídia aparece aqui.',
 
   // Mídias (plural, como nos filtros e nos grupos da busca)
   'media.game': 'Jogos',
@@ -48,9 +66,9 @@ export const pt = {
   'catalog.loadError': 'Não deu para carregar sua estante agora.',
 
   // Adicionar item
-  'add.title': 'Adicionar',
+  'add.title': 'Buscar',
   'add.searchLabel': 'Buscar',
-  'add.searchPlaceholder': 'Digite um título…',
+  'add.searchPlaceholder': 'Buscar ou adicionar…',
   'add.searching': 'Buscando…',
   'add.hint': 'Animes e livros já funcionam sem login.',
   'add.needsLogin':

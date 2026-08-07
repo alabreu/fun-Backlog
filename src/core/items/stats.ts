@@ -1,3 +1,4 @@
+import { dayNumber } from '@core/greeting'
 import type { Item, MediaType } from './types'
 
 /**
@@ -90,4 +91,64 @@ export function summarizeCompleted(items: Item[]): CompletedSummary {
     pagesRead,
     episodesWatched,
   }
+}
+
+/**
+ * O que está em andamento — o herói da home.
+ *
+ * Ordenado por quando a pessoa começou, mais recente primeiro: o que ela pegou
+ * ontem tem mais chance de ser o que ela quer continuar hoje do que o que ela
+ * começou em março e vem arrastando.
+ */
+export function inProgress(items: Item[]): Item[] {
+  return items
+    .filter((i) => i.status === 'active')
+    .sort((a, b) =>
+      (b.startedAt ?? b.addedAt).localeCompare(a.startedAt ?? a.addedAt),
+    )
+}
+
+/** Progresso da estante de uma mídia: `concluídos de total`. É o que a linha
+ *  da home mostra, e a barra entre os dois números é uma fração de verdade. */
+export interface ShelfProgress {
+  completed: number
+  total: number
+}
+
+export function shelfProgress(
+  items: Item[],
+  mediaType: MediaType,
+): ShelfProgress {
+  let completed = 0
+  let total = 0
+  for (const item of items) {
+    if (item.mediaType !== mediaType) continue
+    total += 1
+    if (item.status === 'done') completed += 1
+  }
+  return { completed, total }
+}
+
+/**
+ * Empurrãozinho para quem tem fila mas não começou nada: alguns itens da
+ * PRÓPRIA estante, sorteados de forma estável no dia (mesma semente do
+ * vocativo). Não é a recomendação por mood do briefing — aquela pensa, custa
+ * uma chamada de LLM e vem depois. Esta só diz "que tal um destes?".
+ */
+export function suggestFromBacklog(
+  items: Item[],
+  date: Date,
+  limit = 4,
+): Item[] {
+  const queue = items.filter((i) => i.status === 'backlog')
+  if (queue.length <= limit) return queue
+
+  // Janela deslizante sobre a fila ordenada: no dia seguinte ela anda, então a
+  // sugestão muda sem repetir sempre os mesmos quatro do topo.
+  const start = ((dayNumber(date) % queue.length) + queue.length) % queue.length
+  const ordered = [...queue].sort((a, b) => a.addedAt.localeCompare(b.addedAt))
+  return Array.from(
+    { length: limit },
+    (_, i) => ordered[(start + i) % ordered.length],
+  )
 }

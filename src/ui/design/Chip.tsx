@@ -5,8 +5,10 @@ import type { ButtonHTMLAttributes } from 'react'
  * feedback). `aria-pressed` sai daqui já ligado ao estado — é o que faz o leitor
  * de tela anunciar "selecionado" em vez de só ler o rótulo.
  */
-export interface ChipProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'aria-pressed'> {
+export interface ChipProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'aria-pressed'
+> {
   selected: boolean
 }
 

@@ -6,7 +6,9 @@ import type { ReactNode } from 'react'
  * app novo quebra o scroll de um jeito difícil de diagnosticar.
  */
 export function Screen({ children }: { children: ReactNode }) {
-  return <div className="flex h-full flex-col">{children}</div>
+  // `relative`: é este retângulo que ancora o `Fab`. Com `fixed`, o botão
+  // grudaria na borda da janela e apareceria longe da coluna no desktop.
+  return <div className="relative flex h-full flex-col">{children}</div>
 }
 
 export interface ScreenBodyProps {

@@ -25,7 +25,9 @@ export function Textarea({
   className = '',
   ...rest
 }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={`${CONTROL} resize-none ${className}`} {...rest} />
+  return (
+    <textarea className={`${CONTROL} resize-none ${className}`} {...rest} />
+  )
 }
 
 export interface FieldProps {

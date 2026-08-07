@@ -19,6 +19,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-07-home',
+    date: '2026-08-07',
+    emoji: '👋',
+    title: {
+      pt: 'Uma home que sabe onde você parou',
+      en: 'A home that knows where you left off',
+    },
+    items: {
+      pt: [
+        'A tela inicial agora te cumprimenta e mostra o que você está consumindo, num carrossel com o progresso de cada um.',
+        'Cada mídia ganhou sua própria estante, com quantos você já terminou do total.',
+        'Sem nada em andamento? O app sugere algo da sua própria fila.',
+        'Buscar e adicionar viraram a mesma coisa, no botão do canto inferior direito.',
+      ],
+      en: [
+        'The home screen now greets you and shows what you are consuming, in a carousel with each item\'s progress.',
+        'Each medium got its own shelf, with how many you have finished out of the total.',
+        'Nothing in progress? The app suggests something from your own queue.',
+        'Searching and adding became the same thing, in the button at the bottom right.',
+      ],
+    },
+  },
+  {
     id: '2026-08-06-trofeus',
     date: '2026-08-06',
     emoji: '🏆',

@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   completedInYear,
   completedItems,
+  inProgress,
+  shelfProgress,
+  suggestFromBacklog,
   summarizeCompleted,
   yearsWithCompletions,
 } from './stats'
@@ -151,5 +154,122 @@ describe('summarizeCompleted', () => {
       pagesRead: 0,
       episodesWatched: 0,
     })
+  })
+})
+
+describe('inProgress', () => {
+  it('pega só o que está em andamento', () => {
+    const shelf = [
+      item({ status: 'active', title: 'agora' }),
+      item({ status: 'backlog' }),
+      done('2026-01-01T00:00:00.000Z'),
+      item({ status: 'paused' }),
+    ]
+    expect(inProgress(shelf).map((i) => i.title)).toEqual(['agora'])
+  })
+
+  it('põe na frente o que foi começado mais recentemente', () => {
+    const shelf = [
+      item({
+        status: 'active',
+        title: 'março',
+        startedAt: '2026-03-01T00:00:00.000Z',
+      }),
+      item({
+        status: 'active',
+        title: 'ontem',
+        startedAt: '2026-08-05T00:00:00.000Z',
+      }),
+    ]
+    expect(inProgress(shelf).map((i) => i.title)).toEqual(['ontem', 'março'])
+  })
+
+  it('sem data de início, cai na data de entrada', () => {
+    const shelf = [
+      item({
+        status: 'active',
+        title: 'velho',
+        addedAt: '2026-01-01T00:00:00.000Z',
+      }),
+      item({
+        status: 'active',
+        title: 'novo',
+        addedAt: '2026-08-01T00:00:00.000Z',
+      }),
+    ]
+    expect(inProgress(shelf).map((i) => i.title)).toEqual(['novo', 'velho'])
+  })
+})
+
+describe('shelfProgress', () => {
+  const shelf = [
+    done('2026-01-01T00:00:00.000Z', { mediaType: 'game' }),
+    item({ mediaType: 'game', status: 'backlog' }),
+    item({ mediaType: 'game', status: 'active' }),
+    item({ mediaType: 'book', status: 'backlog' }),
+  ]
+
+  it('conta concluídos e total da mídia pedida', () => {
+    expect(shelfProgress(shelf, 'game')).toEqual({ completed: 1, total: 3 })
+  })
+
+  it('não mistura mídias', () => {
+    expect(shelfProgress(shelf, 'book')).toEqual({ completed: 0, total: 1 })
+  })
+
+  it('mídia sem nenhum item devolve zero, não quebra a fração', () => {
+    expect(shelfProgress(shelf, 'movie')).toEqual({ completed: 0, total: 0 })
+  })
+})
+
+describe('suggestFromBacklog', () => {
+  const dia = new Date(2026, 7, 6, 10)
+
+  function queue(n: number): Item[] {
+    return Array.from({ length: n }, (_, i) =>
+      item({
+        title: `fila ${i}`,
+        status: 'backlog',
+        addedAt: `2026-01-${String(i + 1).padStart(2, '0')}T00:00:00.000Z`,
+      }),
+    )
+  }
+
+  it('fila pequena aparece inteira, sem sortear nada', () => {
+    expect(suggestFromBacklog(queue(3), dia)).toHaveLength(3)
+  })
+
+  it('fila grande devolve o limite pedido', () => {
+    expect(suggestFromBacklog(queue(20), dia)).toHaveLength(4)
+    expect(suggestFromBacklog(queue(20), dia, 2)).toHaveLength(2)
+  })
+
+  it('sugere o mesmo durante o dia e muda no dia seguinte', () => {
+    const hoje = suggestFromBacklog(queue(20), new Date(2026, 7, 6, 8))
+    const maisTarde = suggestFromBacklog(queue(20), new Date(2026, 7, 6, 23))
+    const amanha = suggestFromBacklog(queue(20), new Date(2026, 7, 7, 8))
+
+    expect(hoje.map((i) => i.title)).toEqual(maisTarde.map((i) => i.title))
+    expect(hoje.map((i) => i.title)).not.toEqual(amanha.map((i) => i.title))
+  })
+
+  it('nunca repete item na mesma sugestão', () => {
+    const titles = suggestFromBacklog(queue(20), dia).map((i) => i.title)
+    expect(new Set(titles).size).toBe(titles.length)
+  })
+
+  it('ignora quem não está na fila', () => {
+    const shelf = [
+      item({ status: 'active' }),
+      done('2026-01-01T00:00:00.000Z'),
+      item({ status: 'backlog', title: 'só esta' }),
+    ]
+    expect(suggestFromBacklog(shelf, dia).map((i) => i.title)).toEqual([
+      'só esta',
+    ])
+  })
+
+  it('estante vazia não sugere nada', () => {
+    expect(suggestFromBacklog([], dia)).toEqual([])
   })
 })

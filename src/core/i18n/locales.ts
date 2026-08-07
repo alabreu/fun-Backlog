@@ -12,7 +12,9 @@ export const LOCALE_NAMES: Record<Locale, string> = {
 }
 
 /** Estreita uma string arbitrária (locale do navegador, storage) para uma suportada. */
-export function normalizeLocale(value: string | null | undefined): Locale | null {
+export function normalizeLocale(
+  value: string | null | undefined,
+): Locale | null {
   if (!value) return null
   const lower = value.toLowerCase()
   if (lower.startsWith('pt')) return 'pt'

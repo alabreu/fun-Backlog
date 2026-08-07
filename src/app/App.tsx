@@ -9,13 +9,14 @@ import { useAuthInit } from '@ui/hooks/useAuth'
 import { useTranslation } from '@ui/hooks/useTranslation'
 import { CompletionCelebration } from '@ui/components/CompletionCelebration'
 import { AddScreen } from '@ui/screens/AddScreen'
-import { CatalogScreen } from '@ui/screens/CatalogScreen'
 import { CompletedScreen } from '@ui/screens/CompletedScreen'
 import { DonateScreen } from '@ui/screens/DonateScreen'
 import { FeedbackScreen } from '@ui/screens/FeedbackScreen'
 import { LanguageScreen } from '@ui/screens/LanguageScreen'
+import { HomeScreen } from '@ui/screens/HomeScreen'
 import { LoginScreen } from '@ui/screens/LoginScreen'
 import { NewsScreen } from '@ui/screens/NewsScreen'
+import { ShelfScreen } from '@ui/screens/ShelfScreen'
 
 const LOCALE_STORAGE_KEY = storageKey('locale')
 
@@ -75,8 +76,9 @@ export function App() {
     <BrowserRouter>
       <div className="mx-auto h-dvh max-w-md overflow-hidden">
         <Routes>
-          <Route path="/" element={<CatalogScreen />} />
-          <Route path="/adicionar" element={<AddScreen />} />
+          <Route path="/" element={<HomeScreen />} />
+          <Route path="/estante/:media" element={<ShelfScreen />} />
+          <Route path="/buscar" element={<AddScreen />} />
           <Route path="/concluidos" element={<CompletedScreen />} />
           <Route path="/feedback" element={<FeedbackScreen />} />
           <Route path="/idioma" element={<LanguageScreen />} />

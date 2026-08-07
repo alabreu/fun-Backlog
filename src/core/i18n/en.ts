@@ -8,9 +8,27 @@ export const en: Record<keyof typeof pt, string> = {
   'common.close': 'Close',
   'common.remove': 'Remove',
 
-  // Header (the menu button lives at the top of the catalogue)
+  // Home
   'home.menuButton': 'Menu',
   'home.menuButtonUnread': 'Menu — unread news available',
+  'home.greeting.morning': 'Good morning',
+  'home.greeting.afternoon': 'Good afternoon',
+  'home.greeting.evening': 'Good evening',
+  'home.greeting.night': 'Good night',
+  'home.inProgress': 'Pick up where you left off',
+  'home.suggestionsTitle': 'How about one of these?',
+  'home.suggestionsBody': 'From your queue, to start today.',
+  'home.shelves': 'Your shelves',
+  'home.searchFab': 'Search or add',
+  'home.progressHours': '{current} h',
+  'home.emptyTitle': 'Your shelf is empty',
+  'home.emptyBody':
+    'Add the first game, movie, series, anime or book you want to get to.',
+  'home.emptyAction': 'Add the first one',
+
+  // A single medium's shelf
+  'shelf.emptyTitle': 'Nothing on this shelf yet',
+  'shelf.emptyBody': 'Whatever you add of this medium shows up here.',
 
   // Media (plural, as in filters and search groups)
   'media.game': 'Games',
@@ -50,9 +68,9 @@ export const en: Record<keyof typeof pt, string> = {
   'catalog.loadError': 'Could not load your shelf right now.',
 
   // Add item
-  'add.title': 'Add',
+  'add.title': 'Search',
   'add.searchLabel': 'Search',
-  'add.searchPlaceholder': 'Type a title…',
+  'add.searchPlaceholder': 'Search or add…',
   'add.searching': 'Searching…',
   'add.hint': 'Anime and books already work without signing in.',
   'add.needsLogin':

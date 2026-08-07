@@ -5,8 +5,10 @@ import type { ButtonHTMLAttributes } from 'react'
  * tipo: um botão sem texto visível e sem nome acessível é invisível para leitor
  * de tela, e é o erro mais fácil de cometer com este componente.
  */
-export interface IconButtonProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'> {
+export interface IconButtonProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'aria-label'
+> {
   'aria-label': string
 }
 

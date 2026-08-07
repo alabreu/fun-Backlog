@@ -40,6 +40,8 @@ existente, sem criar usuário duplicado.
 
 | | Item | Notas |
 | --- | --- | --- |
+| 🟡 | Busca unificada (fase 2 da home) | Uma seção "na sua estante" antes dos resultados externos, para não adicionar duplicata do que já se tem |
+| 🟡 | "Como quer ser chamado" (fase 3 da home) | Tela nas configurações: lista dos vocativos + campo livre. O `core/greeting.ts` já aceita o apelido |
 | 🟡 | Colar link | Feature 3. Hoje entregável só para `anilist.co` e `openlibrary.org`; Steam, IMDb, Letterboxd e Goodreads esperam as Edge Functions ou fallback de Open Graph |
 | 🟡 | Edge Functions `igdb` e `tmdb` | Código pode ser escrito e implantado agora; só ganha vida com as chaves do backlog manual |
 | 🟡 | Mood picker + recomendação | Feature 4, a assinatura do produto. O mood picker não pode ser formulário. Depende da chave do OpenRouter para funcionar de fato |
