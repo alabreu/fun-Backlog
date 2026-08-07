@@ -176,9 +176,22 @@ req/10s foi desligado em 2019 e hoje o teto ronda 50 req/s por IP.
 **O que custa:** é comunitária, então título obscuro ou regional pode vir com
 ficha magra. E a licença é **gratuita só para uso não comercial, com atribuição
 obrigatória** na UI ("this product uses the TMDB API but is not endorsed or
-certified by TMDB"); uso comercial exige acordo negociado. Um app gratuito com
-doação voluntária é zona cinza — não bloqueia nada hoje, mas reabre esta
-decisão se o app virar produto pago.
+certified by TMDB"); uso comercial exige acordo negociado.
+
+**A chave foi pedida em 07/08/2026 como *personal use*.** Isso é uma
+certificação, não uma preferência: o formulário afirma "your use is
+non-commercial and generates no revenue", e declaração falsa pode revogar a
+chave na hora. Era verdade no dia — app gratuito, sem anúncio, sem plano pago e
+com o link de doação ainda desligado.
+
+**O gatilho a vigiar:** ligar o Stripe (`VITE_STRIPE_DONATE_URL`) faz
+"generates no revenue" deixar de ser verdade, mesmo sendo doação voluntária.
+Falar com a TMDB **antes** de ligar, não depois. Vale o mesmo para qualquer
+plano pago.
+
+**O que a troca custa se acontecer: nada de código.** A chave vive num secret do
+Supabase e a Edge Function lê de lá — migrar para uma chave comercial é colar
+outro valor e redeployar. Esta decisão não prende a arquitetura.
 
 **IMDb não entra como fonte.** As três portas fecham: os datasets não comerciais
 são TSV em massa **sem imagem nenhuma** (as fotos são licenciadas à parte) e sem
