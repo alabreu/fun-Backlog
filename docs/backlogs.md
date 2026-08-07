@@ -44,6 +44,7 @@ existente, sem criar usuário duplicado.
 | 🟡 | "Como quer ser chamado" (fase 3 da home) | Tela nas configurações: lista dos vocativos + campo livre. O `core/greeting.ts` já aceita o apelido |
 | 🟡 | Colar link | Feature 3. Hoje entregável só para `anilist.co` e `openlibrary.org`. **IMDb e Letterboxd saem de graça junto da function `tmdb`**: extrair o `tt…` da URL e resolver por `/find/{imdb_id}?external_source=imdb_id` — a TMDB devolve a ficha completa e a capa que o IMDb não dá. Steam idem, via `appdetails`. Goodreads espera fallback de Open Graph |
 | 🟡 | Edge Functions `igdb` e `tmdb` | Código pode ser escrito e implantado agora; só ganha vida com as chaves do backlog manual |
+| 🟡 | Atribuição da TMDB na UI | Condição da licença gratuita (decisão 8): logo + "this product uses the TMDB API but is not endorsed or certified by TMDB". Sai junto da function `tmdb`, não depois |
 | 🟡 | Mood picker + recomendação | Feature 4, a assinatura do produto. O mood picker não pode ser formulário. Depende da chave do OpenRouter para funcionar de fato |
 | 🟡 | Identidade visual | Paleta (primitivos em `index.css`), ícones e a linguagem do grid. O usuário pediu para deixar por último |
 | 🟡 | Eventos de analytics do produto | `track()` em adicionar, concluir e recomendar — hoje só existe `session_start`, então o `/admin` não conta nada de útil |
