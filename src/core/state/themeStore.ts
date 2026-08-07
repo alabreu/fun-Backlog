@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { DEFAULT_THEME, type Theme } from '@core/theme'
+import { DEFAULT_THEME, LOCKED_THEME, type Theme } from '@core/theme'
 
 /**
  * Tema escolhido. Mesma forma do `localeStore`: o store guarda só o valor, e a
@@ -11,6 +11,6 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  theme: DEFAULT_THEME,
+  theme: LOCKED_THEME ?? DEFAULT_THEME,
   setTheme: (theme) => set({ theme }),
 }))

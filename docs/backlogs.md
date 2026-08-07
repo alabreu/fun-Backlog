@@ -44,9 +44,10 @@ da TMDB, cadastrados como secrets do Supabase.
 | 🟡 | Mood picker + recomendação | Feature 4, a assinatura do produto. O mood picker não pode ser formulário. Depende da chave do OpenRouter para funcionar de fato |
 | 🟡 | Identidade visual | Paleta, ícones e a linguagem do grid. As cinco cores de mídia já entraram (decisão 9) e são o primeiro pedaço dela — falta o resto. Rever ali o âmbar do tema claro, que puxa para o marrom |
 | 🟡 | Eventos de analytics do produto | `track()` em adicionar, concluir e recomendar — hoje só existe `session_start`, então o `/admin` não conta nada de útil |
+| 🟢 | Reavaliar o tema claro | Travado no escuro por decisão estética (decisão 10), mas o tema claro está inteiro e testado. Destravar é `LOCKED_THEME = null`. Rever na sessão de identidade visual — o custo hoje é de acessibilidade (sol forte, quem prefere claro) |
 | 🟢 | Preferências na conta, não no aparelho | Tema e vocativo hoje vivem no localStorage: trocar de celular perde os dois. Levar para a nuvem custa uma migração e uma tabela `profiles` — vale quando houver uma terceira preferência |
 | 🟢 | Resolver link por id, não por slug | Hoje só o IMDb resolve exato; Steam, IGDB e TMDB caem na busca por título extraído da URL. Resolver pelo id daria a obra certa sempre, ao custo de um caminho por site |
-| 🟢 | Logo oficial da TMDB no crédito | O texto exigido já está na tela de busca (`add.sources`). O guia de marca deles pede também o logo — precisa do arquivo oficial, que é arte a baixar |
+| 🟢 | Logo oficial da TMDB no crédito | O texto exigido já está na tela de Créditos (Configurações → Sobre). O guia de marca deles pede também o logo — precisa do arquivo oficial, que é arte a baixar |
 | 🟢 | Densidade por peso da mídia | Briefing: um RPG de 80h não pode ocupar o mesmo espaço que um filme de 90min. Decisão visual — vai junto da identidade |
 | 🟢 | Imports de biblioteca | Steam (`GetOwnedGames`: biblioteca + horas jogadas; sem login — basta perfil público, ver decisão 8), Letterboxd (CSV), AniList (username). É **aqui** que um login de terceiro se paga, e não na IGDB (decisão 7): do outro lado existe uma biblioteca sua. Todos precisam de tela de revisão antes de commitar |
 | 🟢 | Visualização em lista compacta | Briefing feature 1, para quem tem backlog gigante |

@@ -1,11 +1,18 @@
-import { Check, Desktop, Info, Moon, Sun, UserCircle } from '@phosphor-icons/react'
+import {
+  Check,
+  Desktop,
+  Info,
+  Moon,
+  Sun,
+  UserCircle,
+} from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
 import { vocativeFor } from '@core/greeting'
 import type { MessageKey } from '@core/i18n'
 import { useNicknameStore } from '@core/state/nicknameStore'
 import { useThemeStore } from '@core/state/themeStore'
-import { THEMES, type Theme } from '@core/theme'
+import { LOCKED_THEME, THEMES, type Theme } from '@core/theme'
 import { Card, NavRow, Screen, ScreenBody, SectionTitle } from '@ui/design'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -36,44 +43,54 @@ export function SettingsScreen() {
       <ScreenHeader title={t('settings.title')} />
 
       <ScreenBody>
-        <SectionTitle className="mb-2">{t('settings.themeLabel')}</SectionTitle>
+        {/* Some inteira quando o tema está travado (decisão 10): uma seção
+            "Aparência" com uma opção só seria a interface fingindo escolha. */}
+        {!LOCKED_THEME && (
+          <>
+            <SectionTitle className="mb-2">
+              {t('settings.themeLabel')}
+            </SectionTitle>
 
-        {/* Lista e não chips: são três opções que se excluem e cada uma pede
+            {/* Lista e não chips: são três opções que se excluem e cada uma pede
             uma linha de explicação — chip não comporta a segunda linha. */}
-        <Card padding="none" bordered className="overflow-hidden">
-          {THEMES.map((option, i) => {
-            const active = theme === option
-            const { icon: OptionIcon, labelKey } = THEME_META[option]
-            return (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setTheme(option)}
-                className={`flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-ink/5 ${
-                  i > 0 ? 'border-t border-ink/10' : ''
-                }`}
-              >
-                <OptionIcon size={20} aria-hidden />
-                <span className="text-body font-semibold text-ink">
-                  {t(labelKey)}
-                </span>
-                {active && (
-                  <Check
-                    size={20}
-                    weight="bold"
-                    className="ml-auto text-primary"
-                    aria-hidden
-                  />
-                )}
-              </button>
-            )
-          })}
-        </Card>
+            <Card padding="none" bordered className="overflow-hidden">
+              {THEMES.map((option, i) => {
+                const active = theme === option
+                const { icon: OptionIcon, labelKey } = THEME_META[option]
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setTheme(option)}
+                    className={`flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-ink/5 ${
+                      i > 0 ? 'border-t border-ink/10' : ''
+                    }`}
+                  >
+                    <OptionIcon size={20} aria-hidden />
+                    <span className="text-body font-semibold text-ink">
+                      {t(labelKey)}
+                    </span>
+                    {active && (
+                      <Check
+                        size={20}
+                        weight="bold"
+                        className="ml-auto text-primary"
+                        aria-hidden
+                      />
+                    )}
+                  </button>
+                )
+              })}
+            </Card>
 
-        <p className="mt-2 text-label text-muted">{t('settings.themeHint')}</p>
+            <p className="mt-2 text-label text-muted">
+              {t('settings.themeHint')}
+            </p>
+          </>
+        )}
 
-        <SectionTitle className="mb-2 mt-8">
+        <SectionTitle className={`mb-2 ${LOCKED_THEME ? '' : 'mt-8'}`}>
           {t('settings.greetingLabel')}
         </SectionTitle>
 

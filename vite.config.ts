@@ -14,7 +14,10 @@ const pkg = JSON.parse(
 const APP_NAME = 'Fun Backlog'
 const APP_DESCRIPTION =
   'Catálogo do seu backlog de jogos, filmes, séries, animes e livros.'
-const THEME_COLOR = '#f7f6f3'
+// Escuro: o app está travado no tema escuro (docs/decisions.md, decisão 10).
+// É a cor da splash do PWA instalado — clara aqui daria um flash branco a
+// cada abertura, antes de o app pintar.
+const THEME_COLOR = '#131316'
 
 // Sha do commit para o rótulo de versão: CI (Vercel/GitHub) fornece por env
 // var; local cai no git; sem repo, "dev".

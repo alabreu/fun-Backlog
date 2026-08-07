@@ -7,7 +7,7 @@ import { DEFAULT_LOCALE, normalizeLocale } from '@core/i18n'
 import { useLocaleStore } from '@core/state/localeStore'
 import { useNicknameStore } from '@core/state/nicknameStore'
 import { useThemeStore } from '@core/state/themeStore'
-import { DEFAULT_THEME, normalizeTheme } from '@core/theme'
+import { DEFAULT_THEME, LOCKED_THEME, normalizeTheme } from '@core/theme'
 import { applyTheme } from '@ui/theme'
 import { UpdateToast } from '@ui/components/UpdateToast'
 import { useAuthInit } from '@ui/hooks/useAuth'
@@ -56,7 +56,8 @@ function readReroll(): DailyReroll | null {
   if (!raw) return null
   try {
     const parsed = JSON.parse(raw) as Partial<DailyReroll>
-    return typeof parsed?.day === 'number' && typeof parsed?.vocative === 'string'
+    return typeof parsed?.day === 'number' &&
+      typeof parsed?.vocative === 'string'
       ? { day: parsed.day, vocative: parsed.vocative }
       : null
   } catch {
@@ -96,7 +97,13 @@ export function App() {
         normalizeLocale(navigator.language) ??
         DEFAULT_LOCALE,
     )
-    setTheme(normalizeTheme(readStored(THEME_STORAGE_KEY)) ?? DEFAULT_THEME)
+    // Com tema travado a escolha salva é ignorada de propósito: quem tinha
+    // "claro" gravado antes não fica preso num tema que o app não oferece mais.
+    setTheme(
+      LOCKED_THEME ??
+        normalizeTheme(readStored(THEME_STORAGE_KEY)) ??
+        DEFAULT_THEME,
+    )
     setNickname(readStored(NICKNAME_STORAGE_KEY))
     setReroll(readReroll())
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -116,10 +123,10 @@ export function App() {
     writeStored(LOCALE_STORAGE_KEY, locale)
   }, [locale])
 
-  // Aplica + persiste o tema.
+  // Aplica + persiste o tema. Travado, não há o que persistir.
   useEffect(() => {
     applyTheme(theme)
-    writeStored(THEME_STORAGE_KEY, theme)
+    if (!LOCKED_THEME) writeStored(THEME_STORAGE_KEY, theme)
   }, [theme])
 
   // Persiste o vocativo. `null` REMOVE a chave em vez de gravar "null": assim

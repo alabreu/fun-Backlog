@@ -276,6 +276,39 @@ então uma paleta nova que quebre AA falha o `npm run lint`.
 
 ---
 
+## 10. Só tema escuro, e sem escolha — por enquanto
+
+**Decidido em:** 07/08/2026. **Declaradamente provisória.**
+
+O app fica travado no escuro (`LOCKED_THEME` em `core/theme.ts`) e a seção
+"Aparência" some de Configurações.
+
+**Por quê:** decisão estética do usuário — o escuro combina com a identidade
+visual que ele tem em mente para um app de entretenimento. Não é economia de
+código nem restrição técnica.
+
+**Por que a seção some inteira, em vez de ficar com uma opção:** "Aparência"
+com um item só seria a interface fingindo que há uma escolha. Um ajuste que não
+ajusta nada é pior que ajuste nenhum.
+
+**O que custa:** quem prefere o claro, ou usa o celular sob sol forte, perde a
+saída. Também perdemos o respeito automático ao ajuste do sistema — inclusive a
+troca noturna. É um custo real de acessibilidade, e é o motivo de isto estar
+marcado como provisório em vez de fechado.
+
+**O que NÃO foi feito, de propósito:** o tema claro não foi apagado. Os tokens,
+o `@media (prefers-color-scheme)` e os pares de contraste dos DOIS temas seguem
+no `npm run lint`, e o `/design` continua alternando os dois para conferência.
+Apagar transformaria a volta atrás — que o próprio usuário anunciou como
+possível — de uma linha num dia de trabalho.
+
+**Como destravar:** `LOCKED_THEME = null`. O seletor, a persistência e a
+semeadura do localStorage voltam sozinhos. Reverter também o
+`theme-color` do `index.html` para o par com `prefers-color-scheme` e o
+`THEME_COLOR` do `vite.config.ts`.
+
+---
+
 ## Ainda em aberto
 
 - **Identidade visual**: paleta (primitivos em `src/index.css`), ícones reais e

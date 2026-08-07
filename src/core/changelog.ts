@@ -30,7 +30,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       pt: [
         'A busca agora mostra primeiro o que já está na sua estante — sem risco de adicionar a mesma obra duas vezes.',
         'Cole o link da Steam, do Letterboxd, do IMDb ou de quase qualquer site: o app entende e procura sozinho.',
-        'Nova tela de Configurações, com tema claro, escuro ou seguindo o aparelho.',
+        'Nova tela de Configurações, reunindo os ajustes do app.',
         'Escolha como quer ser chamado na saudação — da lista, do seu jeito, ou sorteando outro quando não gostar do dia.',
         'Cada mídia ganhou uma cor: dá para achar a estante certa e separar um filme de um livro de mesmo nome sem ler nada.',
         'Obras sem capa deixaram de ser retângulos cinzas iguais — cada uma aparece na cor da sua mídia.',
@@ -38,7 +38,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       en: [
         'Search now shows what is already on your shelf first — no more adding the same thing twice.',
         'Paste a link from Steam, Letterboxd, IMDb or almost any site: the app understands it and searches on its own.',
-        'New Settings screen, with a light theme, a dark one, or following your device.',
+        'New Settings screen, gathering the app’s preferences in one place.',
         'Choose what we call you in the greeting — from the list, in your own words, or draw another when today’s does not fit.',
         'Each medium got its own colour: find the right shelf, and tell a film from a book of the same name, without reading a thing.',
         'Titles with no cover art are no longer identical grey boxes — each one shows up in its medium’s colour.',
