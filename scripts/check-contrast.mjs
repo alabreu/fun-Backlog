@@ -36,6 +36,25 @@ const PAIRS = [
   ['primary', 'surface', 3, 'anel de foco sobre card'],
   ['accent', 'surface', 3, 'badge sobre card'],
   ['on-inverse', 'inverse', 4.5, 'texto do toast (superfície invertida)'],
+  // Cor por mídia: cada uma aparece de DOIS jeitos, e os dois têm mínimo
+  // diferente. Como texto (cabeçalho de grupo na busca) precisa de 4.5; como
+  // superfície preenchida (chip selecionado, badge, barra da linha) precisa de
+  // 3.0 pela 1.4.11, e aí o que carrega o texto é o par `on-media`.
+  ['media-game', 'bg', 4.5, 'jogos como texto no fundo'],
+  ['media-movie', 'bg', 4.5, 'filmes como texto no fundo'],
+  ['media-series', 'bg', 4.5, 'séries como texto no fundo'],
+  ['media-anime', 'bg', 4.5, 'animes como texto no fundo'],
+  ['media-book', 'bg', 4.5, 'livros como texto no fundo'],
+  ['media-game', 'surface', 3, 'jogos como superfície sobre card'],
+  ['media-movie', 'surface', 3, 'filmes como superfície sobre card'],
+  ['media-series', 'surface', 3, 'séries como superfície sobre card'],
+  ['media-anime', 'surface', 3, 'animes como superfície sobre card'],
+  ['media-book', 'surface', 3, 'livros como superfície sobre card'],
+  ['on-media', 'media-game', 4.5, 'texto sobre a cor de jogos'],
+  ['on-media', 'media-movie', 4.5, 'texto sobre a cor de filmes'],
+  ['on-media', 'media-series', 4.5, 'texto sobre a cor de séries'],
+  ['on-media', 'media-anime', 4.5, 'texto sobre a cor de animes'],
+  ['on-media', 'media-book', 4.5, 'texto sobre a cor de livros'],
   // O botão dentro do toast NÃO é verificado contra a superfície do toast: pela
   // 1.4.11, componente identificado pelo próprio rótulo de alto contraste não
   // exige contraste de borda — e o rótulo já é conferido em `on-primary`.

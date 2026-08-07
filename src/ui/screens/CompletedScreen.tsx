@@ -112,7 +112,7 @@ export function CompletedScreen() {
         {summary.byMedia.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-1.5">
             {summary.byMedia.map(({ mediaType, count }) => (
-              <Badge key={mediaType}>
+              <Badge key={mediaType} media={mediaType}>
                 {count} · {t(mediaLabelKey(mediaType))}
               </Badge>
             ))}

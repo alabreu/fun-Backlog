@@ -166,6 +166,7 @@ export function HomeScreen() {
             return (
               <NavRow
                 key={mediaType}
+                media={mediaType}
                 label={t(mediaLabelKey(mediaType))}
                 trailing={total > 0 ? `${completed}/${total}` : undefined}
                 onClick={() => navigate(`/estante/${mediaType}`)}

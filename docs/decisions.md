@@ -221,6 +221,45 @@ próprio perfil.
 
 ---
 
+## 9. Cor por mídia: acelera a leitura, nunca substitui o rótulo
+
+**Decidido em:** 07/08/2026.
+
+Cinco cores, uma por mídia — violeta (jogos), âmbar (filmes), azul (séries),
+turquesa (animes), verde (livros) — como camada de **escaneabilidade**. Cor é
+processada antes da atenção consciente; texto não. Cinco linhas de estante
+idênticas, distinguidas só pela palavra, obrigam a ler cada uma.
+
+**Três regras que não podem ser quebradas:**
+
+1. **A cor nunca vai sozinha.** O rótulo acompanha sempre (WCAG 1.4.1). É o que
+   faz o recurso não excluir quem não distingue turquesa de azul: para essa
+   pessoa a tela continua exatamente como era. Onde a cor é o único sinal — o
+   `MediaDot` em lista mista — o componente exige um `label` para leitor de tela.
+2. **Nada disso encosta nas capas.** A arte já é o código visual do grid
+   ("estante, não planilha"); cor de marca ao redor dela polui em vez de
+   organizar. O ponto de mídia fica na legenda, nunca sobre a imagem.
+3. **Nenhuma delas é rosa.** O rosa é o `accent` do produto ("isto é você",
+   "isto importa") e continua sendo. Se uma mídia usasse a mesma cor, o accent
+   deixaria de ser um sinal e viraria mais uma cor entre seis.
+
+**Onde aparece:** barra na linha da estante, chip de filtro selecionado, badge
+de mídia, cabeçalho de grupo na busca, ponto na lista mista. **Onde não
+aparece:** em cima de capa.
+
+**O que custa:** amarelo não passa AA como texto sobre fundo claro sem escurecer
+até virar marrom — por isso o âmbar do tema claro (`#a04a08`) puxa para o
+terroso. Resolver exigiria dois tokens por mídia (um para texto, um para
+preenchimento); fica para a sessão de identidade visual, se incomodar.
+
+**Sobre trocar depois:** as cores entram como primitivos em `:root` e são
+referenciadas por tokens semânticos (`--color-media-*`). Mudar a paleta na
+sessão de identidade é mexer em dez valores hexadecimais — componentes e telas
+ficam de pé. Os 30 pares de contraste entraram no `scripts/check-contrast.mjs`,
+então uma paleta nova que quebre AA falha o `npm run lint`.
+
+---
+
 ## Ainda em aberto
 
 - **Identidade visual**: paleta (primitivos em `src/index.css`), ícones reais e

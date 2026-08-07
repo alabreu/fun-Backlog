@@ -20,6 +20,7 @@ import {
   CoverGrid,
   Field,
   Input,
+  MediaDot,
   Screen,
   ScreenBody,
   SectionTitle,
@@ -221,6 +222,7 @@ export function AddScreen() {
             {MEDIA_TYPES.map((type) => (
               <Chip
                 key={type}
+                media={type}
                 selected={media === type}
                 onClick={() => setMedia(type)}
                 className="whitespace-nowrap"
@@ -271,8 +273,18 @@ export function AddScreen() {
                             {t(statusLabelKey(item.status, item.mediaType))}
                           </Badge>
                         </div>
-                        <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
-                          {item.title}
+                        {/* Lista MISTA: sem o ponto, "Duna" filme e "Duna"
+                            livro ficam idênticos na tela. O `label` vai junto
+                            porque aqui a cor é o único sinal da mídia. */}
+                        <span className="mt-1.5 flex items-start gap-1.5">
+                          <MediaDot
+                            media={item.mediaType}
+                            label={t(mediaLabelKey(item.mediaType))}
+                            className="mt-1"
+                          />
+                          <span className="line-clamp-2 text-label font-semibold">
+                            {item.title}
+                          </span>
                         </span>
                       </button>
                     </li>
@@ -311,7 +323,7 @@ export function AddScreen() {
 
             {shown.groups.map((group) => (
               <section key={group.mediaType} className="mt-5">
-                <SectionTitle className="mb-2">
+                <SectionTitle media={group.mediaType} className="mb-2">
                   {t(mediaLabelKey(group.mediaType))}
                 </SectionTitle>
                 <CoverGrid>

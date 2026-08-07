@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Heart, PaperPlaneRight } from '@phosphor-icons/react'
 import {
+  Badge,
   Button,
   Card,
   Chip,
+  NavRow,
   Field,
   IconButton,
   Input,
@@ -13,6 +15,7 @@ import {
   Sheet,
   Textarea,
 } from '@ui/design'
+import { MEDIA_TYPES, type MediaType } from '@core/items/types'
 import { useThemeStore } from '@core/state/themeStore'
 import { THEMES, type Theme } from '@core/theme'
 import { applyTheme } from '@ui/theme'
@@ -66,6 +69,7 @@ export function DesignScreen() {
   const [chip, setChip] = useState('a')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [theme, setTheme] = useState<Theme>('system')
+  const [mediaChip, setMediaChip] = useState<MediaType>('game')
 
   // A vitrine sobrepõe o tema para dar para conferir os dois lados sem mexer
   // na preferência de ninguém. Ao sair, RESTAURA o que o usuário escolheu em
@@ -119,6 +123,50 @@ export function DesignScreen() {
                   </span>
                 </span>
               </Card>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">Cor por mídia</SectionTitle>
+          <p className="mb-3 text-body text-muted">
+            Família à parte do <code>accent</code>, que continua sendo o sinal de
+            "isto é você". Serve para escanear — a cor nunca vai sozinha, o
+            rótulo está sempre junto (WCAG 1.4.1). Não encosta nas capas.
+          </p>
+
+          <div className="mb-3 flex flex-wrap gap-2">
+            {MEDIA_TYPES.map((type) => (
+              <Badge key={type} media={type}>
+                {type}
+              </Badge>
+            ))}
+          </div>
+
+          <div className="mb-3 flex flex-wrap gap-2">
+            {MEDIA_TYPES.map((type) => (
+              <SectionTitle key={type} as="p" media={type}>
+                {type}
+              </SectionTitle>
+            ))}
+          </div>
+
+          <div className="mb-3 flex flex-wrap gap-2">
+            {MEDIA_TYPES.map((type) => (
+              <Chip
+                key={type}
+                media={type}
+                selected={mediaChip === type}
+                onClick={() => setMediaChip(type)}
+              >
+                {type}
+              </Chip>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {MEDIA_TYPES.map((type) => (
+              <NavRow key={type} media={type} label={type} trailing="0/0" />
             ))}
           </div>
         </section>

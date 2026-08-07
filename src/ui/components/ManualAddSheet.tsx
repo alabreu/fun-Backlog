@@ -102,6 +102,7 @@ function ManualForm({
           {MEDIA_TYPES.map((type) => (
             <Chip
               key={type}
+              media={type}
               selected={media === type}
               onClick={() => setMedia(type)}
             >

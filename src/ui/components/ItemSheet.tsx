@@ -76,7 +76,7 @@ function ItemDetail({ item, onClose }: { item: Item; onClose: () => void }) {
         <div className="min-w-0 flex-1">
           <h2 className="text-title font-bold">{item.title}</h2>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
-            <Badge>{t(mediaLabelKey(item.mediaType))}</Badge>
+            <Badge media={item.mediaType}>{t(mediaLabelKey(item.mediaType))}</Badge>
             {item.completedAt && (
               <Badge tone="accent">
                 {t('item.completedAt', {

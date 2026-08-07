@@ -42,7 +42,7 @@ da TMDB, cadastrados como secrets do Supabase.
 | | Item | Notas |
 | --- | --- | --- |
 | 🟡 | Mood picker + recomendação | Feature 4, a assinatura do produto. O mood picker não pode ser formulário. Depende da chave do OpenRouter para funcionar de fato |
-| 🟡 | Identidade visual | Paleta (primitivos em `index.css`), ícones e a linguagem do grid. O usuário pediu para deixar por último |
+| 🟡 | Identidade visual | Paleta, ícones e a linguagem do grid. As cinco cores de mídia já entraram (decisão 9) e são o primeiro pedaço dela — falta o resto. Rever ali o âmbar do tema claro, que puxa para o marrom |
 | 🟡 | Eventos de analytics do produto | `track()` em adicionar, concluir e recomendar — hoje só existe `session_start`, então o `/admin` não conta nada de útil |
 | 🟢 | Preferências na conta, não no aparelho | Tema e vocativo hoje vivem no localStorage: trocar de celular perde os dois. Levar para a nuvem custa uma migração e uma tabela `profiles` — vale quando houver uma terceira preferência |
 | 🟢 | Resolver link por id, não por slug | Hoje só o IMDb resolve exato; Steam, IGDB e TMDB caem na busca por título extraído da URL. Resolver pelo id daria a obra certa sempre, ao custo de um caminho por site |

@@ -22,6 +22,18 @@
   --palette-green-700: #15803d;
   --palette-red-400: #f87171;
   --palette-red-700: #b91c1c;
+  /* Família das mídias. Cinco matizes bem separados no círculo e, de
+     propósito, NENHUM deles rosa: o rosa é o accent do produto ("isto é
+     você"), e uma mídia usando a mesma cor roubaria esse significado.
+     Como no resto da paleta, o -700 serve ao tema claro e o -400 ao escuro. */
+  --palette-violet-400: #a78bfa;
+  --palette-violet-700: #6d28d9;
+  --palette-amber-400: #fbbf24;
+  --palette-amber-700: #a04a08;
+  --palette-blue-400: #60a5fa;
+  --palette-blue-700: #1d4ed8;
+  --palette-teal-400: #2dd4bf;
+  --palette-teal-700: #0f766e;
 }
 
 /* ===========================================================================
@@ -51,6 +63,25 @@
   --color-inverse: var(--palette-gray-950);
   --color-on-inverse: var(--palette-sand-50);
   --color-scrim: var(--palette-gray-950);
+
+  /* --- Cor por mídia ---
+     Serve para ESCANEAR: nas linhas das estantes, nos chips de filtro e nos
+     cabeçalhos de grupo da busca, a cor chega antes da leitura.
+
+     Ela NUNCA carrega a informação sozinha — o rótulo ("Jogos", "Filmes")
+     está sempre junto. Isso é a WCAG 1.4.1, e é também o que faz o recurso
+     funcionar para quem não distingue turquesa de azul: a cor acelera quem
+     enxerga a diferença e não tira nada de quem não enxerga.
+
+     `on-media` é único para as cinco: no tema claro todas são escuras (-700) e
+     pedem texto claro; no escuro todas são claras (-400) e pedem texto escuro.
+     Cinco tokens de texto seriam cinco chances de errar o par. */
+  --color-media-game: var(--palette-violet-700);
+  --color-media-movie: var(--palette-amber-700);
+  --color-media-series: var(--palette-blue-700);
+  --color-media-anime: var(--palette-teal-700);
+  --color-media-book: var(--palette-green-700);
+  --color-on-media: var(--palette-white);
 
   /* --- Raio: nomeado pelo PAPEL, não pelo tamanho. --- */
   --radius-control: 9999px; /* botões, chips */
@@ -154,6 +185,12 @@
     --color-on-accent: var(--palette-gray-950);
     --color-success: var(--palette-green-400);
     --color-danger: var(--palette-red-400);
+    --color-media-game: var(--palette-violet-400);
+    --color-media-movie: var(--palette-amber-400);
+    --color-media-series: var(--palette-blue-400);
+    --color-media-anime: var(--palette-teal-400);
+    --color-media-book: var(--palette-green-400);
+    --color-on-media: var(--palette-gray-950);
   }
 }
 
@@ -169,6 +206,12 @@
   --color-on-accent: var(--palette-gray-950);
   --color-success: var(--palette-green-400);
   --color-danger: var(--palette-red-400);
+  --color-media-game: var(--palette-violet-400);
+  --color-media-movie: var(--palette-amber-400);
+  --color-media-series: var(--palette-blue-400);
+  --color-media-anime: var(--palette-teal-400);
+  --color-media-book: var(--palette-green-400);
+  --color-on-media: var(--palette-gray-950);
 }
 
 html,
