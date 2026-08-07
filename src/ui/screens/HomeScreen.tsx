@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { MagnifyingGlass, User } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
 import { getUnreadCount } from '@core/changelog'
-import { greetingKey, vocativeFor } from '@core/greeting'
+import { openingFor, splitOpening, vocativeFor } from '@core/greeting'
 import { useNicknameStore } from '@core/state/nicknameStore'
 import { mediaLabelKey, progressLabelKey } from '@core/items/status'
 import {
@@ -65,16 +65,28 @@ export function HomeScreen() {
 
   const emptyShelf = !loading && items.length === 0
 
+  // A abertura fala do estado em que a tela está: "Onde paramos?" com algo em
+  // andamento, "O que vai ser hoje?" com a fila cheia e nada começado. É ela
+  // que tornou dispensáveis os rótulos que ficavam sobre os carrosséis.
+  const opening = splitOpening(
+    openingFor(
+      now,
+      locale,
+      emptyShelf ? 'start' : active.length > 0 ? 'resume' : 'pick',
+    ),
+  )
+
   return (
     <Screen>
       <header className="flex items-start justify-between gap-2 px-gutter pb-4 pt-3">
         <div className="min-w-0">
-          <h1 className="text-display font-extrabold tracking-tight">
-            {t(greetingKey(now))},
+          <h1 className="text-display font-extrabold tracking-tight text-balance">
+            {opening.before}
+            <span className="text-accent">
+              {vocativeFor(now, locale, nickname, reroll)}
+            </span>
+            {opening.after}
           </h1>
-          <p className="text-display font-extrabold tracking-tight text-accent">
-            {vocativeFor(now, locale, nickname, reroll)}
-          </p>
         </div>
         <IconButton
           aria-label={
@@ -108,8 +120,9 @@ export function HomeScreen() {
             </Button>
           </div>
         ) : active.length > 0 ? (
+          // Sem rótulo: o cabeçalho já disse "onde paramos", e as capas com
+          // progresso dizem o resto. Uma legenda aqui explicaria o óbvio.
           <section>
-            <SectionTitle className="mb-2">{t('home.inProgress')}</SectionTitle>
             <Rail>
               {active.map((item, index) => (
                 <RailItem key={item.id}>
@@ -125,9 +138,9 @@ export function HomeScreen() {
         ) : (
           suggestions.length > 0 && (
             <section>
-              <SectionTitle className="mb-1">
-                {t('home.suggestionsTitle')}
-              </SectionTitle>
+              {/* Aqui a linha FICA: sem ela, este carrossel é visualmente
+                  idêntico ao de "em andamento", e a pessoa não teria como
+                  saber que são coisas que ela ainda não começou. */}
               <p className="mb-2 text-body text-muted">
                 {t('home.suggestionsBody')}
               </p>

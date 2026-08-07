@@ -1,8 +1,9 @@
 import { ArrowsClockwise, Check, Shuffle } from '@phosphor-icons/react'
 import {
-  greetingKey,
   NICKNAME_MAX,
+  openingFor,
   rerollVocative,
+  splitOpening,
   VOCATIVES,
   vocativeFor,
 } from '@core/greeting'
@@ -45,6 +46,9 @@ export function NicknameScreen() {
   const current = vocativeFor(now, locale, nickname, reroll)
   const rotating = nickname === null
   const options = VOCATIVES[locale] ?? VOCATIVES.pt
+  // `resume` é o estado mais comum da home (quem usa o app tem algo em
+  // andamento), então é o que melhor representa o que a pessoa vai ver.
+  const preview = splitOpening(openingFor(now, locale, 'resume'))
 
   /** Volta ao automático e já sorteia — o gesto é "outra palavra, agora". */
   function shuffle() {
@@ -65,9 +69,12 @@ export function NicknameScreen() {
           <p className="text-label uppercase tracking-wide text-muted">
             {t('nickname.previewLabel')}
           </p>
+          {/* A prévia usa a MESMA abertura do dia que a home usaria — mostrar
+              uma frase diferente daqui a pouco faria a prévia mentir. */}
           <p className="mt-1 text-title font-extrabold tracking-tight">
-            {t(greetingKey(now))},{' '}
+            {preview.before}
             <span className="text-accent">{current}</span>
+            {preview.after}
           </p>
         </Card>
 

@@ -1,4 +1,4 @@
-import type { Locale, MessageKey } from '@core/i18n'
+import type { Locale } from '@core/i18n'
 
 /**
  * A saudação da home: "Boa noite, Comandante".
@@ -69,30 +69,101 @@ export function sanitizeNickname(value: string | null | undefined): string | nul
   return clean.length > 0 ? clean : null
 }
 
-export type GreetingPeriod = 'morning' | 'afternoon' | 'evening' | 'night'
+/**
+ * A ABERTURA da home — a frase que abre a tela, com o vocativo dentro.
+ *
+ * Ela substituiu duas coisas que diziam a mesma coisa duas vezes: uma saudação
+ * por horário ("Boa noite,") seguida de um rótulo de seção ("Continue de onde
+ * parou"). O rótulo explicava o carrossel que estava logo abaixo dele, visível,
+ * com capas — ninguém precisava da legenda.
+ *
+ * Três conjuntos porque a home tem TRÊS estados, e a frase precisa ser
+ * verdadeira em cada um: "Onde paramos?" é ótimo com algo em andamento e é uma
+ * mentira numa estante vazia.
+ *
+ * Como em VOCATIVES, as listas são independentes por idioma e não traduções
+ * uma da outra — o que soa natural em português não é o que soa natural em
+ * inglês. `{name}` é onde o vocativo entra; a tela pinta essa parte de accent.
+ */
+export type OpeningKind =
+  /** Há algo em andamento: o carrossel é de continuar. */
+  | 'resume'
+  /** Nada em andamento, mas há fila: o carrossel é de sugestão. */
+  | 'pick'
+  /** Estante vazia: não há carrossel nenhum. */
+  | 'start'
 
-const PERIOD_KEYS: Record<GreetingPeriod, MessageKey> = {
-  morning: 'home.greeting.morning',
-  afternoon: 'home.greeting.afternoon',
-  evening: 'home.greeting.evening',
-  night: 'home.greeting.night',
+export const OPENINGS: Record<Locale, Record<OpeningKind, string[]>> = {
+  pt: {
+    resume: [
+      'Onde paramos, {name}?',
+      'Continuamos, {name}?',
+      'Bora seguir, {name}?',
+      'No que estávamos, {name}?',
+    ],
+    pick: [
+      'O que vai ser hoje, {name}?',
+      'Por onde começamos, {name}?',
+      'Escolhe uma, {name}?',
+      'Hora de começar algo, {name}?',
+    ],
+    start: [
+      'Bora começar, {name}?',
+      'Vamos encher essa estante, {name}?',
+      'Primeira obra, {name}?',
+      'Por onde começamos, {name}?',
+    ],
+  },
+  en: {
+    resume: [
+      'Where were we, {name}?',
+      'Shall we continue, {name}?',
+      'Back at it, {name}?',
+      'Pick it up, {name}?',
+    ],
+    pick: [
+      'What will it be, {name}?',
+      'Where do we start, {name}?',
+      'Pick one, {name}?',
+      'Time to start something, {name}?',
+    ],
+    start: [
+      'Shall we start, {name}?',
+      'Ready to fill this shelf, {name}?',
+      'First one in, {name}?',
+      'Where do we begin, {name}?',
+    ],
+  },
+}
+
+const NAME_SLOT = '{name}'
+
+/**
+ * A abertura do dia, para um estado. Mesma cadência do vocativo — uma por dia,
+ * determinística — porque uma frase que troca a cada render parece defeito.
+ */
+export function openingFor(
+  date: Date,
+  locale: Locale,
+  kind: OpeningKind,
+): string {
+  const list = (OPENINGS[locale] ?? OPENINGS.pt)[kind]
+  return list[((dayNumber(date) % list.length) + list.length) % list.length]
 }
 
 /**
- * Quatro faixas, mesmo que o português use "boa noite" em duas delas: o inglês
- * distingue evening de night, e achatar aqui tiraria essa nuance de lá para
- * sempre. Cada idioma resolve isso na sua tabela de mensagens.
+ * Parte a frase no lugar do vocativo, para a tela poder pintar só ele de
+ * accent. Devolver duas strings (e não a frase montada) é o que permite isso
+ * sem a tela precisar saber onde o `{name}` estava — nem interpolar HTML.
  */
-export function periodFor(date: Date): GreetingPeriod {
-  const hour = date.getHours()
-  if (hour >= 5 && hour < 12) return 'morning'
-  if (hour >= 12 && hour < 18) return 'afternoon'
-  if (hour >= 18 && hour < 23) return 'evening'
-  return 'night'
-}
-
-export function greetingKey(date: Date): MessageKey {
-  return PERIOD_KEYS[periodFor(date)]
+export function splitOpening(phrase: string): { before: string; after: string } {
+  const at = phrase.indexOf(NAME_SLOT)
+  // Frase sem o marcador ainda renderiza inteira, em vez de sumir da tela.
+  if (at < 0) return { before: phrase, after: '' }
+  return {
+    before: phrase.slice(0, at),
+    after: phrase.slice(at + NAME_SLOT.length),
+  }
 }
 
 /** Dia absoluto desde a época, no fuso local. É a semente de tudo que muda

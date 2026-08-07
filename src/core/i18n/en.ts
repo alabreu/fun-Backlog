@@ -11,12 +11,6 @@ export const en: Record<keyof typeof pt, string> = {
   // Home
   'home.menuButton': 'Menu',
   'home.menuButtonUnread': 'Menu — unread news available',
-  'home.greeting.morning': 'Good morning',
-  'home.greeting.afternoon': 'Good afternoon',
-  'home.greeting.evening': 'Good evening',
-  'home.greeting.night': 'Good night',
-  'home.inProgress': 'Pick up where you left off',
-  'home.suggestionsTitle': 'How about one of these?',
   'home.suggestionsBody': 'From your queue, to start today.',
   'home.shelves': 'Your shelves',
   'home.searchFab': 'Search or add',

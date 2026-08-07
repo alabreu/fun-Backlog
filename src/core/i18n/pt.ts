@@ -9,12 +9,6 @@ export const pt = {
   // Home
   'home.menuButton': 'Menu',
   'home.menuButtonUnread': 'Menu — há novidades não lidas',
-  'home.greeting.morning': 'Bom dia',
-  'home.greeting.afternoon': 'Boa tarde',
-  'home.greeting.evening': 'Boa noite',
-  'home.greeting.night': 'Boa noite',
-  'home.inProgress': 'Continue de onde parou',
-  'home.suggestionsTitle': 'Que tal um destes?',
   'home.suggestionsBody': 'Da sua fila, para você começar hoje.',
   'home.shelves': 'Suas estantes',
   'home.searchFab': 'Buscar ou adicionar',

@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { LOCALES } from '@core/i18n'
 import {
   dayNumber,
-  greetingKey,
-  periodFor,
   NICKNAME_MAX,
+  openingFor,
+  OPENINGS,
   rerollVocative,
   sanitizeNickname,
+  splitOpening,
   VOCATIVES,
   vocativeFor,
 } from './greeting'
@@ -14,30 +15,6 @@ import {
 function at(hour: number): Date {
   return new Date(2026, 7, 6, hour, 30)
 }
-
-describe('periodFor', () => {
-  it('divide o dia nas quatro faixas', () => {
-    expect(periodFor(at(7))).toBe('morning')
-    expect(periodFor(at(14))).toBe('afternoon')
-    expect(periodFor(at(20))).toBe('evening')
-    expect(periodFor(at(2))).toBe('night')
-  })
-
-  it('acerta as bordas', () => {
-    expect(periodFor(at(4))).toBe('night')
-    expect(periodFor(at(5))).toBe('morning')
-    expect(periodFor(at(11))).toBe('morning')
-    expect(periodFor(at(12))).toBe('afternoon')
-    expect(periodFor(at(17))).toBe('afternoon')
-    expect(periodFor(at(18))).toBe('evening')
-    expect(periodFor(at(22))).toBe('evening')
-    expect(periodFor(at(23))).toBe('night')
-  })
-
-  it('devolve uma chave de mensagem que existe', () => {
-    expect(greetingKey(at(9))).toBe('home.greeting.morning')
-  })
-})
 
 describe('vocativeFor', () => {
   it('é estável ao longo do mesmo dia', () => {
@@ -147,5 +124,47 @@ describe('rerollVocative', () => {
   it('apelido fixo ganha do sorteio', () => {
     const sorteio = rerollVocative(dia, 'pt', 'Comandante', () => 0)
     expect(vocativeFor(dia, 'pt', 'Capit\u00e3', sorteio)).toBe('Capit\u00e3')
+  })
+})
+
+describe('aberturas da home', () => {
+  const dia = new Date(2026, 7, 7, 20)
+
+  it('\u00e9 est\u00e1vel ao longo do mesmo dia e muda no dia seguinte', () => {
+    expect(openingFor(new Date(2026, 7, 7, 8), 'pt', 'resume')).toBe(
+      openingFor(new Date(2026, 7, 7, 23), 'pt', 'resume'),
+    )
+    const hoje = openingFor(dia, 'pt', 'resume')
+    const amanha = openingFor(new Date(2026, 7, 8, 20), 'pt', 'resume')
+    expect(hoje).not.toBe(amanha)
+  })
+
+  it('cada estado tem a sua frase', () => {
+    const kinds = ['resume', 'pick', 'start'] as const
+    const frases = kinds.map((k) => openingFor(dia, 'pt', k))
+    expect(new Set(frases).size).toBe(kinds.length)
+  })
+
+  it('toda frase, em todo idioma, tem o lugar do vocativo', () => {
+    for (const locale of LOCALES) {
+      for (const lista of Object.values(OPENINGS[locale])) {
+        for (const frase of lista) expect(frase).toContain('{name}')
+      }
+    }
+  })
+
+  it('data anterior \u00e0 \u00e9poca n\u00e3o estoura o \u00edndice', () => {
+    expect(openingFor(new Date(1969, 0, 1, 10), 'pt', 'pick')).toBeTruthy()
+  })
+
+  it('splitOpening parte no lugar do vocativo', () => {
+    expect(splitOpening('Onde paramos, {name}?')).toEqual({
+      before: 'Onde paramos, ',
+      after: '?',
+    })
+  })
+
+  it('frase sem marcador ainda renderiza inteira', () => {
+    expect(splitOpening('Ol\u00e1')).toEqual({ before: 'Ol\u00e1', after: '' })
   })
 })
