@@ -72,6 +72,16 @@
   --text-metric--line-height: 1.5rem;
   --text-display: 1.5rem; /* 24px: título da tela */
   --text-display--line-height: 1.75rem;
+  /* 16px, e o número é o ponto: o Safari do iOS DÁ ZOOM sozinho ao focar
+     qualquer campo com fonte menor que 16px. A saída óbvia — `user-scalable=no`
+     no viewport — está proibida (WCAG 1.4.4, ver ACCESSIBILITY.md), e com
+     razão: ela resolve o zoom automático tirando o zoom de quem PRECISA dele.
+     Então o campo é que sobe de tamanho. Token próprio, e não `text-body`,
+     porque isto é uma restrição de plataforma e não uma escolha tipográfica —
+     quem for mexer na escala do corpo do texto não pode arrastar os campos
+     junto sem saber. */
+  --text-input: 1rem;
+  --text-input--line-height: 1.5rem;
 
   /* --- Movimento: nomeado pelo PAPEL, como o resto.
      Existe como token (e não como classe arbitrária na tela) pelo mesmo motivo

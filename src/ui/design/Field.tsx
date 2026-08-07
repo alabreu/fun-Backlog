@@ -10,9 +10,13 @@ import type {
  * resistência: ele gera o id e faz o `htmlFor`, então ninguém precisa lembrar de
  * amarrar os dois na mão (rótulo solto é a falha de acessibilidade mais comum em
  * formulário).
+ *
+ * `text-input` (16px) e não `text-body` (14px): abaixo de 16px o Safari do iOS
+ * dá zoom sozinho ao focar o campo, e a tela inteira salta. Ver o comentário do
+ * token em src/index.css — desabilitar o zoom no viewport não é opção.
  */
 const CONTROL =
-  'w-full rounded-field bg-ink/5 px-4 py-3 text-body text-ink outline-none ring-1 ring-ink/10 placeholder:text-muted focus:ring-2 focus:ring-primary/40'
+  'w-full rounded-field bg-ink/5 px-4 py-3 text-input text-ink outline-none ring-1 ring-ink/10 placeholder:text-muted focus:ring-2 focus:ring-primary/40'
 
 export function Input({
   className = '',
