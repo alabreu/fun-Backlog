@@ -66,6 +66,19 @@ export const pt = {
   'add.manualMediaLabel': 'Mídia',
   'add.manualSubmit': 'Adicionar à estante',
 
+  // Concluídos (a estante de troféus)
+  'completed.title': 'Concluídos',
+  'completed.seeShelf': 'Ver meus troféus',
+  'completed.allYears': 'Tudo',
+  'completed.yearHeading': 'Em {year}',
+  'completed.statTotal': 'concluídos',
+  'completed.statHours': 'horas de jogo',
+  'completed.statEpisodes': 'episódios',
+  'completed.statPages': 'páginas',
+  'completed.emptyTitle': 'Nenhum troféu ainda',
+  'completed.emptyBody':
+    'Quando você terminar algo da sua estante, ele aparece aqui — com o ano em revista.',
+
   // Migração convidado -> conta
   'merge.title': 'Encontramos {count} itens neste aparelho',
   'merge.body':
@@ -100,6 +113,7 @@ export const pt = {
   'menu.feedback': 'Enviar feedback',
   'menu.language': 'Idioma',
   'menu.news': 'Novidades',
+  'menu.completed': 'Concluídos',
   'menu.donate': 'Apoiar o app',
   'menu.login': 'Entrar',
 

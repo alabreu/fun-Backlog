@@ -28,6 +28,14 @@ interface ItemsState {
   pendingLocal: Item[]
   migrating: boolean
 
+  /**
+   * O item que ACABOU de ser concluído, para a UI comemorar. Fica no store e
+   * não em prop da tela porque concluir vai acontecer de vários lugares (o
+   * sheet hoje, um gesto no grid amanhã) e a recompensa tem que ser a mesma.
+   * É dado, não DOM — o core continua sem saber o que a tela faz com isso.
+   */
+  justCompleted: Item | null
+
   load: (signedIn: boolean) => Promise<void>
   add: (input: NewItem) => Promise<Item>
   update: (id: string, patch: ItemPatch) => Promise<void>
@@ -35,6 +43,7 @@ interface ItemsState {
   remove: (id: string) => Promise<void>
   migrateLocal: () => Promise<void>
   dismissLocal: () => void
+  clearJustCompleted: () => void
 }
 
 export const useItemsStore = create<ItemsState>((set, get) => ({
@@ -44,6 +53,7 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
   signedIn: false,
   pendingLocal: [],
   migrating: false,
+  justCompleted: null,
 
   async load(signedIn) {
     set({ loading: true, error: null, signedIn })
@@ -89,10 +99,21 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
   async setStatus(id, status) {
     const item = get().items.find((i) => i.id === id)
     if (!item) return
+
+    // Só comemora quem ACABOU de chegar em "concluído". Reabrir o item e tocar
+    // no mesmo chip de novo não é conquista nova, e uma celebração repetida
+    // deixa de ser recompensa e vira interrupção.
+    const isNewCompletion = status === 'done' && item.status !== 'done'
+
     await get().update(id, {
       status,
       ...datesForStatus(status, item, new Date().toISOString()),
     })
+
+    if (isNewCompletion) {
+      const updated = get().items.find((i) => i.id === id)
+      if (updated) set({ justCompleted: updated })
+    }
   },
 
   async remove(id) {
@@ -150,5 +171,9 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
    *  na próxima abertura, de propósito — item invisível para sempre seria pior. */
   dismissLocal() {
     set({ pendingLocal: [] })
+  },
+
+  clearJustCompleted() {
+    set({ justCompleted: null })
   },
 }))

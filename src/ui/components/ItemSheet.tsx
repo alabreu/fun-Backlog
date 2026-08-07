@@ -98,7 +98,13 @@ function ItemDetail({ item, onClose }: { item: Item; onClose: () => void }) {
             <Chip
               key={value}
               selected={item.status === value}
-              onClick={() => void setStatus(item.id, value)}
+              onClick={() => {
+                void setStatus(item.id, value)
+                // Concluir fecha o sheet: a comemoração assume a tela, e
+                // deixar o detalhe aberto atrás dela transforma o momento de
+                // recompensa em duas camadas empilhadas.
+                if (value === 'done' && item.status !== 'done') onClose()
+              }}
             >
               {t(statusLabelKey(value, item.mediaType))}
             </Chip>

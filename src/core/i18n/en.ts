@@ -68,6 +68,19 @@ export const en: Record<keyof typeof pt, string> = {
   'add.manualMediaLabel': 'Medium',
   'add.manualSubmit': 'Add to shelf',
 
+  // Completed (the trophy shelf)
+  'completed.title': 'Completed',
+  'completed.seeShelf': 'See my trophies',
+  'completed.allYears': 'All',
+  'completed.yearHeading': 'In {year}',
+  'completed.statTotal': 'completed',
+  'completed.statHours': 'hours played',
+  'completed.statEpisodes': 'episodes',
+  'completed.statPages': 'pages',
+  'completed.emptyTitle': 'No trophies yet',
+  'completed.emptyBody':
+    'When you finish something on your shelf it shows up here — with the year in review.',
+
   // Guest -> account migration
   'merge.title': 'We found {count} items on this device',
   'merge.body':
@@ -102,6 +115,7 @@ export const en: Record<keyof typeof pt, string> = {
   'menu.feedback': 'Send feedback',
   'menu.language': 'Language',
   'menu.news': "What's new",
+  'menu.completed': 'Completed',
   'menu.donate': 'Support the app',
   'menu.login': 'Sign in',
 

@@ -6,6 +6,7 @@ import {
   Megaphone,
   SignIn,
   Translate,
+  Trophy,
 } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
 import { getUnreadCount } from '@core/changelog'
@@ -30,6 +31,7 @@ interface MenuItem {
 // Adicione aqui os itens específicos do seu app (configurações, importar, etc.).
 // Doação só aparece quando o Payment Link está configurado (build-time).
 const ITEMS: MenuItem[] = [
+  { icon: Trophy, labelKey: 'menu.completed', to: '/concluidos' },
   { icon: ChatCircleDots, labelKey: 'menu.feedback', to: '/feedback' },
   { icon: Translate, labelKey: 'menu.language', to: '/idioma' },
   { icon: Megaphone, labelKey: 'menu.news', to: '/novidades' },
@@ -84,7 +86,11 @@ export function MenuSheet({ open, onClose }: MenuSheetProps) {
                 {newsUnread}
               </span>
             ) : (
-              <CaretRight size={18} className="ml-auto text-muted" aria-hidden />
+              <CaretRight
+                size={18}
+                className="ml-auto text-muted"
+                aria-hidden
+              />
             )}
           </button>
         ))}

@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-06-trofeus',
+    date: '2026-08-06',
+    emoji: '🏆',
+    title: {
+      pt: 'Terminar agora vale troféu',
+      en: 'Finishing something is a trophy now',
+    },
+    items: {
+      pt: [
+        'Marcar algo como terminado ganhou comemoração: a capa em destaque e o item saindo da estante.',
+        'Nova tela de Concluídos, no menu: o ano em revista, com quantos itens, horas de jogo, episódios e páginas.',
+        'Dá para navegar por ano e rever tudo o que você já terminou, com a data de cada um.',
+      ],
+      en: [
+        'Marking something as finished now celebrates: the cover takes the stage and the item leaves the shelf.',
+        'New Completed screen in the menu: the year in review, with items, hours played, episodes and pages.',
+        'Browse by year and revisit everything you have finished, each with its date.',
+      ],
+    },
+  },
+  {
     id: '2026-08-05-conta',
     date: '2026-08-05',
     emoji: '☁️',

@@ -7,8 +7,10 @@ import { useLocaleStore } from '@core/state/localeStore'
 import { UpdateToast } from '@ui/components/UpdateToast'
 import { useAuthInit } from '@ui/hooks/useAuth'
 import { useTranslation } from '@ui/hooks/useTranslation'
+import { CompletionCelebration } from '@ui/components/CompletionCelebration'
 import { AddScreen } from '@ui/screens/AddScreen'
 import { CatalogScreen } from '@ui/screens/CatalogScreen'
+import { CompletedScreen } from '@ui/screens/CompletedScreen'
 import { DonateScreen } from '@ui/screens/DonateScreen'
 import { FeedbackScreen } from '@ui/screens/FeedbackScreen'
 import { LanguageScreen } from '@ui/screens/LanguageScreen'
@@ -75,6 +77,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<CatalogScreen />} />
           <Route path="/adicionar" element={<AddScreen />} />
+          <Route path="/concluidos" element={<CompletedScreen />} />
           <Route path="/feedback" element={<FeedbackScreen />} />
           <Route path="/idioma" element={<LanguageScreen />} />
           <Route path="/novidades" element={<NewsScreen />} />
@@ -99,6 +102,9 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
+      {/* Fora das rotas: concluir um item pode acontecer em qualquer tela, e a
+          comemoração tem que sobreviver à navegação que ela mesma oferece. */}
+      <CompletionCelebration />
       <UpdateToast />
     </BrowserRouter>
   )

@@ -72,6 +72,55 @@
   --text-metric--line-height: 1.5rem;
   --text-display: 1.5rem; /* 24px: título da tela */
   --text-display--line-height: 1.75rem;
+
+  /* --- Movimento: nomeado pelo PAPEL, como o resto.
+     Existe como token (e não como classe arbitrária na tela) pelo mesmo motivo
+     que cor e raio existem: a celebração de concluir um item é linguagem do
+     produto, e vai reaparecer em outros momentos de recompensa.
+
+     ACESSIBILIDADE: todas terminam em `both`, então o ESTADO FINAL é o estado
+     visível. Quem pede menos movimento cai na regra global de
+     prefers-reduced-motion (fim deste arquivo), que zera a duração — a tela
+     aparece pronta em vez de aparecer quebrada. */
+  --animate-trophy: trophy 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-halo: halo 900ms ease-out both;
+  --animate-rise: rise 460ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes trophy {
+    0% {
+      opacity: 0;
+      transform: scale(0.72) rotate(-6deg);
+    }
+    60% {
+      transform: scale(1.06) rotate(2deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+  }
+
+  @keyframes halo {
+    0% {
+      opacity: 0.55;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.9);
+    }
+  }
+
+  @keyframes rise {
+    0% {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 /* ===========================================================================
