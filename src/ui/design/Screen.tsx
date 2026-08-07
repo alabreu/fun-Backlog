@@ -33,7 +33,7 @@ export function ScreenBody({
       className={
         centered
           ? `flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center ${className}`
-          : `min-h-0 flex-1 overflow-y-auto px-gutter pb-8 ${className}`
+          : `min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pb-8 ${className}`
       }
       {...rest}
     >

@@ -177,6 +177,17 @@ body,
   height: 100%;
 }
 
+/* O app é uma coluna de altura fixa: quem rola é o corpo da tela, nunca o
+   documento. Sem isto, o Safari do iOS interpreta um arraste para baixo que
+   sobrou (fechar um sheet, chegar ao fim de uma lista) como PULL-TO-REFRESH e
+   recarrega o app inteiro no meio da interação. `none` no documento mata o
+   gesto; `contain` nas áreas roláveis impede que a rolagem delas encadeie para
+   fora quando chegam ao fim. */
+html,
+body {
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
   background-color: var(--color-bg);

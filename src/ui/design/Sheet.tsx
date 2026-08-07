@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react'
 
 /**
  * Bottom sheet acessível — o PADRÃO da casa para qualquer painel modal.
@@ -16,7 +16,21 @@ import type { ReactNode } from 'react'
  * O effect de foco depende só de `open`: `onClose` é lido por ref porque o pai
  * costuma recriá-lo a cada render, e sem isso qualquer re-render com o sheet
  * aberto devolveria o foco ao botão de origem no meio do uso.
+ *
+ * A BARRINHA ARRASTA DE VERDADE. Ela é uma promessa visual forte: todo mundo
+ * que a vê tenta puxá-la para baixo. Enquanto ninguém tratava esse gesto, ele
+ * vazava para a página e o Safari do iOS o interpretava como pull-to-refresh —
+ * o app recarregava no meio da interação. `touch-action: none` na área de
+ * arraste é o que impede o browser de reivindicar o gesto.
+ *
+ * O arraste é um ATALHO de toque, não o único jeito de fechar: Escape e o
+ * backdrop continuam. Por isso a barrinha não vira um foco no teclado — seria
+ * uma parada a mais no Tab para uma ação que já existe duas vezes.
  */
+
+/** Quanto é preciso puxar para fechar. Curto o bastante para não exigir força,
+ *  longo o bastante para um deslize acidental não fechar o painel. */
+const DISMISS_PX = 96
 export interface SheetProps {
   open: boolean
   onClose: () => void
@@ -28,6 +42,11 @@ export interface SheetProps {
 export function Sheet({ open, onClose, label, children }: SheetProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
+
+  // Deslocamento do arraste em curso. `null` = ninguém está arrastando, e aí o
+  // painel volta a ser posicionado pelas classes (abre/fecha com transition).
+  const [dragY, setDragY] = useState<number | null>(null)
+  const startYRef = useRef(0)
 
   const onCloseRef = useRef(onClose)
   useEffect(() => {
@@ -78,6 +97,30 @@ export function Sheet({ open, onClose, label, children }: SheetProps) {
     }
   }, [open])
 
+  function startDrag(e: ReactPointerEvent<HTMLDivElement>) {
+    startYRef.current = e.clientY
+    setDragY(0)
+    // Captura: o dedo pode sair da barrinha no meio do movimento, e sem isso o
+    // arraste morreria ali.
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  function moveDrag(e: ReactPointerEvent<HTMLDivElement>) {
+    if (dragY === null) return
+    // Só para baixo: puxar para cima não estica o painel, ele fica onde está.
+    setDragY(Math.max(0, e.clientY - startYRef.current))
+  }
+
+  function endDrag(e: ReactPointerEvent<HTMLDivElement>) {
+    if (dragY === null) return
+    e.currentTarget.releasePointerCapture(e.pointerId)
+    const passou = dragY > DISMISS_PX
+    // Zera ANTES de fechar: assim o painel sai pela transition de sempre, em
+    // vez de sumir do meio do caminho.
+    setDragY(null)
+    if (passou) onClose()
+  }
+
   return (
     <div
       className={`fixed inset-0 z-50 transition-[visibility] duration-200 ${
@@ -99,11 +142,27 @@ export function Sheet({ open, onClose, label, children }: SheetProps) {
         role="dialog"
         aria-modal="true"
         aria-label={label}
-        className={`absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-sheet bg-surface p-gutter pb-8 shadow-2xl transition-transform duration-200 ease-out ${
-          open ? 'translate-y-0' : 'translate-y-full'
-        }`}
+        // Durante o arraste o transform vem inline e a transition sai: seguir a
+        // animação de 200ms atrás do dedo daria a sensação de painel molhado.
+        style={
+          dragY === null ? undefined : { transform: `translateY(${dragY}px)` }
+        }
+        className={`absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-sheet bg-surface p-gutter pb-8 shadow-2xl ease-out ${
+          dragY === null ? 'transition-transform duration-200' : ''
+        } ${open ? 'translate-y-0' : 'translate-y-full'}`}
       >
-        <div className="mx-auto mb-3 h-1.5 w-10 rounded-control bg-ink/15" />
+        {/* Área de arraste generosa em volta da barrinha: o alvo visual tem
+            6px de altura, mas o dedo precisa de bem mais que isso. */}
+        <div
+          aria-hidden
+          onPointerDown={startDrag}
+          onPointerMove={moveDrag}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          className="-mx-gutter -mt-gutter cursor-grab touch-none px-gutter pb-2 pt-3 active:cursor-grabbing"
+        >
+          <div className="mx-auto mb-3 h-1.5 w-10 rounded-control bg-ink/15" />
+        </div>
         {children}
       </div>
     </div>
