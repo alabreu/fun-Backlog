@@ -42,13 +42,13 @@ existente, sem criar usuário duplicado.
 | --- | --- | --- |
 | 🟡 | Busca unificada (fase 2 da home) | Uma seção "na sua estante" antes dos resultados externos, para não adicionar duplicata do que já se tem |
 | 🟡 | "Como quer ser chamado" (fase 3 da home) | Tela nas configurações: lista dos vocativos + campo livre. O `core/greeting.ts` já aceita o apelido |
-| 🟡 | Colar link | Feature 3. Hoje entregável só para `anilist.co` e `openlibrary.org`; Steam, IMDb, Letterboxd e Goodreads esperam as Edge Functions ou fallback de Open Graph |
+| 🟡 | Colar link | Feature 3. Hoje entregável só para `anilist.co` e `openlibrary.org`. **IMDb e Letterboxd saem de graça junto da function `tmdb`**: extrair o `tt…` da URL e resolver por `/find/{imdb_id}?external_source=imdb_id` — a TMDB devolve a ficha completa e a capa que o IMDb não dá. Steam idem, via `appdetails`. Goodreads espera fallback de Open Graph |
 | 🟡 | Edge Functions `igdb` e `tmdb` | Código pode ser escrito e implantado agora; só ganha vida com as chaves do backlog manual |
 | 🟡 | Mood picker + recomendação | Feature 4, a assinatura do produto. O mood picker não pode ser formulário. Depende da chave do OpenRouter para funcionar de fato |
 | 🟡 | Identidade visual | Paleta (primitivos em `index.css`), ícones e a linguagem do grid. O usuário pediu para deixar por último |
 | 🟡 | Eventos de analytics do produto | `track()` em adicionar, concluir e recomendar — hoje só existe `session_start`, então o `/admin` não conta nada de útil |
 | 🟢 | Densidade por peso da mídia | Briefing: um RPG de 80h não pode ocupar o mesmo espaço que um filme de 90min. Decisão visual — vai junto da identidade |
-| 🟢 | Imports de biblioteca | Steam (`GetOwnedGames`), Letterboxd (CSV), AniList (username). É **aqui** que um OAuth de usuário se paga, e não na IGDB (ver decisão 7): do outro lado existe uma biblioteca sua. Todos precisam de tela de revisão antes de commitar |
+| 🟢 | Imports de biblioteca | Steam (`GetOwnedGames`: biblioteca + horas jogadas; sem login — basta perfil público, ver decisão 8), Letterboxd (CSV), AniList (username). É **aqui** que um login de terceiro se paga, e não na IGDB (decisão 7): do outro lado existe uma biblioteca sua. Todos precisam de tela de revisão antes de commitar |
 | 🟢 | Visualização em lista compacta | Briefing feature 1, para quem tem backlog gigante |
 | 🟢 | UI de tags | A coluna existe no schema desde a `0004` e nada na tela usa |
 | 🟢 | Ordenação configurável | Hoje a ordem da estante é fixa (em andamento primeiro, depois por data) |

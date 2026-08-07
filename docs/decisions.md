@@ -163,6 +163,51 @@ servidor sem dono — e uma instância fria só paga uma requisição a mais.
 
 ---
 
+## 8. Filmes e séries pela TMDB; IMDb e Steam têm outros papéis
+
+**Decidido em:** 07/08/2026.
+
+**TMDB é a fonte de catálogo de filmes e séries.** É o que roda por baixo de
+Plex, Jellyfin, Radarr, Overseerr e do Letterboxd. Ganha em pôster retrato 2:3
+por CDN em vários tamanhos, em `language=pt-BR` (título, sinopse e, quando
+existe, o pôster nacional) e em não ter gargalo prático — o limite antigo de 40
+req/10s foi desligado em 2019 e hoje o teto ronda 50 req/s por IP.
+
+**O que custa:** é comunitária, então título obscuro ou regional pode vir com
+ficha magra. E a licença é **gratuita só para uso não comercial, com atribuição
+obrigatória** na UI ("this product uses the TMDB API but is not endorsed or
+certified by TMDB"); uso comercial exige acordo negociado. Um app gratuito com
+doação voluntária é zona cinza — não bloqueia nada hoje, mas reabre esta
+decisão se o app virar produto pago.
+
+**IMDb não entra como fonte.** As três portas fecham: os datasets não comerciais
+são TSV em massa **sem imagem nenhuma** (as fotos são licenciadas à parte) e sem
+endpoint de busca — seriam 12M de linhas para hospedar e indexar; a API oficial
+é B2B via AWS Data Exchange, na casa dos US$ 150 mil/ano; e OMDb e wrappers de
+RapidAPI são raspagem de terceiros, frágil e legalmente cinzenta. A primeira
+razão basta: o briefing pede "estante, não planilha", e fonte sem capa é
+exatamente a planilha que decidimos não construir.
+
+**Mas o ID do IMDb é a chave universal desse mundo.** A TMDB guarda `imdb_id` em
+tudo e expõe `/find/{imdb_id}?external_source=imdb_id`. Logo, colar link do
+IMDb ou do Letterboxd **funciona** — resolvido pela TMDB, e com a capa que o
+IMDb não daria. Está no backlog, em "colar link".
+
+**Steam é fonte de IMPORTAÇÃO, não de catálogo.** Ela só conhece PC: nada de
+PlayStation, Nintendo, arcade, retrô ou mobile — e um backlog de jogos que não
+sabe o que é Bloodborne não é um backlog de jogos. A IGDB cobre todas as
+plataformas e por isso é a fonte de catálogo. O papel da Steam é trazer a
+biblioteca comprada de uma vez, já com as horas jogadas
+(`IPlayerService/GetOwnedGames`, chave gratuita, exige perfil público).
+
+Dois detalhes para quando essa importação for escrita: use a arte retrato
+`library_600x900.jpg` do CDN, **não** o header padrão 460×215 — o header é
+deitado e quebraria o grid. E não implemente login da Steam: é OpenID 2.0, que o
+Supabase não suporta nativamente, e é desnecessário — a pessoa cola a URL do
+próprio perfil.
+
+---
+
 ## Ainda em aberto
 
 - **Identidade visual**: paleta (primitivos em `src/index.css`), ícones reais e
