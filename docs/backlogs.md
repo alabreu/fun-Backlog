@@ -23,10 +23,11 @@ e migração convidado→conta verificados em produção), allowlist de admin, e
 OAuth do Google — a identidade do Google entrou LIGADA à conta de email+senha
 existente, sem criar usuário duplicado.
 
+Entregues em 07/08/2026: credenciais da IGDB (via Twitch) e Read Access Token
+da TMDB, cadastrados como secrets do Supabase.
+
 | | Item | Por que importa | Onde |
 | --- | --- | --- | --- |
-| 🟡 | `client_id` + `client_secret` do IGDB (via Twitch) | Destrava busca com capa para **jogos** | Twitch Developers → secret da Edge Function |
-| 🟡 | Chave da API do TMDB | Destrava busca com capa para **filmes e séries** | TMDB → secret da Edge Function |
 | 🟡 | `OPENROUTER_API_KEY` como secret + **teto de gasto na chave** | Destrava "Me ajude a escolher". O teto é a única defesa que sobrevive a um bug no código | Supabase → Edge Functions → Secrets |
 | 🟢 | `ALLOWED_ORIGIN` da Edge Function `llm` | Restringe o CORS à origin do app em vez de `*` | Supabase → Edge Functions → Secrets |
 | 🟢 | SMTP customizado (ex.: Resend) | O SMTP padrão do Supabase é lento e limitado — problema real antes de abrir para outras pessoas | Supabase → Auth → SMTP |
@@ -42,9 +43,8 @@ existente, sem criar usuário duplicado.
 | --- | --- | --- |
 | 🟡 | Busca unificada (fase 2 da home) | Uma seção "na sua estante" antes dos resultados externos, para não adicionar duplicata do que já se tem |
 | 🟡 | "Como quer ser chamado" (fase 3 da home) | Tela nas configurações: lista dos vocativos + campo livre. O `core/greeting.ts` já aceita o apelido |
-| 🟡 | Colar link | Feature 3. Hoje entregável só para `anilist.co` e `openlibrary.org`. **IMDb e Letterboxd saem de graça junto da function `tmdb`**: extrair o `tt…` da URL e resolver por `/find/{imdb_id}?external_source=imdb_id` — a TMDB devolve a ficha completa e a capa que o IMDb não dá. Steam idem, via `appdetails`. Goodreads espera fallback de Open Graph |
-| 🟡 | Edge Functions `igdb` e `tmdb` | Código pode ser escrito e implantado agora; só ganha vida com as chaves do backlog manual |
-| 🟡 | Atribuição da TMDB na UI | Condição da licença gratuita (decisão 8): logo + "this product uses the TMDB API but is not endorsed or certified by TMDB". Sai junto da function `tmdb`, não depois |
+| 🟡 | Colar link | Feature 3. Falta só a UI: `findByImdbId()` em `core/media/tmdb.ts` já resolve link do IMDb e do Letterboxd (extrair o `tt…` da URL), e AniList e Open Library já têm provider. Steam espera `appdetails`; Goodreads espera fallback de Open Graph |
+| 🟢 | Logo oficial da TMDB no crédito | O texto exigido já está na tela de busca (`add.sources`). O guia de marca deles pede também o logo — precisa do arquivo oficial, que é arte a baixar |
 | 🟡 | Mood picker + recomendação | Feature 4, a assinatura do produto. O mood picker não pode ser formulário. Depende da chave do OpenRouter para funcionar de fato |
 | 🟡 | Identidade visual | Paleta (primitivos em `index.css`), ícones e a linguagem do grid. O usuário pediu para deixar por último |
 | 🟡 | Eventos de analytics do produto | `track()` em adicionar, concluir e recomendar — hoje só existe `session_start`, então o `/admin` não conta nada de útil |

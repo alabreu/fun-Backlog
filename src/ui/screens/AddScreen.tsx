@@ -261,6 +261,11 @@ export function AddScreen() {
             {t('add.manualLink')}
           </Button>
         )}
+
+        {/* Crédito das fontes. A parte da TMDB é EXIGIDA pela licença gratuita
+            deles e fica nesta tela porque é aqui que os dados aparecem — não é
+            rodapé decorativo. Ver docs/decisions.md, decisão 8. */}
+        <p className="mt-10 mb-2 text-label text-muted">{t('add.sources')}</p>
       </ScreenBody>
 
       <ManualAddSheet

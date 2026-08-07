@@ -85,6 +85,8 @@ export const en: Record<keyof typeof pt, string> = {
   'add.manualTitlePlaceholder': 'Name of the game, movie, book…',
   'add.manualMediaLabel': 'Medium',
   'add.manualSubmit': 'Add to shelf',
+  'add.sources':
+    'Games by IGDB · Anime by AniList · Books by Open Library. This product uses the TMDB API but is not endorsed or certified by TMDB.',
 
   // Completed (the trophy shelf)
   'completed.title': 'Completed',

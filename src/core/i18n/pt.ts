@@ -83,6 +83,10 @@ export const pt = {
   'add.manualTitlePlaceholder': 'Nome do jogo, filme, livro…',
   'add.manualMediaLabel': 'Mídia',
   'add.manualSubmit': 'Adicionar à estante',
+  // Atribuição EXIGIDA pela licença gratuita da TMDB — não remover.
+  // Ver docs/decisions.md, decisão 8.
+  'add.sources':
+    'Jogos por IGDB · Animes por AniList · Livros por Open Library. Este produto usa a API da TMDB, mas não é endossado nem certificado por ela.',
 
   // Concluídos (a estante de troféus)
   'completed.title': 'Concluídos',

@@ -1,6 +1,8 @@
 import type { MediaType } from '@core/items/types'
 import { anilistProvider } from './anilist'
+import { igdbProvider } from './igdb'
 import { openLibraryProvider } from './openlibrary'
+import { tmdbProvider } from './tmdb'
 import type { MediaProvider, MediaSearchResult } from './types'
 
 /**
@@ -9,11 +11,17 @@ import type { MediaProvider, MediaSearchResult } from './types'
  * está no sofá não quer escolher a aba certa antes de digitar.
  *
  * Providers registrados aqui. Os que exigem chave (IGDB para jogos, TMDB para
- * filmes e séries) entram nesta lista quando as Edge Functions existirem, com
- * `requiresServer: true` — e aí `searchAll` já os filtra sozinho para quem está
- * sem login.
+ * filmes e séries) passam pela Edge Function `media` e vêm com
+ * `requiresServer: true` — `searchAll` os filtra sozinho para quem está sem
+ * login, então em modo convidado a busca continua funcionando para anime e
+ * livro em vez de dar 401.
  */
-export const PROVIDERS: MediaProvider[] = [anilistProvider, openLibraryProvider]
+export const PROVIDERS: MediaProvider[] = [
+  igdbProvider,
+  tmdbProvider,
+  anilistProvider,
+  openLibraryProvider,
+]
 
 export interface SearchGroup {
   mediaType: MediaType

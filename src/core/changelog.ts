@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-07-jogos-filmes-series',
+    date: '2026-08-07',
+    emoji: '🎬',
+    title: {
+      pt: 'Jogos, filmes e séries agora vêm com capa',
+      en: 'Games, movies and series now come with covers',
+    },
+    items: {
+      pt: [
+        'A busca passou a encontrar jogos de todas as plataformas — console, portátil, PC e retrô.',
+        'Filmes e séries também entram com capa, título em português e ano.',
+        'Com isso, todas as cinco mídias têm busca de verdade: nada mais precisa ser digitado à mão.',
+      ],
+      en: [
+        'Search now finds games across every platform — console, handheld, PC and retro.',
+        'Movies and series come in with cover art, localized title and year.',
+        'All five media now have real search: nothing has to be typed by hand anymore.',
+      ],
+    },
+  },
+  {
     id: '2026-08-07-home',
     date: '2026-08-07',
     emoji: '👋',
