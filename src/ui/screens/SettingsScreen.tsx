@@ -1,4 +1,4 @@
-import { Check, Desktop, Moon, Sun, UserCircle } from '@phosphor-icons/react'
+import { Check, Desktop, Info, Moon, Sun, UserCircle } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
 import { vocativeFor } from '@core/greeting'
@@ -83,6 +83,18 @@ export function SettingsScreen() {
           label={t('menu.nickname')}
           trailing={vocativeFor(new Date(), locale, nickname, reroll)}
           onClick={() => navigate('/como-me-chamar')}
+        />
+
+        <SectionTitle className="mb-2 mt-8">
+          {t('settings.aboutLabel')}
+        </SectionTitle>
+
+        {/* Créditos moram aqui, e não no rodapé da busca: é informação de
+            referência, procurada de propósito. Ver CreditsScreen. */}
+        <NavRow
+          icon={<Info size={20} aria-hidden />}
+          label={t('menu.credits')}
+          onClick={() => navigate('/creditos')}
         />
       </ScreenBody>
     </Screen>

@@ -15,6 +15,7 @@ import { useTranslation } from '@ui/hooks/useTranslation'
 import { CompletionCelebration } from '@ui/components/CompletionCelebration'
 import { AddScreen } from '@ui/screens/AddScreen'
 import { CompletedScreen } from '@ui/screens/CompletedScreen'
+import { CreditsScreen } from '@ui/screens/CreditsScreen'
 import { DonateScreen } from '@ui/screens/DonateScreen'
 import { FeedbackScreen } from '@ui/screens/FeedbackScreen'
 import { LanguageScreen } from '@ui/screens/LanguageScreen'
@@ -141,6 +142,7 @@ export function App() {
           <Route path="/concluidos" element={<CompletedScreen />} />
           <Route path="/configuracoes" element={<SettingsScreen />} />
           <Route path="/como-me-chamar" element={<NicknameScreen />} />
+          <Route path="/creditos" element={<CreditsScreen />} />
           <Route path="/feedback" element={<FeedbackScreen />} />
           <Route path="/idioma" element={<LanguageScreen />} />
           <Route path="/novidades" element={<NewsScreen />} />

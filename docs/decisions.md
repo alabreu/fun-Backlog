@@ -178,6 +178,14 @@ ficha magra. E a licença é **gratuita só para uso não comercial, com atribui
 obrigatória** na UI ("this product uses the TMDB API but is not endorsed or
 certified by TMDB"); uso comercial exige acordo negociado.
 
+**Onde a atribuição mora:** na tela de **Créditos** (Configurações → Sobre),
+com o texto canônico em inglês, e não no rodapé da busca — que foi onde ela
+nasceu. Crédito é informação de referência, procurada de propósito; deixá-lo
+competindo com os resultados cobrava de todo mundo, o tempo todo, por uma
+obrigação que se cumpre uma vez. É a prática corrente em apps que usam a TMDB.
+Se a resposta deles ao email do backlog manual disser que precisa ser mais
+proeminente, é uma linha para mover.
+
 **A chave foi pedida em 07/08/2026 como *personal use*.** Isso é uma
 certificação, não uma preferência: o formulário afirma "your use is
 non-commercial and generates no revenue", e declaração falsa pode revogar a

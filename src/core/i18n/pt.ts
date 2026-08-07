@@ -81,10 +81,6 @@ export const pt = {
   'add.manualTitlePlaceholder': 'Nome do jogo, filme, livro…',
   'add.manualMediaLabel': 'Mídia',
   'add.manualSubmit': 'Adicionar à estante',
-  // Atribuição EXIGIDA pela licença gratuita da TMDB — não remover.
-  // Ver docs/decisions.md, decisão 8.
-  'add.sources':
-    'Jogos por IGDB · Animes por AniList · Livros por Open Library. Este produto usa a API da TMDB, mas não é endossado nem certificado por ela.',
 
   // Concluídos (a estante de troféus)
   'completed.title': 'Concluídos',
@@ -136,6 +132,7 @@ export const pt = {
   'menu.completed': 'Concluídos',
   'menu.nickname': 'Como me chamar',
   'menu.settings': 'Configurações',
+  'menu.credits': 'Créditos',
   'menu.donate': 'Apoiar o app',
   'menu.login': 'Entrar',
 
@@ -223,6 +220,20 @@ export const pt = {
   'settings.themeHint':
     'Seguir o sistema acompanha o ajuste do seu aparelho, inclusive a troca automática à noite.',
   'settings.greetingLabel': 'Saudação',
+  'settings.aboutLabel': 'Sobre',
+
+  // Créditos das fontes de dados
+  'credits.title': 'Créditos',
+  'credits.intro':
+    'O Fun Backlog não teria capa nenhuma sem estas fontes. Todas são usadas dentro dos termos delas.',
+  'credits.igdb': 'Jogos: ficha, capa, ano e plataformas.',
+  'credits.tmdb': 'Filmes e séries: ficha, pôster e título em português.',
+  // Atribuição EXIGIDA pela licença gratuita da TMDB — não traduzir nem
+  // remover. Ver docs/decisions.md, decisão 8.
+  'credits.tmdbNotice':
+    'This product uses the TMDB API but is not endorsed or certified by TMDB.',
+  'credits.anilist': 'Animes: ficha, capa e total de episódios.',
+  'credits.openlibrary': 'Livros: ficha, capa e número de páginas.',
 
   // Idioma
   'language.title': 'Idioma',

@@ -83,8 +83,6 @@ export const en: Record<keyof typeof pt, string> = {
   'add.manualTitlePlaceholder': 'Name of the game, movie, book…',
   'add.manualMediaLabel': 'Medium',
   'add.manualSubmit': 'Add to shelf',
-  'add.sources':
-    'Games by IGDB · Anime by AniList · Books by Open Library. This product uses the TMDB API but is not endorsed or certified by TMDB.',
 
   // Completed (the trophy shelf)
   'completed.title': 'Completed',
@@ -136,6 +134,7 @@ export const en: Record<keyof typeof pt, string> = {
   'menu.completed': 'Completed',
   'menu.nickname': 'What to call me',
   'menu.settings': 'Settings',
+  'menu.credits': 'Credits',
   'menu.donate': 'Support the app',
   'menu.login': 'Sign in',
 
@@ -224,6 +223,18 @@ export const en: Record<keyof typeof pt, string> = {
   'settings.themeHint':
     'Following the system matches your device, including the automatic switch at night.',
   'settings.greetingLabel': 'Greeting',
+  'settings.aboutLabel': 'About',
+
+  // Credits for the data sources
+  'credits.title': 'Credits',
+  'credits.intro':
+    'Fun Backlog would have no cover art without these sources. All of them are used within their terms.',
+  'credits.igdb': 'Games: details, cover art, year and platforms.',
+  'credits.tmdb': 'Movies and series: details, poster and localized title.',
+  'credits.tmdbNotice':
+    'This product uses the TMDB API but is not endorsed or certified by TMDB.',
+  'credits.anilist': 'Anime: details, cover art and episode count.',
+  'credits.openlibrary': 'Books: details, cover art and page count.',
 
   // Language
   'language.title': 'Language',
