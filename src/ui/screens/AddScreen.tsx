@@ -265,7 +265,11 @@ export function AddScreen() {
                         className="w-full text-left transition active:scale-95"
                       >
                         <div className="relative">
-                          <Cover src={item.coverUrl} title={item.title} />
+                          <Cover
+                            src={item.coverUrl}
+                            title={item.title}
+                            media={item.mediaType}
+                          />
                           <Badge
                             tone="onCover"
                             className="absolute bottom-1.5 left-1.5"
@@ -340,7 +344,11 @@ export function AddScreen() {
                           className="w-full text-left transition active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                         >
                           <div className="relative">
-                            <Cover src={result.coverUrl} title={result.title} />
+                            <Cover
+                              src={result.coverUrl}
+                              title={result.title}
+                              media={result.mediaType}
+                            />
                             <Badge
                               tone="onCover"
                               className="absolute bottom-1.5 left-1.5"

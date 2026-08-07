@@ -132,6 +132,7 @@ export function CompletedScreen() {
                 <Cover
                   src={item.coverUrl}
                   title={item.title}
+                  media={item.mediaType}
                   lazy={index > 5}
                 />
                 <Badge tone="onCover" className="absolute bottom-1.5 left-1.5">

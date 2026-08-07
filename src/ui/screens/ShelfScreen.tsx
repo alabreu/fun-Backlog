@@ -160,6 +160,7 @@ export function ShelfScreen() {
                           <Cover
                             src={item.coverUrl}
                             title={item.title}
+                            media={item.mediaType}
                             lazy={index > 5}
                           />
                           {item.status !== 'backlog' && (

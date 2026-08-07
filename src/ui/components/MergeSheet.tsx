@@ -37,7 +37,12 @@ export function MergeSheet() {
             <ul className="flex gap-2 overflow-x-auto">
               {pendingLocal.slice(0, 8).map((item) => (
                 <li key={item.id} className="w-14 shrink-0">
-                  <Cover src={item.coverUrl} title={item.title} lazy={false} />
+                  <Cover
+                    src={item.coverUrl}
+                    title={item.title}
+                    media={item.mediaType}
+                    lazy={false}
+                  />
                 </li>
               ))}
             </ul>

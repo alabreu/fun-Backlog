@@ -236,9 +236,17 @@ idênticas, distinguidas só pela palavra, obrigam a ler cada uma.
    faz o recurso não excluir quem não distingue turquesa de azul: para essa
    pessoa a tela continua exatamente como era. Onde a cor é o único sinal — o
    `MediaDot` em lista mista — o componente exige um `label` para leitor de tela.
-2. **Nada disso encosta nas capas.** A arte já é o código visual do grid
-   ("estante, não planilha"); cor de marca ao redor dela polui em vez de
+2. **A cor nunca cobre arte de capa.** A arte já é o código visual do grid
+   ("estante, não planilha"); cor de marca por cima dela polui em vez de
    organizar. O ponto de mídia fica na legenda, nunca sobre a imagem.
+
+   A exceção **confirma** a regra em vez de furá-la: o **fallback** da capa —
+   o retângulo com a inicial, quando a obra não tem arte — é tingido com a cor
+   da mídia. Ali não há arte para competir, e é justamente o caso em que o
+   grid ficava ilegível (doze retângulos cinzas idênticos). O tint também
+   serve de placeholder enquanto a imagem baixa; assim que ela chega, cobre.
+   Opacidade baixa (15%) de propósito: em cor cheia, doze capas gritariam mais
+   que qualquer pôster.
 3. **Nenhuma delas é rosa.** O rosa é o `accent` do produto ("isto é você",
    "isto importa") e continua sendo. Se uma mídia usasse a mesma cor, o accent
    deixaria de ser um sinal e viraria mais uma cor entre seis.

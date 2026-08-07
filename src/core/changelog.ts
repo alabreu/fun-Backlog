@@ -33,6 +33,7 @@ export const CHANGELOG: ChangelogEntry[] = [
         'Nova tela de Configurações, com tema claro, escuro ou seguindo o aparelho.',
         'Escolha como quer ser chamado na saudação — da lista, do seu jeito, ou sorteando outro quando não gostar do dia.',
         'Cada mídia ganhou uma cor: dá para achar a estante certa e separar um filme de um livro de mesmo nome sem ler nada.',
+        'Obras sem capa deixaram de ser retângulos cinzas iguais — cada uma aparece na cor da sua mídia.',
       ],
       en: [
         'Search now shows what is already on your shelf first — no more adding the same thing twice.',
@@ -40,6 +41,7 @@ export const CHANGELOG: ChangelogEntry[] = [
         'New Settings screen, with a light theme, a dark one, or following your device.',
         'Choose what we call you in the greeting — from the list, in your own words, or draw another when today’s does not fit.',
         'Each medium got its own colour: find the right shelf, and tell a film from a book of the same name, without reading a thing.',
+        'Titles with no cover art are no longer identical grey boxes — each one shows up in its medium’s colour.',
       ],
     },
   },

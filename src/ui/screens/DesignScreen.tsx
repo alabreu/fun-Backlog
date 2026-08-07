@@ -5,6 +5,8 @@ import {
   Button,
   Card,
   Chip,
+  Cover,
+  CoverGrid,
   NavRow,
   Field,
   IconButton,
@@ -132,7 +134,7 @@ export function DesignScreen() {
           <p className="mb-3 text-body text-muted">
             Família à parte do <code>accent</code>, que continua sendo o sinal de
             "isto é você". Serve para escanear — a cor nunca vai sozinha, o
-            rótulo está sempre junto (WCAG 1.4.1). Não encosta nas capas.
+            rótulo está sempre junto (WCAG 1.4.1). Nunca cobre arte de capa.
           </p>
 
           <div className="mb-3 flex flex-wrap gap-2">
@@ -164,11 +166,24 @@ export function DesignScreen() {
             ))}
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="mb-4 flex flex-col gap-2">
             {MEDIA_TYPES.map((type) => (
               <NavRow key={type} media={type} label={type} trailing="0/0" />
             ))}
           </div>
+
+          <p className="mb-2 text-body text-muted">
+            O fallback da capa (sem arte) é a ÚNICA cor de marca perto de uma
+            capa — e chega justamente onde não há capa para competir. Assim que
+            a imagem carrega, ela cobre o tint.
+          </p>
+          <CoverGrid>
+            {MEDIA_TYPES.map((type) => (
+              <li key={type}>
+                <Cover title={type} media={type} />
+              </li>
+            ))}
+          </CoverGrid>
         </section>
 
         <section>

@@ -210,7 +210,12 @@ function ItemCard({
       className="w-full text-left transition active:scale-95"
     >
       <div className="relative">
-        <Cover src={item.coverUrl} title={item.title} lazy={!eager} />
+        <Cover
+          src={item.coverUrl}
+          title={item.title}
+          media={item.mediaType}
+          lazy={!eager}
+        />
         {progress && progress.current > 0 && (
           <Badge tone="onCover" className="absolute bottom-1.5 left-1.5">
             {/* Horas não levam rótulo antes do número: "Horas 42" sai torto em

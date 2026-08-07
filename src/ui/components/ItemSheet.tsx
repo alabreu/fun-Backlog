@@ -71,7 +71,12 @@ function ItemDetail({ item, onClose }: { item: Item; onClose: () => void }) {
     <div className="flex flex-col gap-5">
       <div className="flex gap-3">
         <div className="w-20 shrink-0">
-          <Cover src={item.coverUrl} title={item.title} lazy={false} />
+          <Cover
+            src={item.coverUrl}
+            title={item.title}
+            media={item.mediaType}
+            lazy={false}
+          />
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-title font-bold">{item.title}</h2>

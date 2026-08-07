@@ -72,7 +72,12 @@ export function CompletionCelebration() {
         {/* `bg-surface` porque o fallback da capa (inicial do título) é
             translúcido por natureza: sobre o véu escuro ele sumiria. */}
         <div className="relative w-36 animate-trophy rounded-card bg-surface">
-          <Cover src={item.coverUrl} title={item.title} lazy={false} />
+          <Cover
+            src={item.coverUrl}
+            title={item.title}
+            media={item.mediaType}
+            lazy={false}
+          />
         </div>
       </div>
 

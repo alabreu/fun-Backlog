@@ -36,3 +36,32 @@ export const MEDIA_BG: Record<MediaType, string> = {
   anime: 'bg-media-anime',
   book: 'bg-media-book',
 }
+
+/**
+ * Versões suaves, e existem para UM caso: o fallback da capa, quando a obra não
+ * tem arte nenhuma.
+ *
+ * Isso não contradiz a regra de não encostar nas capas — contorna o motivo
+ * dela. A regra existe porque cor de marca compete com a arte; onde não há
+ * arte, não há competição, só um retângulo cinza com uma letra. Assim que a
+ * imagem carrega, o tint fica atrás dela e some.
+ *
+ * A opacidade é o que separa "a estante é colorida" de "a estante é um
+ * arco-íris": doze capas em cor cheia gritariam mais que qualquer pôster.
+ */
+export const MEDIA_TINT: Record<MediaType, string> = {
+  game: 'bg-media-game/15',
+  movie: 'bg-media-movie/15',
+  series: 'bg-media-series/15',
+  anime: 'bg-media-anime/15',
+  book: 'bg-media-book/15',
+}
+
+/** A inicial desenhada sobre o tint. */
+export const MEDIA_INITIAL: Record<MediaType, string> = {
+  game: 'text-media-game/70',
+  movie: 'text-media-movie/70',
+  series: 'text-media-series/70',
+  anime: 'text-media-anime/70',
+  book: 'text-media-book/70',
+}
