@@ -48,7 +48,7 @@ existente, sem criar usuário duplicado.
 | 🟡 | Identidade visual | Paleta (primitivos em `index.css`), ícones e a linguagem do grid. O usuário pediu para deixar por último |
 | 🟡 | Eventos de analytics do produto | `track()` em adicionar, concluir e recomendar — hoje só existe `session_start`, então o `/admin` não conta nada de útil |
 | 🟢 | Densidade por peso da mídia | Briefing: um RPG de 80h não pode ocupar o mesmo espaço que um filme de 90min. Decisão visual — vai junto da identidade |
-| 🟢 | Imports de biblioteca | Steam (`GetOwnedGames`), Letterboxd (CSV), AniList (username). Todos precisam de tela de revisão antes de commitar |
+| 🟢 | Imports de biblioteca | Steam (`GetOwnedGames`), Letterboxd (CSV), AniList (username). É **aqui** que um OAuth de usuário se paga, e não na IGDB (ver decisão 7): do outro lado existe uma biblioteca sua. Todos precisam de tela de revisão antes de commitar |
 | 🟢 | Visualização em lista compacta | Briefing feature 1, para quem tem backlog gigante |
 | 🟢 | UI de tags | A coluna existe no schema desde a `0004` e nada na tela usa |
 | 🟢 | Ordenação configurável | Hoje a ordem da estante é fixa (em andamento primeiro, depois por data) |

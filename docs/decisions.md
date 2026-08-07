@@ -132,6 +132,37 @@ reabrir quando o detalhe ganhar elenco, tempo estimado ou "onde assistir".
 
 ---
 
+## 7. IGDB: OAuth de aplicação (`client_credentials`), não de usuário
+
+**Decidido em:** 07/08/2026.
+
+O cadastro do app no Twitch Developer Console exige preencher **OAuth Redirect
+URLs**. Preenchemos com `http://localhost` porque o campo é obrigatório, mas
+**não usamos o fluxo de redirect**.
+
+**Por quê:** são dois fluxos diferentes com o mesmo nome. O nosso é
+`client_credentials` — a Edge Function troca client id + secret por um token de
+**aplicação** e lê o catálogo público da IGDB. Não há usuário nessa conversa, e
+o redirect só é lido no fluxo `authorization_code`, em que uma **pessoa**
+autoriza um app de terceiro a ler os dados **dela**.
+
+Fazer o fluxo de usuário não traria dado nenhum, por dois motivos: a ficha de
+jogo da IGDB é pública e idêntica para todo mundo; e a Twitch não guarda
+biblioteca de jogos — ela sabe o que você **assistiu** (canais seguidos,
+inscrições), não o que você jogou.
+
+**O que custa:** nada aqui, mas fecha uma porta que vale saber que existe. Se um
+dia quisermos algo de *usuário* — biblioteca da Steam, listas do AniList,
+histórico do Letterboxd — esse é um trabalho novo e em outro provedor, com
+tabela de token e refresh token por usuário (com RLS), renovação e revogação.
+Está no backlog do projeto como "imports de biblioteca".
+
+**Sobre o token de aplicação:** vale ~60 dias. A function guarda em memória e
+renova sozinha ao receber 401. Memória, e não tabela, porque é um segredo do
+servidor sem dono — e uma instância fria só paga uma requisição a mais.
+
+---
+
 ## Ainda em aberto
 
 - **Identidade visual**: paleta (primitivos em `src/index.css`), ícones reais e
@@ -147,6 +178,3 @@ reabrir quando o detalhe ganhar elenco, tempo estimado ou "onde assistir".
   automático ou explícito.
 - **HowLongToBeat**: sem API oficial — avaliar viabilidade antes de prometer
   tempo estimado como campo de primeira classe.
-- **Merge de convidado para conta**: quem catalogou sem login e depois entra
-  hoje não leva os itens locais para a nuvem. Precisa de uma decisão de produto
-  (subir tudo, perguntar, ou ignorar).
