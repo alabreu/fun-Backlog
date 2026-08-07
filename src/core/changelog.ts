@@ -34,6 +34,7 @@ export const CHANGELOG: ChangelogEntry[] = [
         'Escolha como quer ser chamado na saudação — da lista, do seu jeito, ou sorteando outro quando não gostar do dia.',
         'Cada mídia ganhou uma cor: dá para achar a estante certa e separar um filme de um livro de mesmo nome sem ler nada.',
         'Obras sem capa deixaram de ser retângulos cinzas iguais — cada uma aparece na cor da sua mídia.',
+        'O app ganhou textura: um grão sutil no fundo e nas superfícies, sem tocar nas capas.',
       ],
       en: [
         'Search now shows what is already on your shelf first — no more adding the same thing twice.',
@@ -42,6 +43,7 @@ export const CHANGELOG: ChangelogEntry[] = [
         'Choose what we call you in the greeting — from the list, in your own words, or draw another when today’s does not fit.',
         'Each medium got its own colour: find the right shelf, and tell a film from a book of the same name, without reading a thing.',
         'Titles with no cover art are no longer identical grey boxes — each one shows up in its medium’s colour.',
+        'The app got texture: a subtle grain on the background and surfaces, never over the cover art.',
       ],
     },
   },

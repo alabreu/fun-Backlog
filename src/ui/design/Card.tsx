@@ -3,6 +3,10 @@ import type { HTMLAttributes } from 'react'
 /**
  * Bloco de conteúdo sobre `surface`. `padding="none"` serve para listas que
  * desenham as próprias divisórias (ver LanguageScreen).
+ *
+ * `app-grain`: a superfície é opaca e esconderia o grão do body, então carrega
+ * o seu. Como é `background-image`, ele fica entre a cor de fundo e o
+ * conteúdo — uma capa dentro do card continua limpa.
  */
 export type CardPadding = 'none' | 'sm' | 'md'
 
@@ -28,7 +32,7 @@ export function Card({
 }: CardProps) {
   return (
     <Tag
-      className={`rounded-card bg-surface ring-1 ${
+      className={`app-grain rounded-card bg-surface ring-1 ${
         bordered ? 'ring-ink/10' : 'ring-ink/5'
       } ${PADDING[padding]} ${className}`}
       {...rest}

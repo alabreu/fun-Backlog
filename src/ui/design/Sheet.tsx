@@ -147,7 +147,7 @@ export function Sheet({ open, onClose, label, children }: SheetProps) {
         style={
           dragY === null ? undefined : { transform: `translateY(${dragY}px)` }
         }
-        className={`absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-sheet bg-surface p-gutter pb-8 shadow-2xl ease-out ${
+        className={`app-grain absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-sheet bg-surface p-gutter pb-8 shadow-2xl ease-out ${
           dragY === null ? 'transition-transform duration-200' : ''
         } ${open ? 'translate-y-0' : 'translate-y-full'}`}
       >

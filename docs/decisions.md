@@ -259,9 +259,14 @@ idênticas, distinguidas só pela palavra, obrigam a ler cada uma.
    "isto importa") e continua sendo. Se uma mídia usasse a mesma cor, o accent
    deixaria de ser um sinal e viraria mais uma cor entre seis.
 
-**Onde aparece:** barra na linha da estante, chip de filtro selecionado, badge
-de mídia, cabeçalho de grupo na busca, ponto na lista mista. **Onde não
-aparece:** em cima de capa.
+**Onde aparece:** ponto à esquerda do nome na linha da estante, chip de filtro
+selecionado, badge de mídia, cabeçalho de grupo na busca (ponto **e** texto na
+cor) e ponto na lista mista. **Onde não aparece:** sobre arte de capa.
+
+A primeira versão usava uma barra vertical na borda esquerda da linha, e ela
+pesava demais para o papel — sinal de escaneamento não deveria competir com o
+nome que ele acompanha. O ponto dá a mesma leitura de relance com uma fração
+da tinta.
 
 **O que custa:** amarelo não passa AA como texto sobre fundo claro sem escurecer
 até virar marrom — por isso o âmbar do tema claro (`#a04a08`) puxa para o
@@ -306,6 +311,38 @@ possível — de uma linha num dia de trabalho.
 semeadura do localStorage voltam sozinhos. Reverter também o
 `theme-color` do `index.html` para o par com `prefers-color-scheme` e o
 `THEME_COLOR` do `vite.config.ts`.
+
+---
+
+## 11. Grão na interface, como camada de fundo
+
+**Decidido em:** 07/08/2026.
+
+A textura de ruído (`--app-grain` em `src/index.css`) é a **assinatura visual
+dos projetos do Alexandre**. Mesma receita do `tutor-brew`
+(`alabreu.github.io/mtg-deck-builder`): `feTurbulence` fractal, ladrilho de
+180px, ~9% em fundo escuro e ~11% em fundo claro.
+
+**A diferença deliberada em relação à referência:** lá o grão é um overlay
+`position: fixed` sobre TUDO, inclusive as imagens. Aqui ele é sempre
+`background-image`, nunca sobreposição — porque o pedido era não tocar nas
+capas, e fundo pinta ABAIXO do conteúdo. Assim é estruturalmente impossível o
+grão cair sobre uma capa: não depende de acertar um `z-index`, nem de lembrar
+de excluir a capa em cada tela nova.
+
+**Onde é aplicado:** no `body` (fundo da página) e nas superfícies opacas que
+esconderiam esse fundo — `Card`, `NavRow` e o painel do `Sheet`, via a classe
+`.app-grain`. Controles pequenos (chip, botão, badge) ficam de fora: grão num
+pill de 24px não se vê e só custaria pintura.
+
+**O que custa:** o grão também não passa por cima do texto, como passa na
+referência. A 9% ninguém distingue — mas se um dia a diferença incomodar, a
+volta é trocar a classe por um `::after` sobreposto, aceitando de novo o
+problema das capas.
+
+**Fallback de capa é a exceção aparente:** ele parece granulado porque o tint
+de mídia tem 15% de opacidade e o grão do fundo aparece através. Arte de
+verdade é opaca e cobre — que é exatamente o comportamento desejado.
 
 ---
 

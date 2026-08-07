@@ -34,6 +34,21 @@
   --palette-blue-700: #1d4ed8;
   --palette-teal-400: #2dd4bf;
   --palette-teal-700: #0f766e;
+
+  /* GRÃO — a assinatura visual dos projetos do Alexandre. Mesma textura e
+     mesmos números do tutor-brew (mtg-deck-builder): feTurbulence fractal,
+     ladrilho de 180px, ~9-11%.
+
+     UMA diferença deliberada em relação à referência: lá o grão é um overlay
+     `position: fixed` por cima de TUDO, inclusive das imagens. Aqui ele é
+     sempre `background-image`, e nunca sobreposição. Fundo pinta ABAIXO do
+     conteúdo, então é estruturalmente impossível o grão cair numa capa — que
+     é o pedido. O custo é que ele também não passa por cima do texto, o que a
+     9% ninguém distingue.
+
+     Duas versões porque grão branco some em fundo claro: o preto serve o tema
+     claro (que segue vivo, ver decisão 10) e o branco serve o escuro. */
+  --app-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.11'/></svg>");
 }
 
 /* ===========================================================================
@@ -191,6 +206,7 @@
     --color-media-anime: var(--palette-teal-400);
     --color-media-book: var(--palette-green-400);
     --color-on-media: var(--palette-gray-950);
+    --app-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/></svg>");
   }
 }
 
@@ -212,6 +228,7 @@
   --color-media-anime: var(--palette-teal-400);
   --color-media-book: var(--palette-green-400);
   --color-on-media: var(--palette-gray-950);
+  --app-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/></svg>");
 }
 
 html,
@@ -234,6 +251,8 @@ body {
 body {
   margin: 0;
   background-color: var(--color-bg);
+  background-image: var(--app-grain);
+  background-size: 180px 180px;
   color: var(--color-ink);
   font-family:
     system-ui,
@@ -251,6 +270,16 @@ body {
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
   box-sizing: border-box;
+}
+
+/* Superfícies opacas (card, linha, sheet) escondem o grão do body — elas
+   ganham o seu. Aplicado como `background-image`, o grão fica acima da cor de
+   fundo e abaixo do conteúdo: uma capa dentro de um sheet continua limpa.
+   Controles pequenos (chip, botão, badge) ficam de fora de propósito: grão num
+   pill de 24px não se vê, e só custaria pintura. */
+.app-grain {
+  background-image: var(--app-grain);
+  background-size: 180px 180px;
 }
 
 /* Indicador de foco visível e consistente para navegação por teclado.
