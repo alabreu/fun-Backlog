@@ -18,12 +18,13 @@ sai daqui e vira linha no `core/changelog.ts` (se for visível ao usuário) ou e
 Coisas que o agente não consegue fazer: criar credencial em serviço de
 terceiro, colar secret, produzir arte.
 
-Entregues: variáveis do Supabase na Vercel (06/08/2026 — login, sincronização e
-a migração convidado→conta verificados em produção) e allowlist de admin.
+Entregues em 06/08/2026: variáveis do Supabase na Vercel (login, sincronização
+e migração convidado→conta verificados em produção), allowlist de admin, e
+OAuth do Google — a identidade do Google entrou LIGADA à conta de email+senha
+existente, sem criar usuário duplicado.
 
 | | Item | Por que importa | Onde |
 | --- | --- | --- | --- |
-| 🟡 | Credenciais OAuth do Google | Habilita "Continuar com Google". Email+senha já funciona sem | Google Cloud Console → Supabase → Auth → Providers |
 | 🟡 | `client_id` + `client_secret` do IGDB (via Twitch) | Destrava busca com capa para **jogos** | Twitch Developers → secret da Edge Function |
 | 🟡 | Chave da API do TMDB | Destrava busca com capa para **filmes e séries** | TMDB → secret da Edge Function |
 | 🟡 | `OPENROUTER_API_KEY` como secret + **teto de gasto na chave** | Destrava "Me ajude a escolher". O teto é a única defesa que sobrevive a um bug no código | Supabase → Edge Functions → Secrets |
