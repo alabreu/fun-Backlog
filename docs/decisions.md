@@ -272,8 +272,8 @@ próprio perfil.
 
 **Decidido em:** 07/08/2026.
 
-Cinco cores, uma por mídia — magenta (jogos), âmbar (filmes), índigo (séries),
-ciano (animes), verde-limão (livros) — como camada de **escaneabilidade**. Cor
+Cinco cores, uma por mídia — índigo (jogos), ciano (filmes), magenta (séries),
+âmbar (animes), verde-limão (livros) — como camada de **escaneabilidade**. Cor
 é processada antes da atenção consciente; texto não. Cinco linhas de estante
 idênticas, distinguidas só pela palavra, obrigam a ler cada uma.
 
@@ -284,6 +284,11 @@ de uma busca que fixa o matiz nos cinco pontos equidistantes, mira uma
 luminosidade VIVA e só se afasta dela o necessário para passar os mínimos
 WCAG. O vão maior (88°) cai de propósito sobre a faixa proibida: rosa (351°, o
 accent) e vermelho (0°, o danger).
+
+**Revisto em 08/08/2026:** a atribuição mídia→matiz foi trocada por preferência
+estética, sem mexer nos cinco valores. Os 68° de distância, a faixa proibida e
+os contrastes seguem valendo porque a PALETA é a mesma — o que mudou foi quem
+usa cada cor. Livros continua no verde-limão.
 
 Efeito colateral bom: livros deixou de compartilhar o verde com `success`, um
 acoplamento que estava anotado como pendência.

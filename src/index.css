@@ -35,15 +35,15 @@
      apagada que o contraste tolera.
 
      Como no resto da paleta, o -700 serve ao tema claro e o -400 ao escuro. */
-  --palette-amber-400: #fac04c; /*  40° — filmes  */
+  --palette-amber-400: #fac04c; /*  40° — animes  */
   --palette-amber-700: #956504;
   --palette-lime-400: #7ee265; /* 108° — livros  */
   --palette-lime-700: #2d7e18;
-  --palette-cyan-400: #5cebe1; /* 176° — animes  */
+  --palette-cyan-400: #5cebe1; /* 176° — filmes  */
   --palette-cyan-700: #0f7b73;
-  --palette-indigo-400: #7f76f6; /* 244° — séries  */
+  --palette-indigo-400: #7f76f6; /* 244° — jogos   */
   --palette-indigo-700: #170cb6;
-  --palette-magenta-400: #f452d4; /* 312° — jogos   */
+  --palette-magenta-400: #f452d4; /* 312° — séries  */
   --palette-magenta-700: #b60c94;
 
   /* Família das PLATAFORMAS de jogo. Vive separada da família das mídias de
@@ -159,10 +159,10 @@
      `on-media` é único para as cinco: no tema claro todas são escuras (-700) e
      pedem texto claro; no escuro todas são claras (-400) e pedem texto escuro.
      Cinco tokens de texto seriam cinco chances de errar o par. */
-  --color-media-game: var(--palette-magenta-700);
-  --color-media-movie: var(--palette-amber-700);
-  --color-media-series: var(--palette-indigo-700);
-  --color-media-anime: var(--palette-cyan-700);
+  --color-media-game: var(--palette-indigo-700);
+  --color-media-movie: var(--palette-cyan-700);
+  --color-media-series: var(--palette-magenta-700);
+  --color-media-anime: var(--palette-amber-700);
   --color-media-book: var(--palette-lime-700);
 
   /* Plataformas de jogo — ver primitivos. */
@@ -285,10 +285,10 @@
     --color-on-accent: var(--palette-gray-950);
     --color-success: var(--palette-green-400);
     --color-danger: var(--palette-red-400);
-    --color-media-game: var(--palette-magenta-400);
-    --color-media-movie: var(--palette-amber-400);
-    --color-media-series: var(--palette-indigo-400);
-    --color-media-anime: var(--palette-cyan-400);
+    --color-media-game: var(--palette-indigo-400);
+    --color-media-movie: var(--palette-cyan-400);
+    --color-media-series: var(--palette-magenta-400);
+    --color-media-anime: var(--palette-amber-400);
     --color-media-book: var(--palette-lime-400);
     --color-platform-playstation: var(--palette-plat-blue-400);
     --color-platform-xbox: var(--palette-plat-green-400);
@@ -321,10 +321,10 @@
   --color-on-accent: var(--palette-gray-950);
   --color-success: var(--palette-green-400);
   --color-danger: var(--palette-red-400);
-  --color-media-game: var(--palette-magenta-400);
-  --color-media-movie: var(--palette-amber-400);
-  --color-media-series: var(--palette-indigo-400);
-  --color-media-anime: var(--palette-cyan-400);
+  --color-media-game: var(--palette-indigo-400);
+  --color-media-movie: var(--palette-cyan-400);
+  --color-media-series: var(--palette-magenta-400);
+  --color-media-anime: var(--palette-amber-400);
   --color-media-book: var(--palette-lime-400);
   --color-platform-playstation: var(--palette-plat-blue-400);
   --color-platform-xbox: var(--palette-plat-green-400);
