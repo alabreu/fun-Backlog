@@ -50,6 +50,13 @@ export interface SectionProps {
   onToggle: () => void
   /** Mostrado no lugar do conteúdo quando não há nada. */
   emptyLabel: string
+  /**
+   * `false` tira o botão e a seta: o título vira só um título, e o conteúdo
+   * fica sempre à mostra. É o caso da BUSCA — uma seção que só está ali porque
+   * tem acerto não faz sentido poder ser fechada, e uma seta que some ao
+   * digitar diz isso melhor que uma seta que existe mas não deveria ser usada.
+   */
+  collapsible?: boolean
   children: ReactNode
   className?: string
 }
@@ -60,41 +67,62 @@ export function Section({
   open,
   onToggle,
   emptyLabel,
+  collapsible = true,
   children,
   className = '',
 }: SectionProps) {
   const id = useId()
+  const aberta = open || !collapsible
+
+  const nome = (
+    <span
+      className={`min-w-0 flex-1 truncate text-title font-bold tracking-tight ${
+        count > 0 ? 'text-ink' : 'text-muted'
+      }`}
+    >
+      {title}
+    </span>
+  )
+  // `tabular-nums` para o contador não empurrar a seta ao trocar de 1 para
+  // 10 — a seta é o alvo, e alvo que dança é alvo que erra.
+  const contador = (
+    <span className="text-body tabular-nums text-muted">{count}</span>
+  )
 
   return (
     <section className={className}>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={id}
-        onClick={onToggle}
-        className="flex w-full items-center gap-3 py-2.5 text-left"
-      >
-        <span
-          className={`min-w-0 flex-1 truncate text-title font-bold tracking-tight ${
-            count > 0 ? 'text-ink' : 'text-muted'
-          }`}
-        >
-          {title}
-        </span>
-        {/* `tabular-nums` para o contador não empurrar a seta ao trocar de
-            1 para 10 — a seta é o alvo, e alvo que dança é alvo que erra. */}
-        <span className="text-body tabular-nums text-muted">{count}</span>
-        <CaretDown
-          size={18}
-          weight="bold"
-          aria-hidden
-          className={`shrink-0 text-muted transition-transform ${
-            open ? 'rotate-180' : ''
-          }`}
-        />
-      </button>
+      {/* O título é um `h2` nos DOIS modos: é o que deixa quem usa leitor de
+          tela pular de seção em seção. Colapsável, o botão vai DENTRO dele —
+          é o padrão de acordeão da WAI-ARIA, e não o contrário. */}
+      <h2>
+        {collapsible ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={id}
+            onClick={onToggle}
+            className="flex w-full items-center gap-3 py-2.5 text-left"
+          >
+            {nome}
+            {contador}
+            <CaretDown
+              size={18}
+              weight="bold"
+              aria-hidden
+              className={`shrink-0 text-muted transition-transform ${
+                open ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+        ) : (
+          <span className="flex w-full items-center gap-3 py-2.5">
+            {nome}
+            {contador}
+          </span>
+        )}
+      </h2>
 
-      {open && (
+      {aberta && (
         <div id={id} className="pb-2">
           {count > 0 ? (
             children

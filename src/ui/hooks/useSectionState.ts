@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { storageKey } from '@core/config'
 import { ITEM_STATUSES, type ItemStatus, type MediaType } from '@core/items/types'
 
@@ -69,7 +69,12 @@ function write(value: Choices): void {
 export function useSectionState(mediaType: MediaType | undefined) {
   const [all, setAll] = useState<Choices>(read)
 
-  const choices = all[mediaType as MediaType] ?? {}
+  // `useMemo` e não a expressão solta: sem ele, `choices` é um objeto novo a
+  // cada render e o `useCallback` abaixo memoriza nada.
+  const choices = useMemo(
+    () => all[mediaType as MediaType] ?? {},
+    [all, mediaType],
+  )
 
   /** Aberta? A escolha da pessoa ganha; sem escolha, quem decide é o conteúdo. */
   const isOpen = useCallback(

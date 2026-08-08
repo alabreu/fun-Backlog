@@ -205,8 +205,10 @@ export function ShelfScreen() {
                 key={value}
                 title={t(statusLabelKey(value, mediaType))}
                 count={found.length}
-                // Com busca em curso, aberto SEMPRE: ver o cabeçalho do arquivo.
-                open={searchingExternal || isOpen(value, found.length)}
+                // Buscando, a seção só existe porque tem acerto: fica aberta
+                // e sem seta. Ver `collapsible` em `Section`.
+                collapsible={!searchingExternal}
+                open={isOpen(value, found.length)}
                 onToggle={() => toggle(value, found.length)}
                 emptyLabel={t('shelf.sectionEmpty')}
               >
