@@ -312,6 +312,19 @@ export function DesignScreen() {
         </section>
 
         <section>
+          <SectionTitle className="mb-2">Cover</SectionTitle>
+          <div className="grid grid-cols-3 gap-3">
+            <Cover title="Normal" media="game" />
+            <Cover title="Em andamento" media="game" active />
+            <Cover title="Sem mídia" />
+          </div>
+          <p className="mt-2 text-label text-muted">
+            `active` troca o anel discreto pelo traço de 2px da cor da mídia —
+            é o que marca o que está em andamento no meio da estante.
+          </p>
+        </section>
+
+        <section>
           <SectionTitle className="mb-2">PlatformIcon</SectionTitle>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
             {PLATFORM_FAMILIES.map((family) => (

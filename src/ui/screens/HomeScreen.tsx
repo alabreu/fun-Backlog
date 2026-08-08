@@ -239,6 +239,7 @@ function ItemCard({
           src={item.coverUrl}
           title={item.title}
           media={item.mediaType}
+          active={item.status === 'active'}
           lazy={!eager}
         />
         {progress && progress.current > 0 && (

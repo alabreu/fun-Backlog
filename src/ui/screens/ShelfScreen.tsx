@@ -15,6 +15,7 @@ import type { MediaSearchResult } from '@core/media/types'
 import {
   Badge,
   Chip,
+  ChipRow,
   Cover,
   CoverAction,
   CoverGrid,
@@ -157,7 +158,7 @@ export function ShelfScreen() {
         </div>
 
         {total > 0 && (
-          <div className="-mx-gutter mb-4 flex gap-2 overflow-x-auto px-gutter pb-1">
+          <ChipRow className="mb-3">
             <Chip selected={!status} onClick={() => setStatus(undefined)}>
               {t('catalog.filterAll')}
             </Chip>
@@ -171,7 +172,7 @@ export function ShelfScreen() {
                 {t(statusLabelKey(value, mediaType))}
               </Chip>
             ))}
-          </div>
+          </ChipRow>
         )}
 
         {error && (
@@ -198,6 +199,7 @@ export function ShelfScreen() {
                         src={item.coverUrl}
                         title={item.title}
                         media={item.mediaType}
+                        active={item.status === 'active'}
                         lazy={index > 5}
                       />
                       {item.status !== 'backlog' && (

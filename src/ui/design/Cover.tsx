@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { MediaType } from '@core/items/types'
-import { MEDIA_INITIAL, MEDIA_TINT } from './media'
+import { MEDIA_INITIAL, MEDIA_RING, MEDIA_TINT } from './media'
 
 /**
  * A capa — o elemento visual primário do app. "Estante, não planilha" começa
@@ -29,6 +29,14 @@ export interface CoverProps {
   media?: MediaType
   /** Primeira dobra do grid: `false` evita o lazy que atrasa o que já está à vista. */
   lazy?: boolean
+  /**
+   * Em andamento: troca o anel discreto por um traço de 2px na cor da mídia.
+   *
+   * Precisa de `media` para saber qual cor usar — sem ele o anel padrão fica.
+   * E o traço NUNCA vai sozinho: a capa em andamento também carrega o badge de
+   * status ("Jogando"), então quem não distingue a cor lê a palavra.
+   */
+  active?: boolean
   className?: string
 }
 
@@ -37,6 +45,7 @@ export function Cover({
   title,
   media,
   lazy = true,
+  active = false,
   className = '',
 }: CoverProps) {
   const [failed, setFailed] = useState(false)
@@ -44,9 +53,9 @@ export function Cover({
 
   return (
     <div
-      className={`relative aspect-[2/3] w-full overflow-hidden rounded-card ring-1 ring-ink/10 ${
-        media ? MEDIA_TINT[media] : 'bg-ink/5'
-      } ${className}`}
+      className={`relative aspect-[2/3] w-full overflow-hidden rounded-card ${
+        active && media ? MEDIA_RING[media] : 'ring-1 ring-ink/10'
+      } ${media ? MEDIA_TINT[media] : 'bg-ink/5'} ${className}`}
     >
       {src && !failed ? (
         <img

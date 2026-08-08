@@ -31,13 +31,20 @@ export type { CardPadding, CardProps } from './Card'
 export { ClampedText } from './ClampedText'
 export type { ClampedTextProps } from './ClampedText'
 export { Chip } from './Chip'
+export { ChipRow } from './ChipRow'
 export type { ChipProps } from './Chip'
 export { Field, Input, Textarea } from './Field'
 export type { FieldProps } from './Field'
 export { IconButton } from './IconButton'
 export type { IconButtonProps } from './IconButton'
 export { MediaDot } from './MediaDot'
-export { GENRE_TEXT, MEDIA_BG, MEDIA_TEXT, PLATFORM_TEXT } from './media'
+export {
+  GENRE_TEXT,
+  MEDIA_BG,
+  MEDIA_RING,
+  MEDIA_TEXT,
+  PLATFORM_TEXT,
+} from './media'
 export { NavRow } from './NavRow'
 export { PlatformIcon } from './PlatformIcon'
 export type { NavRowProps } from './NavRow'

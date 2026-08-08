@@ -8,6 +8,7 @@ import {
 import {
   Badge,
   Chip,
+  ChipRow,
   Cover,
   CoverGrid,
   Screen,
@@ -71,7 +72,7 @@ export function CompletedScreen() {
 
       <ScreenBody as="main">
         {years.length > 1 && (
-          <div className="-mx-gutter mb-4 flex gap-2 overflow-x-auto px-gutter pb-1">
+          <ChipRow className="mb-3">
             <Chip selected={chosen === 'all'} onClick={() => setChosen('all')}>
               {t('completed.allYears')}
             </Chip>
@@ -84,7 +85,7 @@ export function CompletedScreen() {
                 {value}
               </Chip>
             ))}
-          </div>
+          </ChipRow>
         )}
 
         <div className="grid grid-cols-2 gap-2">

@@ -16,6 +16,7 @@ import {
   Badge,
   Button,
   Chip,
+  ChipRow,
   Cover,
   CoverAction,
   CoverGrid,
@@ -223,7 +224,7 @@ export function AddScreen() {
             {t('add.fromLink')}
           </p>
         ) : (
-          <div className="-mx-gutter mt-3 flex gap-2 overflow-x-auto px-gutter pb-1">
+          <ChipRow className="mt-2">
             <Chip
               selected={media === undefined}
               onClick={() => setMedia(undefined)}
@@ -241,7 +242,7 @@ export function AddScreen() {
                 {t(mediaLabelKey(type))}
               </Chip>
             ))}
-          </div>
+          </ChipRow>
         )}
 
         {/* Região viva: quem usa leitor de tela ouve o resultado da adição sem
