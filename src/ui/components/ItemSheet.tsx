@@ -351,12 +351,20 @@ function FactList({ facts }: { facts: MediaFact[] }) {
                 a única em que a forma identifica mais rápido que a palavra.
                 O nome fica escrito do lado: o ícone reforça, nunca substitui. */}
             {fact.labelKey === 'fact.platforms' && fact.values ? (
-              <span className="flex flex-wrap gap-1.5">
+              // SEM cápsula. O rótulo "PLATAFORMAS" à esquerda já emoldura a
+              // lista — pôr cada item numa pílula era emoldurar duas vezes, e
+              // era o que fazia plataforma e gênero (coisas diferentes) terem
+              // exatamente a mesma aparência. Sem a pílula, quem dá a textura
+              // visual é o ícone, que é o que a gente quer que seja visto.
+              <span className="flex flex-wrap gap-x-4 gap-y-1">
                 {fact.values.map((family) => (
-                  <Badge key={family}>
-                    <PlatformIcon family={family as PlatformFamily} />
+                  <span key={family} className="inline-flex items-center gap-1.5">
+                    <PlatformIcon
+                      family={family as PlatformFamily}
+                      size={18}
+                    />
                     {FAMILY_LABEL[family as PlatformFamily]}
-                  </Badge>
+                  </span>
                 ))}
               </span>
             ) : (
