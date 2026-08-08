@@ -11,9 +11,21 @@ import type { ReactNode } from 'react'
  * inteira de uma vez, e o que você quer esconder você fecha.
  *
  * O CABEÇALHO É UM BOTÃO, com o nome à esquerda e contador + seta à direita.
+ *
+ * O nome usa `text-title` (18px), um degrau abaixo do `text-display` (24px) do
+ * título da tela: a seção é subordinada ao título, e a diferença de tamanho é o
+ * que diz isso sem precisar de recuo nem de linha divisória. Ele deixou de ser
+ * caixa alta miúda em cinza — aquilo era um RÓTULO de seção, e isto aqui é um
+ * título de verdade, com conteúdo próprio embaixo e um controle do lado.
+ *
  * A seta gira em vez de trocar de ícone: é o mesmo objeto mudando de estado, e
  * a rotação diz isso sem pedir uma segunda leitura. Ela respeita
  * `prefers-reduced-motion` pela transição global do projeto.
+ *
+ * APONTANDO PARA BAIXO quando fechado e PARA CIMA quando aberto: a seta indica
+ * para onde o conteúdo vai. Fechada, ele desce para dentro da tela; aberta, ele
+ * recolhe para cima. A convenção inversa (seta para a direita quando fechado)
+ * é de árvore de arquivos, e aqui não há hierarquia para navegar.
  *
  * `aria-expanded` + `aria-controls` são o que faz o leitor de tela anunciar
  * "recolhido/expandido" e saber qual região o botão comanda — sem eles isto é
@@ -53,20 +65,20 @@ export function Section({
         aria-expanded={open}
         aria-controls={id}
         onClick={onToggle}
-        className="flex w-full items-center gap-3 py-2 text-left"
+        className="flex w-full items-center gap-3 py-2.5 text-left"
       >
-        <span className="min-w-0 flex-1 truncate text-label font-semibold uppercase tracking-wide text-muted">
+        <span className="min-w-0 flex-1 truncate text-title font-bold tracking-tight text-ink">
           {title}
         </span>
         {/* `tabular-nums` para o contador não empurrar a seta ao trocar de
             1 para 10 — a seta é o alvo, e alvo que dança é alvo que erra. */}
-        <span className="text-label tabular-nums text-muted">{count}</span>
+        <span className="text-body tabular-nums text-muted">{count}</span>
         <CaretDown
-          size={16}
+          size={18}
           weight="bold"
           aria-hidden
           className={`shrink-0 text-muted transition-transform ${
-            open ? '' : '-rotate-90'
+            open ? 'rotate-180' : ''
           }`}
         />
       </button>
