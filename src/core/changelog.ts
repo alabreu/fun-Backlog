@@ -19,6 +19,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-08-links',
+    date: '2026-08-08',
+    emoji: '🔗',
+    title: {
+      pt: 'Dá para ir direto do app para o serviço',
+      en: 'You can now jump straight from the app to the service',
+    },
+    items: {
+      pt: [
+        'Em animes, cada serviço de "onde assistir" virou link — e leva para a página daquele anime, não para a home do serviço.',
+        'Filmes e séries ganharam o mesmo, pela página do JustWatch do seu país, que lista quem tem a obra hoje.',
+        'Jogos passaram a mostrar "onde comprar": Steam, Epic, GOG e itch.io, quando existem.',
+        'O JustWatch entrou nos créditos — é de onde vem a lista de streamings, e creditar quem produz o dado é condição de usá-lo.',
+      ],
+      en: [
+        'For anime, each "where to watch" service is now a link — and it lands on that anime, not the service homepage.',
+        'Films and series got the same, through your country\u2019s JustWatch page, which lists who carries the title today.',
+        'Games now show "where to buy": Steam, Epic, GOG and itch.io, when they exist.',
+        'JustWatch joined the credits — it is where the streaming list comes from, and crediting whoever produces the data is a condition of using it.',
+      ],
+    },
+  },
+  {
     id: '2026-08-08-pais',
     date: '2026-08-08',
     emoji: '🌎',

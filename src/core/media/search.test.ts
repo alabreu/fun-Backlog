@@ -253,18 +253,21 @@ describe('ficha do AniList', () => {
       title: { romaji: 'Cowboy Bebop', english: null },
       coverImage: { large: '' },
       externalLinks: [
-        { site: 'Official Site', type: 'INFO' },
-        { site: 'Crunchyroll', type: 'STREAMING' },
-        { site: 'Twitter', type: 'SOCIAL' },
-        { site: 'Netflix', type: 'STREAMING' },
-        // Repetido: o AniList lista a mesma casa uma vez por idioma.
-        { site: 'Netflix', type: 'STREAMING' },
+        { site: 'Official Site', type: 'INFO', url: 'https://bebop.example' },
+        { site: 'Crunchyroll', type: 'STREAMING', url: 'https://cr.example/21' },
+        { site: 'Twitter', type: 'SOCIAL', url: 'https://x.example/bebop' },
+        { site: 'Netflix', type: 'STREAMING', url: 'https://nf.example/21' },
+        // Repetido: o AniList lista a mesma casa uma vez por idioma. Vence a
+        // PRIMEIRA — a segunda n\u00e3o pode trocar o link por baixo.
+        { site: 'Netflix', type: 'STREAMING', url: 'https://nf.example/outro' },
         null,
       ],
     })
 
     const onde = d?.facts?.find((f) => f.labelKey === 'fact.where')
     expect(onde?.values).toEqual(['Crunchyroll', 'Netflix'])
+    // O link leva \u00e0 P\u00c1GINA DA OBRA no servi\u00e7o, n\u00e3o \u00e0 home dele.
+    expect(onde?.links).toEqual(['https://cr.example/21', 'https://nf.example/21'])
     // Fato-l\u00edder e primeiro da lista: sobe acima da sinopse.
     expect(onde?.lead).toBe(true)
     expect(d?.facts?.[0]).toBe(onde)
@@ -277,7 +280,9 @@ describe('ficha do AniList', () => {
       seasonYear: null,
       title: { romaji: 'X', english: null },
       coverImage: { large: '' },
-      externalLinks: [{ site: 'Official Site', type: 'INFO' }],
+      externalLinks: [
+        { site: 'Official Site', type: 'INFO', url: 'https://x.example' },
+      ],
     })
     expect(d?.facts?.some((f) => f.labelKey === 'fact.where')).toBe(false)
   })

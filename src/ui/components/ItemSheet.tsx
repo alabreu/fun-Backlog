@@ -23,6 +23,7 @@ import {
   Chip,
   ClampedText,
   Cover,
+  ExternalLink,
   Field,
   GENRE_TEXT,
   Input,
@@ -370,6 +371,33 @@ function FactList({ facts }: { facts: MediaFact[] }) {
                         <PlatformIcon family={family} size={18} />
                         {FAMILY_LABEL[family]}
                       </span>
+                      {i < (fact.values?.length ?? 0) - 1 && (
+                        <span aria-hidden className="mx-2 text-muted">
+                          ·
+                        </span>
+                      )}
+                    </span>
+                  )
+                })}
+              </span>
+            ) : fact.links?.some(Boolean) ? (
+              // Lista COM LINK: cada item vira o caminho para a página da obra
+              // naquele serviço ou loja. Mesma forma da linha de plataformas —
+              // ponto separador depois do item, dentro do mesmo bloco, para o
+              // par "Steam ·" quebrar a linha inteiro.
+              //
+              // Item sem link continua sendo texto: `links` é paralelo a
+              // `values`, e um buraco no meio não pode empurrar os outros.
+              <span className="flex flex-wrap items-center gap-y-1">
+                {(fact.values ?? []).map((value, i) => {
+                  const href = fact.links?.[i]
+                  return (
+                    <span key={value} className="inline-flex items-center">
+                      {href ? (
+                        <ExternalLink href={href}>{value}</ExternalLink>
+                      ) : (
+                        value
+                      )}
                       {i < (fact.values?.length ?? 0) - 1 && (
                         <span aria-hidden className="mx-2 text-muted">
                           ·

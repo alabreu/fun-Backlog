@@ -93,7 +93,14 @@ interface TmdbDetailBody extends TmdbResult {
     crew?: { name?: string; job?: string }[]
   }
   'watch/providers'?: {
-    results?: Record<string, { flatrate?: { provider_name?: string }[] }>
+    results?: Record<
+      string,
+      {
+        /** Página do JustWatch daquela obra NAQUELE país. */
+        link?: string
+        flatrate?: { provider_name?: string }[]
+      }
+    >
   }
 }
 
@@ -143,9 +150,16 @@ export function mapTmdbDetail(
 
   // Só `flatrate` (incluído na assinatura). Aluguel e compra virariam uma
   // lista de dez serviços que não responde "dá para ver hoje?".
-  const onde = (body['watch/providers']?.results?.[region]?.flatrate ?? [])
+  const watch = body['watch/providers']?.results?.[region]
+  const onde = (watch?.flatrate ?? [])
     .map((p) => p?.provider_name)
     .filter((n): n is string => Boolean(n))
+
+  // O MESMO link para todos os serviços, porque é o que a TMDB dá: a lista vem
+  // do JustWatch e o que ela devolve é UMA página por obra por país, não uma
+  // por serviço. Levar para a página do JustWatch, e não para a home da Max, é
+  // também a condição de uso desses dados (ver a tela de créditos).
+  const justWatch = typeof watch?.link === 'string' ? watch.link : null
   // `lead`: "não tenho essa assinatura" pesa tanto quanto "não roda no meu
   // console" — e aquela sobe acima da sinopse desde a ficha de jogo.
   if (onde.length > 0)
@@ -153,6 +167,7 @@ export function mapTmdbDetail(
       labelKey: 'fact.where',
       value: onde.join(' · '),
       values: onde,
+      links: onde.map(() => justWatch),
       lead: true,
     })
 

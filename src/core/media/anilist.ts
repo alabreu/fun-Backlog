@@ -135,7 +135,7 @@ const DETAIL_QUERY = `
       title { romaji english }
       coverImage { large }
       studios(isMain: true) { nodes { name } }
-      externalLinks { site type }
+      externalLinks { site type url }
     }
   }
 `
@@ -143,7 +143,9 @@ const DETAIL_QUERY = `
 interface AniListDetail extends AniListMedia {
   duration?: number | null
   status?: string | null
-  externalLinks?: ({ site?: string | null; type?: string | null } | null)[] | null
+  externalLinks?:
+    | ({ site?: string | null; type?: string | null; url?: string | null } | null)[]
+    | null
   genres?: string[] | null
   averageScore?: number | null
   description?: string | null
@@ -174,23 +176,26 @@ export function mapAniListDetail(media: AniListDetail): MediaDetail | null {
   // ONDE ASSISTIR. O AniList mistura em `externalLinks` site oficial, rede
   // social e streaming; só o `type: STREAMING` responde "dá para ver hoje?".
   //
+  // O `url` de cada link vem junto: o AniList aponta para a PÁGINA DA OBRA no
+  // serviço, não para a home dele — clicar em "Crunchyroll" cai no anime, que é
+  // o único jeito de isso valer mais que ler o nome.
+  const streaming = new Map<string, string | null>()
+  for (const link of media.externalLinks ?? []) {
+    // `Map` no lugar do `Set`: a mesma casa aparece repetida quando há mais de
+    // um idioma de legenda, e a primeira ocorrência é a que fica com o link.
+    if (link?.type !== 'STREAMING' || !link.site) continue
+    if (!streaming.has(link.site)) streaming.set(link.site, link.url ?? null)
+  }
   // Teto de seis porque um anime popular lista uma dezena de serviços, muitos
   // regionais e nenhum útil aqui — e porque isto é fato-líder, então uma lista
-  // longa empurraria a sinopse para fora da tela. `Set` porque a mesma casa
-  // aparece repetida quando há mais de um idioma de legenda.
-  const onde = [
-    ...new Set(
-      (media.externalLinks ?? [])
-        .filter((l) => l?.type === 'STREAMING')
-        .map((l) => l?.site)
-        .filter((n): n is string => Boolean(n)),
-    ),
-  ].slice(0, 6)
+  // longa empurraria a sinopse para fora da tela.
+  const onde = [...streaming.keys()].slice(0, 6)
   if (onde.length > 0)
     facts.unshift({
       labelKey: 'fact.where',
       value: onde.join(' · '),
       values: onde,
+      links: onde.map((site) => streaming.get(site) ?? null),
       lead: true,
     })
 

@@ -144,6 +144,7 @@ export const en: Record<keyof typeof pt, string> = {
   'fact.platforms': 'Platforms',
   'fact.where': 'Where to watch',
   'fact.players': 'Players',
+  'fact.buy': 'Where to buy',
   'fact.episodeLength': 'Per episode',
 
   // Menu
@@ -266,6 +267,8 @@ export const en: Record<keyof typeof pt, string> = {
   'credits.tmdb': 'Movies and series: details, poster and localized title.',
   'credits.tmdbNotice':
     'This product uses the TMDB API but is not endorsed or certified by TMDB.',
+  'credits.justwatch':
+    'Where to watch: which services carry each film, series or anime in your country.',
   'credits.anilist': 'Anime: details, cover art and episode count.',
   'credits.openlibrary': 'Books: details, cover art and page count.',
 

@@ -142,6 +142,7 @@ export const pt = {
   'fact.platforms': 'Plataformas',
   'fact.where': 'Onde assistir',
   'fact.players': 'Jogadores',
+  'fact.buy': 'Onde comprar',
   'fact.episodeLength': 'Por episódio',
 
   // Menu (sheet do botão no topo direito)
@@ -266,6 +267,8 @@ export const pt = {
   // remover. Ver docs/decisions.md, decisão 8.
   'credits.tmdbNotice':
     'This product uses the TMDB API but is not endorsed or certified by TMDB.',
+  'credits.justwatch':
+    'Onde assistir: em quais serviços cada filme, série ou anime está no seu país.',
   'credits.anilist': 'Animes: ficha, capa e total de episódios.',
   'credits.openlibrary': 'Livros: ficha, capa e número de páginas.',
 

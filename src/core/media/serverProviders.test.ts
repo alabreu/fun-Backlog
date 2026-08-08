@@ -228,6 +228,39 @@ describe('ficha da IGDB', () => {
     })
   })
 
+  it('vira "onde comprar" s\u00f3 com as lojas, e na ordem de exibi\u00e7\u00e3o', () => {
+    const d = mapIgdbDetail({
+      id: 1,
+      name: 'Hollow Knight',
+      websites: [
+        { category: 3, url: 'https://wikipedia.org/hk' },
+        { category: 17, url: 'https://gog.com/hk' },
+        { category: 1, url: 'https://hollowknight.com' },
+        { category: 13, url: 'https://store.steampowered.com/app/367520' },
+      ],
+    })
+
+    const comprar = d?.facts?.find((f) => f.labelKey === 'fact.buy')
+    // Wikipedia e site oficial ficam de fora: "onde comprar" com uma landing
+    // page dentro \u00e9 o r\u00f3tulo mentindo. E Steam antes de GOG apesar de vir
+    // depois na resposta — a ordem \u00e9 nossa, n\u00e3o da IGDB.
+    expect(comprar?.values).toEqual(['Steam', 'GOG'])
+    expect(comprar?.links).toEqual([
+      'https://store.steampowered.com/app/367520',
+      'https://gog.com/hk',
+    ])
+    expect(comprar?.lead).toBe(true)
+  })
+
+  it('jogo sem loja nenhuma n\u00e3o ganha a se\u00e7\u00e3o vazia', () => {
+    const d = mapIgdbDetail({
+      id: 2,
+      name: 'X',
+      websites: [{ category: 3, url: 'https://wikipedia.org/x' }],
+    })
+    expect(d?.facts?.some((f) => f.labelKey === 'fact.buy')).toBe(false)
+  })
+
   it('cai para storyline quando n\u00e3o h\u00e1 summary', () => {
     const d = mapIgdbDetail({ id: 1, name: 'X', storyline: 'O enredo.' })
     expect(d?.synopsis).toBe('O enredo.')
@@ -267,7 +300,12 @@ describe('ficha da TMDB', () => {
           cast: [{ name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }],
         },
         'watch/providers': {
-          results: { BR: { flatrate: [{ provider_name: 'Max' }] } },
+          results: {
+            BR: {
+              link: 'https://www.themoviedb.org/movie/693134/watch?locale=BR',
+              flatrate: [{ provider_name: 'Max' }],
+            },
+          },
         },
       },
       'movie',
@@ -276,7 +314,16 @@ describe('ficha da TMDB', () => {
     // "Onde assistir" vem PRIMEIRO e com `lead`: sobe acima da sinopse, igual
     // \u00e0s plataformas de um jogo.
     expect(d?.facts).toEqual([
-      { labelKey: 'fact.where', value: 'Max', values: ['Max'], lead: true },
+      {
+        labelKey: 'fact.where',
+        value: 'Max',
+        values: ['Max'],
+        // A TMDB d\u00e1 UM link por pa\u00eds (a p\u00e1gina do JustWatch), n\u00e3o um por
+        // servi\u00e7o — ent\u00e3o todos apontam para o mesmo lugar, e \u00e9 esse link que
+        // a condi\u00e7\u00e3o de uso dos dados pede que exista.
+        links: ['https://www.themoviedb.org/movie/693134/watch?locale=BR'],
+        lead: true,
+      },
       { labelKey: 'fact.runtime', value: '2h 46min' },
     ])
     // Dire\u00e7\u00e3o antes do elenco, e o elenco cortado em tr\u00eas.

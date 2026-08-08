@@ -173,7 +173,16 @@ const IGDB_DETAIL_FIELDS =
   'fields name,summary,storyline,first_release_date,cover.image_id,' +
   'platforms.abbreviation,genres.name,game_modes.name,total_rating,' +
   'involved_companies.developer,involved_companies.publisher,' +
-  'involved_companies.company.name;'
+  'involved_companies.company.name'
+
+/**
+ * "Onde comprar" — Steam, Epic, GOG, itch. Fica SEPARADO do resto dos campos
+ * porque `websites.category` é justamente o tipo de coluna que a IGDB vem
+ * renomeando (ver o comentário de IGDB_FIELDS), e um campo extinto não devolve
+ * "sem links": devolve erro e derruba a ficha inteira. Separado, `detailIgdb`
+ * consegue tentar de novo sem ele.
+ */
+const IGDB_WEBSITE_FIELDS = ',websites.url,websites.category'
 
 /** Manda uma query APICalypse, renovando o token uma vez se levar 401. */
 async function askIgdb(body: string): Promise<unknown> {
@@ -256,7 +265,18 @@ async function detailIgdb(id: string): Promise<unknown> {
   const numeric = Number(id)
   if (!Number.isInteger(numeric) || numeric <= 0) throw new UpstreamError(400)
 
-  const rows = await askIgdb(`where id = ${numeric}; ${IGDB_DETAIL_FIELDS} limit 1;`)
+  const ask = async (fields: string) =>
+    await askIgdb(`where id = ${numeric}; ${fields}; limit 1;`)
+
+  let rows: unknown
+  try {
+    rows = await ask(IGDB_DETAIL_FIELDS + IGDB_WEBSITE_FIELDS)
+  } catch {
+    // REDE DE SEGURANÇA: se a IGDB tirar `websites.category` do ar, a ficha
+    // continua abrindo — só sem os links de loja. Perder um extra é aceitável;
+    // perder a sinopse, o elenco e as plataformas junto não é.
+    rows = await ask(IGDB_DETAIL_FIELDS)
+  }
   // A IGDB sempre devolve ARRAY, mesmo para um id só. O app espera o objeto.
   return Array.isArray(rows) ? (rows[0] ?? null) : null
 }
@@ -301,8 +321,13 @@ async function detailTmdb(id: string, kind: 'movie' | 'tv'): Promise<unknown> {
   const numeric = Number(id)
   if (!Number.isInteger(numeric) || numeric <= 0) throw new UpstreamError(400)
 
+  // `release_dates` só existe para filme — pedir numa série devolve erro na
+  // requisição INTEIRA, então o append muda com o tipo.
   return await tmdbGet(`/${kind}/${numeric}`, {
-    append_to_response: 'credits,watch/providers',
+    append_to_response:
+      kind === 'movie'
+        ? 'credits,watch/providers,release_dates'
+        : 'credits,watch/providers',
   })
 }
 

@@ -1,7 +1,13 @@
-import { ArrowSquareOut } from '@phosphor-icons/react'
 import type { MessageKey } from '@core/i18n'
 import type { MediaType } from '@core/items/types'
-import { Card, MediaDot, Screen, ScreenBody, SectionTitle } from '@ui/design'
+import {
+  Card,
+  ExternalLink,
+  MediaDot,
+  Screen,
+  ScreenBody,
+  SectionTitle,
+} from '@ui/design'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
@@ -22,8 +28,9 @@ interface Source {
   name: string
   url: string
   descriptionKey: MessageKey
-  /** A mídia que ela cobre — dá o ponto colorido e amarra à linguagem do app. */
-  media: MediaType
+  /** A mídia que ela cobre — dá o ponto colorido e amarra à linguagem do app.
+   *  Ausente quando a fonte atravessa mídias: um ponto só seria mentira. */
+  media?: MediaType
   /** Aviso exigido pela licença, exibido literalmente. */
   noticeKey?: MessageKey
 }
@@ -41,6 +48,15 @@ const SOURCES: Source[] = [
     descriptionKey: 'credits.tmdb',
     media: 'movie',
     noticeKey: 'credits.tmdbNotice',
+  },
+  // O JustWatch não é uma fonte que escolhemos: é de onde a TMDB tira "onde
+  // assistir", e usar esse dado obriga a creditar quem o produz. Fica aqui, e
+  // não como nota da TMDB, porque é uma empresa diferente — e o link em cada
+  // ficha vai justamente para a página deles.
+  {
+    name: 'JustWatch',
+    url: 'https://www.justwatch.com',
+    descriptionKey: 'credits.justwatch',
   },
   {
     name: 'AniList',
@@ -77,18 +93,8 @@ export function CreditsScreen() {
           {SOURCES.map((source) => (
             <Card key={source.name}>
               <div className="flex items-center gap-2">
-                <MediaDot media={source.media} />
-                <a
-                  href={source.url}
-                  target="_blank"
-                  // `noreferrer` junto do `noopener`: sem ele o site de destino
-                  // recebe de onde o clique veio, e isso não é assunto dele.
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-body font-semibold underline decoration-ink/30 underline-offset-2"
-                >
-                  {source.name}
-                  <ArrowSquareOut size={14} aria-hidden />
-                </a>
+                {source.media && <MediaDot media={source.media} />}
+                <ExternalLink href={source.url}>{source.name}</ExternalLink>
               </div>
 
               <p className="mt-1 text-body text-muted">
@@ -114,16 +120,9 @@ export function CreditsScreen() {
           <p className="text-body text-muted">{t('credits.icons')}</p>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
             {ICON_LIBRARIES.map((lib) => (
-              <a
-                key={lib.name}
-                href={lib.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-body font-semibold underline decoration-ink/30 underline-offset-2"
-              >
+              <ExternalLink key={lib.name} href={lib.url}>
                 {lib.name}
-                <ArrowSquareOut size={14} aria-hidden />
-              </a>
+              </ExternalLink>
             ))}
           </div>
         </Card>

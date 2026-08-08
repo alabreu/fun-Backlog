@@ -67,6 +67,18 @@ export interface MediaFact {
    * aqui é a mesma informação em itens, para quem souber render melhor.
    */
   values?: string[]
+  /**
+   * O link de cada item de `values`, NA MESMA POSIÇÃO. Item sem link fica
+   * `null` — o array é paralelo, não filtrado, senão as posições saem de fase.
+   *
+   * Arrays paralelos em vez de uma lista de objetos porque `values` já existe e
+   * já é lido por quem não liga para link (os ícones de plataforma). Trocar a
+   * forma obrigaria os dois lados a mudar para um ganho de nada.
+   *
+   * É sempre URL de terceiro: quem renderiza abre em aba nova, com
+   * `rel="noopener noreferrer"`.
+   */
+  links?: (string | null)[]
 }
 
 export interface MediaDetail {

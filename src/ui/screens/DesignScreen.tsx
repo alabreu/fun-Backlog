@@ -6,6 +6,7 @@ import {
   Card,
   Chip,
   ClampedText,
+  ExternalLink,
   Cover,
   CoverGrid,
   NavRow,
@@ -364,6 +365,20 @@ export function DesignScreen() {
           <ClampedText lines={3} moreLabel="Ler mais" lessLabel="Ler menos">
             Uma linha só.
           </ClampedText>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">ExternalLink</SectionTitle>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <ExternalLink href="https://www.themoviedb.org">TMDB</ExternalLink>
+            <ExternalLink href="https://anilist.co">AniList</ExternalLink>
+          </div>
+          <p className="mt-2 text-label text-muted">
+            Aba nova, <code>rel=&quot;noopener noreferrer&quot;</code> e o ícone
+            de saída — o aviso de que o toque troca de contexto. O sublinhado é a
+            segunda pista de &quot;clicável&quot;: cor sozinha reprovaria em
+            1.4.1.
+          </p>
         </section>
 
         <section>
