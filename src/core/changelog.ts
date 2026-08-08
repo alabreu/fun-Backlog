@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-08-google-books',
+    date: '2026-08-08',
+    emoji: '📚',
+    title: {
+      pt: 'A busca de livros deixou de ter buracos',
+      en: 'Book search stopped having holes in it',
+    },
+    items: {
+      pt: [
+        'O Google Books entrou como segunda fonte de livros: o que a Open Library não tinha — livro brasileiro recente, técnico, de editora pequena — agora aparece.',
+        'Obra que as duas conhecem aparece uma vez só, com a ficha da Open Library.',
+        'Livro à venda ganhou "onde comprar", com link direto.',
+      ],
+      en: [
+        'Google Books joined as a second book source: what Open Library did not have — recent, technical or small-press titles — now shows up.',
+        'A title both sources know appears once, with the Open Library entry.',
+        'Books on sale now show "where to buy", with a direct link.',
+      ],
+    },
+  },
+  {
     id: '2026-08-08-em-cartaz',
     date: '2026-08-08',
     emoji: '🎟️',

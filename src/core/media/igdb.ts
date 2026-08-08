@@ -59,7 +59,7 @@ export const igdbProvider: MediaProvider = {
   mediaTypes: ['game'],
   requiresServer: true,
 
-  async search(query, signal) {
+  async search(query, { signal } = {}) {
     const games = await callMediaFunction<IgdbGame[]>(
       { source: 'igdb', query },
       signal,

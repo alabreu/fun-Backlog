@@ -251,7 +251,7 @@ export const tmdbProvider: MediaProvider = {
   mediaTypes: ['movie', 'series'],
   requiresServer: true,
 
-  async search(query, signal) {
+  async search(query, { signal } = {}) {
     const body = await callMediaFunction<{ results?: TmdbResult[] }>(
       { source: 'tmdb', query },
       signal,

@@ -5,8 +5,17 @@ import {
   mapOpenLibraryWork,
   openLibraryCover,
 } from './openlibrary'
-import { PROVIDERS, searchAll } from './search'
-import type { MediaProvider, MediaSearchResult } from './types'
+import { dedupe, PROVIDERS, searchAll } from './search'
+import {
+  googleBooksCover,
+  mapGoogleVolume,
+  mapGoogleVolumeDetail,
+} from './googlebooks'
+import {
+  SEARCH_LIMIT,
+  type MediaProvider,
+  type MediaSearchResult,
+} from './types'
 
 function result(over: Partial<MediaSearchResult> = {}): MediaSearchResult {
   return {
@@ -235,6 +244,120 @@ describe('searchAll', () => {
 
     const outcome = await searchAll('bebop', { enabled: ['book', 'anime'] })
     expect(outcome.groups.map((g) => g.mediaType)).toEqual(['book', 'anime'])
+  })
+})
+
+describe('mapeamento do Google Books', () => {
+  it('conserta a capa que a API entrega pequena e enfeitada', () => {
+    // `http`, `zoom=1` e a dobra de p\u00e1gina desenhada por cima da arte.
+    expect(
+      googleBooksCover(
+        'http://books.google.com/books/content?id=A&printsec=frontcover&img=1&zoom=1&edge=curl',
+      ),
+    ).toBe(
+      'https://books.google.com/books/content?id=A&printsec=frontcover&img=1&zoom=2',
+    )
+  })
+
+  it('aceita as tr\u00eas formas de data que a API usa', () => {
+    const ano = (publishedDate: string) =>
+      mapGoogleVolume({ id: 'x', volumeInfo: { title: 'T', publishedDate } })
+        ?.year
+    expect(ano('2015')).toBe(2015)
+    expect(ano('2015-03')).toBe(2015)
+    expect(ano('2015-03-14')).toBe(2015)
+    expect(ano('')).toBeUndefined()
+  })
+
+  it('descarta volume sem t\u00edtulo ou sem id', () => {
+    expect(mapGoogleVolume({ id: 'x', volumeInfo: {} })).toBeNull()
+    expect(mapGoogleVolume({ volumeInfo: { title: 'T' } })).toBeNull()
+  })
+
+  it('s\u00f3 vira "onde comprar" quando est\u00e1 mesmo \u00e0 venda', () => {
+    const base = { id: 'x', volumeInfo: { title: 'T' } }
+    const aVenda = mapGoogleVolumeDetail({
+      ...base,
+      saleInfo: { saleability: 'FOR_SALE', buyLink: 'https://play.example/x' },
+    })
+    expect(aVenda?.facts?.[0]).toEqual({
+      labelKey: 'fact.buy',
+      value: 'Google Play',
+      values: ['Google Play'],
+      links: ['https://play.example/x'],
+      lead: true,
+    })
+
+    // `buyLink` de livro indispon\u00edvel leva a uma p\u00e1gina que diz "n\u00e3o
+    // dispon\u00edvel" — pior que n\u00e3o ter link nenhum.
+    const naoVenda = mapGoogleVolumeDetail({
+      ...base,
+      saleInfo: { saleability: 'NOT_FOR_SALE', buyLink: 'https://play.example/x' },
+    })
+    expect(naoVenda?.facts).toEqual([])
+  })
+
+  it('tira o HTML de editora que vem na descri\u00e7\u00e3o', () => {
+    const d = mapGoogleVolumeDetail({
+      id: 'x',
+      volumeInfo: {
+        title: 'T',
+        description: '<p>Primeiro.</p><p>Segundo.<br>Terceiro.</p>',
+        averageRating: 4.5,
+      },
+    })
+    expect(d?.synopsis).toBe('Primeiro.\n\nSegundo.\nTerceiro.')
+    // `averageRating` \u00e9 0\u20135; o resto do app fala em 0\u2013100.
+    expect(d?.score).toBe(90)
+  })
+})
+
+describe('dedupe', () => {
+  it('a mesma obra de duas fontes aparece uma vez, e vence a primeira', () => {
+    const [primeiro, ...resto] = dedupe([
+      result({
+        mediaType: 'book',
+        provider: 'openlibrary',
+        title: 'O Senhor dos An\u00e9is:',
+        year: 1954,
+      }),
+      result({
+        mediaType: 'book',
+        provider: 'googlebooks',
+        title: 'o senhor dos aneis',
+        year: 1954,
+      }),
+    ])
+    expect(resto).toHaveLength(0)
+    // A ordem de PROVIDERS \u00e9 o que torna o Google Books um FALLBACK: ele s\u00f3
+    // acrescenta o que a Open Library n\u00e3o tinha.
+    expect(primeiro.provider).toBe('openlibrary')
+  })
+
+  it('hom\u00f4nimos de anos diferentes s\u00e3o obras diferentes', () => {
+    expect(
+      dedupe([
+        result({ mediaType: 'movie', title: 'Duna', year: 1984, externalId: '1' }),
+        result({ mediaType: 'movie', title: 'Duna', year: 2021, externalId: '2' }),
+      ]),
+    ).toHaveLength(2)
+  })
+
+  // Na d\u00favida, mostrar duas vezes \u00e9 menos grave que sumir com a obra certa.
+  it('obra sem ano n\u00e3o \u00e9 fundida com outra sem ano', () => {
+    expect(
+      dedupe([
+        result({ mediaType: 'book', title: 'Sem ano', provider: 'a', externalId: '1' }),
+        result({ mediaType: 'book', title: 'Sem ano', provider: 'b', externalId: '2' }),
+      ]),
+    ).toHaveLength(2)
+  })
+
+  it('corta no limite de exibi\u00e7\u00e3o, que duas fontes juntas passam', () => {
+    const muitos = Array.from({ length: SEARCH_LIMIT + 10 }, (_, i) =>
+      result({ mediaType: 'book', title: `Livro ${i}`, year: 2000 + i }),
+    )
+    expect(dedupe(muitos)).toHaveLength(SEARCH_LIMIT)
   })
 })
 

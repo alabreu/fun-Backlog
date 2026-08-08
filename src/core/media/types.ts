@@ -110,16 +110,18 @@ export interface MediaDetail {
 }
 
 /**
- * O contexto da pessoa que pede a ficha. Objeto, e não mais parâmetros soltos,
- * porque só a TMDB liga para o país e só ela vai ligar para o próximo campo que
- * entrar aqui — os outros providers continuam ignorando o que não usam.
+ * O contexto de quem pede — vale tanto para busca quanto para ficha.
+ *
+ * Objeto, e não mais parâmetros soltos, porque nem todo provider liga para todo
+ * campo: só a TMDB usa o país na ficha, só o Google Books usa na busca, e os
+ * outros continuam ignorando o que não usam sem precisar declarar nada.
  */
-export interface DetailOptions {
+export interface ProviderOptions {
   signal?: AbortSignal
   /**
    * País da pessoa (ISO 3166-1 alfa-2). "Onde assistir" muda inteiro entre
-   * Brasil e Portugal, então quem pede a ficha precisa dizer de onde fala.
-   * Ausente = o padrão do provider.
+   * Brasil e Portugal, e a loja de um livro também. Ausente = o padrão do
+   * provider.
    */
   region?: string
 }
@@ -130,7 +132,10 @@ export interface MediaProvider {
   mediaTypes: MediaType[]
   /** Precisa passar por Edge Function (tem chave)? */
   requiresServer: boolean
-  search(query: string, signal?: AbortSignal): Promise<MediaSearchResult[]>
+  search(
+    query: string,
+    options?: ProviderOptions,
+  ): Promise<MediaSearchResult[]>
   /**
    * Ficha completa de uma obra. Opcional porque um provider novo pode entrar
    * só com busca — a tela cai no que já tem em mãos quando falta.
@@ -138,7 +143,7 @@ export interface MediaProvider {
   detail?(
     externalId: string,
     mediaType: MediaType,
-    options?: DetailOptions,
+    options?: ProviderOptions,
   ): Promise<MediaDetail>
 }
 

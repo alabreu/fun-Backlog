@@ -271,6 +271,8 @@ export const en: Record<keyof typeof pt, string> = {
   'credits.justwatch':
     'Where to watch: which services carry each film, series or anime in your country.',
   'credits.anilist': 'Anime: details, cover art and episode count.',
+  'credits.googlebooks':
+    'Books Open Library does not have, and where to buy them.',
   'credits.openlibrary': 'Books: details, cover art and page count.',
 
   // Language

@@ -272,6 +272,8 @@ export const pt = {
     'Onde assistir: em quais serviços cada filme, série ou anime está no seu país.',
   'credits.anilist': 'Animes: ficha, capa e total de episódios.',
   'credits.openlibrary': 'Livros: ficha, capa e número de páginas.',
+  'credits.googlebooks':
+    'Livros que a Open Library não tem, e onde comprá-los.',
 
   // Idioma e região
   'language.title': 'Idioma e região',

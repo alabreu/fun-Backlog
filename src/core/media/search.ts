@@ -1,9 +1,10 @@
 import type { MediaType } from '@core/items/types'
 import { anilistProvider } from './anilist'
+import { googleBooksProvider } from './googlebooks'
 import { igdbProvider } from './igdb'
 import { openLibraryProvider } from './openlibrary'
 import { tmdbProvider } from './tmdb'
-import type { MediaProvider, MediaSearchResult } from './types'
+import { SEARCH_LIMIT, type MediaProvider, type MediaSearchResult } from './types'
 
 /**
  * Busca unificada: uma caixa de texto, todas as mídias, resultados agrupados
@@ -21,6 +22,10 @@ export const PROVIDERS: MediaProvider[] = [
   tmdbProvider,
   anilistProvider,
   openLibraryProvider,
+  // Depois da Open Library de propósito: o Google Books é FALLBACK de livro, e
+  // esta ordem é o que faz a deduplicação abaixo manter o resultado da Open
+  // Library quando as duas conhecem a mesma obra.
+  googleBooksProvider,
 ]
 
 export interface SearchGroup {
@@ -41,6 +46,8 @@ export interface SearchOptions {
   mediaType?: MediaType
   /** Sem sessão, providers com chave nem são chamados (dariam 401). */
   signedIn?: boolean
+  /** País da pessoa — o Google Books usa para saber a loja e a disponibilidade. */
+  region?: string
   /**
    * As mídias que a pessoa mantém ligadas, NA ORDEM dela. Ausente = todas, que
    * é o padrão e o que os testes usam.
@@ -51,6 +58,50 @@ export interface SearchOptions {
    */
   enabled?: MediaType[]
   signal?: AbortSignal
+}
+
+/**
+ * Tira a mesma obra vinda de fontes diferentes.
+ *
+ * Nasceu com o Google Books entrando ao lado da Open Library: duas fontes de
+ * livro devolvendo vinte resultados cada dariam uma lista de quarenta com as
+ * mesmas obras no meio. VENCE A PRIMEIRA — e é a ordem de `PROVIDERS` que
+ * decide quem é a primeira, o que transforma o segundo provider em fallback de
+ * verdade: ele só acrescenta o que o primeiro não tinha.
+ *
+ * A chave é título + ano, os dois normalizados. Título sozinho juntaria dois
+ * livros homônimos de décadas diferentes; incluir o autor pareceria mais
+ * seguro, mas cada fonte grafa o nome de um jeito ("J.R.R. Tolkien" e "J. R. R.
+ * Tolkien") e o par nunca casaria.
+ *
+ * Obra sem ano fica com uma chave só dela — na dúvida, mostrar duas vezes é
+ * menos grave que sumir com a que a pessoa procurava.
+ */
+export function dedupe(results: MediaSearchResult[]): MediaSearchResult[] {
+  const seen = new Set<string>()
+  const kept: MediaSearchResult[] = []
+
+  for (const result of results) {
+    const title = result.title
+      .toLowerCase()
+      .normalize('NFD')
+      // Tira acento (a combinação separada pelo NFD) e depois tudo que não é
+      // letra ou número: "O Senhor dos Anéis:" e "O senhor dos aneis" viram a
+      // mesma coisa, que é o que a pessoa vê na tela.
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+    const key = result.year
+      ? `${result.mediaType}:${title}:${result.year}`
+      : `${result.mediaType}:${title}:${result.provider}:${result.externalId}`
+
+    if (seen.has(key)) continue
+    seen.add(key)
+    kept.push(result)
+  }
+
+  // Duas fontes juntas passam de vinte com folga, e a lista é para ESCOLHER.
+  return kept.slice(0, SEARCH_LIMIT)
 }
 
 /** Ordem de exibição dos grupos quando a pessoa não escolheu a dela. A posição
@@ -81,7 +132,13 @@ export async function searchAll(
   if (trimmed.length < 2)
     return { groups: [], failed: [], skippedNeedingAuth: [] }
 
-  const { mediaType, signedIn = false, enabled = GROUP_ORDER, signal } = options
+  const {
+    mediaType,
+    signedIn = false,
+    enabled = GROUP_ORDER,
+    region,
+    signal,
+  } = options
   const failed: string[] = []
   const skippedNeedingAuth: string[] = []
 
@@ -103,7 +160,7 @@ export async function searchAll(
   const settled = await Promise.all(
     eligible.map(async (provider) => {
       try {
-        return await provider.search(trimmed, signal)
+        return await provider.search(trimmed, { signal, region })
       } catch (error) {
         // Cancelamento não é falha: quem digitou de novo abortou de propósito.
         if (!(error instanceof DOMException && error.name === 'AbortError'))
@@ -127,7 +184,7 @@ export async function searchAll(
     .filter((type) => byType.has(type))
     .map((type) => ({
       mediaType: type,
-      results: byType.get(type) as MediaSearchResult[],
+      results: dedupe(byType.get(type) as MediaSearchResult[]),
     }))
 
   return { groups, failed, skippedNeedingAuth }

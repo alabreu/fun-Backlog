@@ -70,6 +70,12 @@ const SOURCES: Source[] = [
     descriptionKey: 'credits.openlibrary',
     media: 'book',
   },
+  {
+    name: 'Google Books',
+    url: 'https://books.google.com',
+    descriptionKey: 'credits.googlebooks',
+    media: 'book',
+  },
 ]
 
 /** Bibliotecas de ícone, ambas MIT. A Tabler entrou porque o Phosphor não tem

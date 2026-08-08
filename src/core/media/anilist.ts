@@ -62,7 +62,7 @@ export const anilistProvider: MediaProvider = {
   mediaTypes: ['anime'],
   requiresServer: false,
 
-  async search(query, signal) {
+  async search(query, { signal } = {}) {
     const response = await fetch(ANILIST_URL, {
       method: 'POST',
       headers: {

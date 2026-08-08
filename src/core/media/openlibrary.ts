@@ -61,7 +61,7 @@ export const openLibraryProvider: MediaProvider = {
   mediaTypes: ['book'],
   requiresServer: false,
 
-  async search(query, signal) {
+  async search(query, { signal } = {}) {
     const url = new URL(OPENLIBRARY_SEARCH_URL)
     url.searchParams.set('q', query)
     url.searchParams.set('limit', String(SEARCH_LIMIT))

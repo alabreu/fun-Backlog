@@ -11,6 +11,7 @@ import {
 } from '@core/media/search'
 import { findByImdbId } from '@core/media/tmdb'
 import type { MediaSearchResult } from '@core/media/types'
+import { useRegionStore } from '@core/state/regionStore'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import {
   Badge,
@@ -55,6 +56,8 @@ const EMPTY: SearchOutcome = { groups: [], failed: [], skippedNeedingAuth: [] }
 export function AddScreen() {
   const { t } = useTranslation()
   const { items, add, remove, enabled, signedIn } = useItems()
+  // Livro é onde o país pesa: decide a loja e se a obra está à venda.
+  const region = useRegionStore((s) => s.region)
 
   const [query, setQuery] = useState('')
   const [media, setMedia] = useState<MediaType | undefined>()
@@ -134,6 +137,7 @@ export function AddScreen() {
               mediaType: searchMedia,
               enabled,
               signedIn,
+              region,
               signal: controller.signal,
             })
 
@@ -161,7 +165,7 @@ export function AddScreen() {
     }, DEBOUNCE_MS)
 
     return () => clearTimeout(timer)
-  }, [searchQuery, searchMedia, active, link, noSource, signedIn, enabled])
+  }, [searchQuery, searchMedia, active, link, noSource, signedIn, enabled, region])
 
   async function addResult(result: MediaSearchResult) {
     // O total que o provider já sabe (episódios, páginas) entra junto: é o que
