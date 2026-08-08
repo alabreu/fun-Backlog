@@ -26,6 +26,19 @@ import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react'
  * O arraste é um ATALHO de toque, não o único jeito de fechar: Escape e o
  * backdrop continuam. Por isso a barrinha não vira um foco no teclado — seria
  * uma parada a mais no Tab para uma ação que já existe duas vezes.
+ *
+ * O PAINEL TEM TETO DE ALTURA, e o conteúdo rola dentro dele. Sem isso, um
+ * conteúdo alto (a ficha de uma obra com sinopse, elenco e gêneros) fazia o
+ * painel crescer para cima até passar do topo da tela: a barrinha e o backdrop
+ * saíam de vista, não havia rolagem porque a página atrás é de altura fixa, e
+ * no celular não existe Escape. Ou seja, o painel prendia a pessoa — que foi
+ * exatamente o que aconteceu quando a ficha ganhou detalhes das fontes.
+ *
+ * O teto é o que garante que a barrinha e uma faixa de backdrop fiquem SEMPRE
+ * na tela: as duas saídas continuam alcançáveis por mais alto que o conteúdo
+ * seja. `dvh` e não `vh` porque no Safari do iOS a barra de endereço entra e
+ * sai, e `vh` congela na altura maior — o rodapé do painel ficaria embaixo da
+ * barra do navegador.
  */
 
 /** Quanto é preciso puxar para fechar. Curto o bastante para não exigir força,
@@ -147,23 +160,33 @@ export function Sheet({ open, onClose, label, children }: SheetProps) {
         style={
           dragY === null ? undefined : { transform: `translateY(${dragY}px)` }
         }
-        className={`app-grain absolute inset-x-0 bottom-0 mx-auto max-w-md rounded-t-sheet bg-surface p-gutter pb-8 shadow-2xl ease-out ${
+        className={`app-grain absolute inset-x-0 bottom-0 mx-auto flex max-h-[85dvh] max-w-md flex-col rounded-t-sheet bg-surface px-gutter pt-gutter shadow-2xl ease-out ${
           dragY === null ? 'transition-transform duration-200' : ''
         } ${open ? 'translate-y-0' : 'translate-y-full'}`}
       >
         {/* Área de arraste generosa em volta da barrinha: o alvo visual tem
-            6px de altura, mas o dedo precisa de bem mais que isso. */}
+            6px de altura, mas o dedo precisa de bem mais que isso.
+            `shrink-0`: ela é a saída, não pode ser espremida pelo conteúdo. */}
         <div
           aria-hidden
           onPointerDown={startDrag}
           onPointerMove={moveDrag}
           onPointerUp={endDrag}
           onPointerCancel={endDrag}
-          className="-mx-gutter -mt-gutter cursor-grab touch-none px-gutter pb-2 pt-3 active:cursor-grabbing"
+          className="-mx-gutter -mt-gutter shrink-0 cursor-grab touch-none px-gutter pb-2 pt-3 active:cursor-grabbing"
         >
           <div className="mx-auto mb-3 h-1.5 w-10 rounded-control bg-ink/15" />
         </div>
-        {children}
+        {/* `min-h-0` é o que faz o teto valer: sem ele um filho flex se recusa
+            a encolher abaixo do próprio conteúdo e a rolagem nunca aparece.
+            `overscroll-contain` impede que chegar ao fim da lista continue
+            rolando a página atrás. O `-mx-gutter px-gutter` devolve a sangria
+            de borda a borda que o conteúdo tinha antes (capa, backdrop), e o
+            `pt-1` dá os 4px que o anel de foco do primeiro elemento precisa
+            para não ser decepado pela borda da área rolável. */}
+        <div className="-mx-gutter min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pb-8 pt-1">
+          {children}
+        </div>
       </div>
     </div>
   )
