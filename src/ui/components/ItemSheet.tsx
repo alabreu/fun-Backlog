@@ -170,20 +170,6 @@ function Detail({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Arte larga sangrando para fora do padding do sheet, com o degradê
-          entregando na superfície — sem ele a imagem termina numa borda reta
-          no meio do painel. */}
-      {detail?.backdropUrl && (
-        <div className="relative -mx-gutter -mt-2 h-28 overflow-hidden">
-          <img
-            src={detail.backdropUrl}
-            alt=""
-            className="h-full w-full object-cover opacity-40"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
-        </div>
-      )}
-
       <div className="flex gap-3">
         <div className="w-20 shrink-0">
           <Cover src={coverUrl} title={title} media={mediaType} lazy={false} />

@@ -100,16 +100,29 @@ export function summarizeCompleted(
 /**
  * O que está em andamento — o herói da home.
  *
- * Ordenado por quando a pessoa começou, mais recente primeiro: o que ela pegou
- * ontem tem mais chance de ser o que ela quer continuar hoje do que o que ela
- * começou em março e vem arrastando.
+ * Ordenado pela ORDEM DE MÍDIA QUE A PESSOA ESCOLHEU (Configurações › Editar
+ * categorias), e só depois por quando ela começou.
+ *
+ * Antes era só a recência, e o carrossel embaralhava as mídias: um livro entre
+ * dois jogos, um anime no fim. Quem arrastou "Jogos" para o topo da home disse
+ * o que quer ver primeiro, e não faz sentido a lista logo abaixo desobedecer.
+ * A recência continua valendo DENTRO de cada mídia, que é onde ela ajuda: entre
+ * dois jogos, o que você pegou ontem vem antes do que arrasta desde março.
+ *
+ * `order` ausente = ordem canônica, que é o que os testes usam.
  */
-export function inProgress(items: Item[]): Item[] {
+export function inProgress(items: Item[], order: MediaType[] = MEDIA_ORDER): Item[] {
+  const rank = new Map(order.map((media, i) => [media, i]))
   return items
     .filter((i) => i.status === 'active')
-    .sort((a, b) =>
-      (b.startedAt ?? b.addedAt).localeCompare(a.startedAt ?? a.addedAt),
-    )
+    .sort((a, b) => {
+      // Mídia fora da ordem vai para o fim, em vez de virar `undefined` e
+      // bagunçar a comparação inteira.
+      const posA = rank.get(a.mediaType) ?? order.length
+      const posB = rank.get(b.mediaType) ?? order.length
+      if (posA !== posB) return posA - posB
+      return (b.startedAt ?? b.addedAt).localeCompare(a.startedAt ?? a.addedAt)
+    })
 }
 
 /** Progresso da estante de uma mídia: `concluídos de total`. É o que a linha

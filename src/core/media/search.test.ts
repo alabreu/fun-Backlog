@@ -254,7 +254,6 @@ describe('ficha do AniList', () => {
       genres: ['Action', 'Sci-Fi'],
       averageScore: 86,
       description: 'Ca\u00e7adores de recompensa.<br>No espa\u00e7o.',
-      bannerImage: 'https://img/banner.jpg',
       title: { romaji: 'Cowboy Bebop', english: null },
       coverImage: { large: 'https://img/1.jpg' },
       studios: { nodes: [{ name: 'Sunrise' }] },
@@ -263,7 +262,6 @@ describe('ficha do AniList', () => {
     expect(d?.people).toEqual(['Sunrise'])
     expect(d?.genres).toEqual(['Action', 'Sci-Fi'])
     expect(d?.score).toBe(86)
-    expect(d?.backdropUrl).toBe('https://img/banner.jpg')
     expect(d?.synopsis).toBe('Ca\u00e7adores de recompensa.\nNo espa\u00e7o.')
     expect(d?.facts).toEqual([
       { labelKey: 'fact.episodes', value: '26' },

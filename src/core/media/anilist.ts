@@ -132,7 +132,6 @@ const DETAIL_QUERY = `
       genres
       averageScore
       description(asHtml: false)
-      bannerImage
       title { romaji english }
       coverImage { large }
       studios(isMain: true) { nodes { name } }
@@ -146,7 +145,6 @@ interface AniListDetail extends AniListMedia {
   genres?: string[] | null
   averageScore?: number | null
   description?: string | null
-  bannerImage?: string | null
   studios?: { nodes?: { name?: string }[] } | null
 }
 
@@ -174,7 +172,6 @@ export function mapAniListDetail(media: AniListDetail): MediaDetail | null {
   return {
     ...base,
     synopsis: media.description ? stripHtml(media.description) : undefined,
-    backdropUrl: media.bannerImage ?? undefined,
     genres: media.genres ?? [],
     facts,
     people: (media.studios?.nodes ?? [])

@@ -72,8 +72,6 @@ export interface MediaDetail {
   /** Título original, quando difere. */
   originalTitle?: string
   coverUrl?: string
-  /** Arte larga de fundo, quando a fonte tem (TMDB e AniList têm). */
-  backdropUrl?: string
   year?: number
   synopsis?: string
   genres?: string[]

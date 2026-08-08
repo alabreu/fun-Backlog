@@ -57,7 +57,7 @@ export function HomeScreen() {
   // estáveis enquanto a tela está aberta, senão mudariam a cada re-render.
   const [now] = useState(() => new Date())
 
-  const active = useMemo(() => inProgress(items), [items])
+  const active = useMemo(() => inProgress(items, enabled), [items, enabled])
   const suggestions = useMemo(
     () => suggestFromBacklog(items, now),
     [items, now],

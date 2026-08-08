@@ -255,7 +255,6 @@ describe('ficha da TMDB', () => {
         id: 693134,
         title: 'Duna: Parte Dois',
         overview: 'Paul se une aos Fremen.',
-        backdrop_path: '/bd.jpg',
         runtime: 166,
         vote_average: 8.15,
         genres: [{ name: 'Fic\u00e7\u00e3o cient\u00edfica' }],

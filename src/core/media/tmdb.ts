@@ -79,15 +79,8 @@ export function mapTmdbResult(
   }
 }
 
-/** Backdrop: a arte larga do topo da ficha. `w780` cobre a largura de qualquer
- *  celular sem baixar o original, que passa de 1MB. */
-export function tmdbBackdropUrl(path: string): string {
-  return `https://image.tmdb.org/t/p/w780${path}`
-}
-
 interface TmdbDetailBody extends TmdbResult {
   overview?: string
-  backdrop_path?: string | null
   vote_average?: number
   genres?: { name?: string }[]
   runtime?: number
@@ -150,9 +143,6 @@ export function mapTmdbDetail(
   return {
     ...base,
     synopsis: body.overview || undefined,
-    backdropUrl: body.backdrop_path
-      ? tmdbBackdropUrl(body.backdrop_path)
-      : undefined,
     genres: (body.genres ?? [])
       .map((g) => g?.name)
       .filter((n): n is string => Boolean(n)),

@@ -199,6 +199,39 @@ describe('inProgress', () => {
     ]
     expect(inProgress(shelf).map((i) => i.title)).toEqual(['novo', 'velho'])
   })
+
+  // A ordem escolhida em Configuracoes manda; a recencia decide DENTRO de cada
+  // midia. Sem isso o carrossel embaralhava as midias, e quem arrastou "Jogos"
+  // para o topo da home via a lista logo abaixo desobedecer.
+  it('agrupa pela ordem de midia escolhida, e so depois pela recencia', () => {
+    const shelf = [
+      item({ status: 'active', mediaType: 'book', title: 'livro',
+             startedAt: '2026-08-09T00:00:00.000Z' }),
+      item({ status: 'active', mediaType: 'game', title: 'jogo antigo',
+             startedAt: '2026-01-01T00:00:00.000Z' }),
+      item({ status: 'active', mediaType: 'game', title: 'jogo novo',
+             startedAt: '2026-08-08T00:00:00.000Z' }),
+    ]
+    expect(
+      inProgress(shelf, ['game', 'book']).map((i) => i.title),
+    ).toEqual(['jogo novo', 'jogo antigo', 'livro'])
+
+    // Inverter a ordem inverte os grupos, sem mexer no que ha dentro deles.
+    expect(
+      inProgress(shelf, ['book', 'game']).map((i) => i.title),
+    ).toEqual(['livro', 'jogo novo', 'jogo antigo'])
+  })
+
+  it('midia fora da ordem vai para o fim, em vez de baguncar tudo', () => {
+    const shelf = [
+      item({ status: 'active', mediaType: 'anime', title: 'fora' }),
+      item({ status: 'active', mediaType: 'game', title: 'dentro' }),
+    ]
+    expect(inProgress(shelf, ['game']).map((i) => i.title)).toEqual([
+      'dentro',
+      'fora',
+    ])
+  })
 })
 
 describe('shelfProgress', () => {
