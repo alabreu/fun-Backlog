@@ -76,6 +76,38 @@ export const MEDIA_GRADIENT: Record<MediaType, string> = {
   book: 'from-media-book/12',
 }
 
+/**
+ * A LUZ no rodapé da capa — um degradê da cor da mídia subindo do fundo.
+ *
+ * Segunda exceção deliberada à regra 2 do topo deste arquivo ("nada disso
+ * encosta nas capas"), e vale a pena registrar por quê: o que a regra proíbe é
+ * cor de marca COMPETINDO com a arte. Aqui ela não compete — ela ilumina. Fica
+ * no terço de baixo, onde o pôster costuma ter o logotipo sobre fundo escuro, e
+ * some antes de chegar na imagem principal.
+ *
+ * É `to-t` (de baixo para cima) e não uma borda: borda emoldura, luz banha. A
+ * diferença importa porque a informação aqui é SUGESTÃO — "isto é um anime" —,
+ * não um rótulo. Quem precisa do rótulo tem o nome escrito (ver a legenda para
+ * leitor de tela no cartão do carrossel).
+ *
+ * 30% e mistura NORMAL, e as duas escolhas foram medidas na tela contra pôster
+ * claro, escuro e médio:
+ *
+ * - 45% pintava. Sobre um pôster claro, um terço da arte virava lilás — a cor
+ *   deixava de acompanhar a imagem e passava a disputar com ela.
+ * - `mix-blend-screen` é o que mais PARECE luz (só clareia, nunca escurece),
+ *   e por isso mesmo some sobre pôster claro: não dá para iluminar o que já
+ *   está claro. Ficaria lindo e sumiria justamente onde a dica é mais difícil
+ *   de perceber por outro meio. Dica que só funciona às vezes não é dica.
+ */
+export const MEDIA_GLOW: Record<MediaType, string> = {
+  game: 'from-media-game/30',
+  movie: 'from-media-movie/30',
+  series: 'from-media-series/30',
+  anime: 'from-media-anime/30',
+  book: 'from-media-book/30',
+}
+
 /** A inicial desenhada sobre o tint. */
 export const MEDIA_INITIAL: Record<MediaType, string> = {
   game: 'text-media-game/70',

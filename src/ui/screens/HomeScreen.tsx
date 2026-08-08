@@ -21,7 +21,6 @@ import {
   Button,
   Cover,
   IconButton,
-  MediaDot,
   NavRow,
   Rail,
   RailItem,
@@ -231,6 +230,7 @@ function ItemCard({
           src={item.coverUrl}
           title={item.title}
           media={item.mediaType}
+          glow
           lazy={!eager}
         />
         {progress && progress.current > 0 && (
@@ -246,22 +246,14 @@ function ItemCard({
           </Badge>
         )}
       </div>
-      {/* O ponto vem ANTES do título, não depois.
-          À direita ele encostava na borda do card e, num carrossel horizontal,
-          a borda direita de um card fica a 12px do título do PRÓXIMO — o ponto
-          verde de um livro lia como se fosse do anime ao lado. À esquerda ele
-          fica grudado no que descreve, e é como o resto do app já usa (linha da
-          estante, cabeçalho da busca, lista mista).
-          O `mt-1.5` centra a bolinha de 8px na primeira linha de 20px. */}
-      <span className="mt-2 flex items-start gap-1.5">
-        <MediaDot
-          media={item.mediaType}
-          label={t(mediaLabelKey(item.mediaType))}
-          className="mt-1.5"
-        />
-        <span className="line-clamp-2 text-body font-semibold">
-          {item.title}
-        </span>
+      {/* A MÍDIA saiu do título e foi para a luz no rodapé da capa: o ponto
+          colorido brigava por atenção com a arte que ele deveria acompanhar.
+          O nome da mídia continua aqui para leitor de tela — sem ele a única
+          pista de "isto é um anime" seria uma cor, que é exatamente o que a
+          WCAG 1.4.1 proíbe. */}
+      <span className="mt-2 block text-body font-semibold">
+        <span className="sr-only">{t(mediaLabelKey(item.mediaType))}: </span>
+        <span className="line-clamp-2">{item.title}</span>
       </span>
     </button>
   )

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { MediaType } from '@core/items/types'
-import { MEDIA_INITIAL, MEDIA_TINT } from './media'
+import { MEDIA_GLOW, MEDIA_INITIAL, MEDIA_TINT } from './media'
 
 /**
  * A capa — o elemento visual primário do app. "Estante, não planilha" começa
@@ -29,6 +29,14 @@ export interface CoverProps {
   media?: MediaType
   /** Primeira dobra do grid: `false` evita o lazy que atrasa o que já está à vista. */
   lazy?: boolean
+  /**
+   * Acende a cor da mídia no rodapé da capa, como uma luz vinda de baixo.
+   *
+   * Serve às listas MISTAS, onde a mídia de cada capa não é óbvia. Numa
+   * estante (tudo do mesmo tipo) seria pintar todas de igual. Precisa de
+   * `media`, e nunca carrega a informação sozinho: ver `MEDIA_GLOW`.
+   */
+  glow?: boolean
   className?: string
 }
 
@@ -37,6 +45,7 @@ export function Cover({
   title,
   media,
   lazy = true,
+  glow = false,
   className = '',
 }: CoverProps) {
   const [failed, setFailed] = useState(false)
@@ -66,6 +75,16 @@ export function Cover({
         >
           {initial}
         </div>
+      )}
+
+      {/* A luz por ÚLTIMO, para ficar sobre a arte. `pointer-events-none` é
+          desnecessário aqui (não há nada clicável dentro da capa), mas fica
+          como contrato: esta camada nunca intercepta toque. */}
+      {glow && media && (
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t to-transparent ${MEDIA_GLOW[media]}`}
+        />
       )}
     </div>
   )
