@@ -10,6 +10,7 @@ import {
   CoverGrid,
   NavRow,
   PlatformIcon,
+  PLATFORM_TEXT,
   Field,
   IconButton,
   Input,
@@ -303,17 +304,22 @@ export function DesignScreen() {
 
         <section>
           <SectionTitle className="mb-2">PlatformIcon</SectionTitle>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
             {PLATFORM_FAMILIES.map((family) => (
-              <Badge key={family}>
-                <PlatformIcon family={family} />
+              <span
+                key={family}
+                className={`inline-flex items-center gap-1.5 text-body ${PLATFORM_TEXT[family]}`}
+              >
+                <PlatformIcon family={family} size={18} />
                 {FAMILY_LABEL[family]}
-              </Badge>
+              </span>
             ))}
           </div>
           <p className="mt-2 text-label text-muted">
-            Fileira da Tabler Icons (MIT), menos o Tux, que ela não tem. O nome
-            fica sempre ao lado: o ícone reforça, não substitui.
+            Fileira da Tabler Icons (MIT), menos o Tux, que ela não tem. Cor por
+            marca, não por distância — Apple e Outras ficam em muted de
+            propósito. O nome fica sempre ao lado: o ícone reforça, não
+            substitui.
           </p>
         </section>
 

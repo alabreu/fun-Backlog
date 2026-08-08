@@ -24,6 +24,7 @@ import {
   Field,
   Input,
   PlatformIcon,
+  PLATFORM_TEXT,
   SectionTitle,
   Sheet,
   Textarea,
@@ -287,12 +288,12 @@ function SourceFacts({
           "Shooter · RPG · Aventura" não precisa ler o parágrafo; quem não se
           satisfaz já está com o olho no lugar certo para continuar. No fim da
           ficha eles eram enfeite, lidos depois de a decisão já ter sido tomada. */}
+      {/* Gêneros também sem cápsula, separados por ponto — mesma forma de
+          "Plataformas" acima e de "Quem fez" abaixo. Sobrou UM tipo de pílula
+          no painel inteiro: os chips de status. Forma passou a significar
+          "isto se toca", que é a única distinção que valia a pena manter. */}
       {genres.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {genres.map((genre) => (
-            <Badge key={genre}>{genre}</Badge>
-          ))}
-        </div>
+        <p className="text-body text-muted">{genres.join('\u00a0\u00b7 ')}</p>
       )}
 
       {detail.synopsis && (
@@ -351,21 +352,38 @@ function FactList({ facts }: { facts: MediaFact[] }) {
                 a única em que a forma identifica mais rápido que a palavra.
                 O nome fica escrito do lado: o ícone reforça, nunca substitui. */}
             {fact.labelKey === 'fact.platforms' && fact.values ? (
-              // SEM cápsula. O rótulo "PLATAFORMAS" à esquerda já emoldura a
-              // lista — pôr cada item numa pílula era emoldurar duas vezes, e
-              // era o que fazia plataforma e gênero (coisas diferentes) terem
-              // exatamente a mesma aparência. Sem a pílula, quem dá a textura
-              // visual é o ícone, que é o que a gente quer que seja visto.
-              <span className="flex flex-wrap gap-x-4 gap-y-1">
-                {fact.values.map((family) => (
-                  <span key={family} className="inline-flex items-center gap-1.5">
-                    <PlatformIcon
-                      family={family as PlatformFamily}
-                      size={18}
-                    />
-                    {FAMILY_LABEL[family as PlatformFamily]}
-                  </span>
-                ))}
+              // SEM cápsula, separado por ponto. O rótulo "PLATAFORMAS" à
+              // esquerda já emoldura a lista — pôr cada item numa pílula era
+              // emoldurar duas vezes. O que separa um item do outro passa a ser
+              // o ponto, do mesmo jeito que "Quem fez" logo abaixo já fazia.
+              //
+              // A COR aqui é da plataforma, não da mídia, e é o único lugar do
+              // app onde ela aparece (ver PLATFORM_TEXT). Ícone e nome pegam a
+              // mesma cor; o ponto separador fica em `muted`, senão ele
+              // pertenceria visualmente ao item da esquerda.
+              <span className="flex flex-wrap items-center gap-y-1">
+                {fact.values.map((value, i) => {
+                  const family = value as PlatformFamily
+                  return (
+                    // O separador vem DEPOIS do item e dentro do mesmo bloco:
+                    // assim "Xbox ·" quebra a linha como uma coisa só. Com o
+                    // ponto antes do item, uma quebra deixava a linha de baixo
+                    // começando com um "·" órfão.
+                    <span key={family} className="inline-flex items-center">
+                      <span
+                        className={`inline-flex items-center gap-1.5 ${PLATFORM_TEXT[family]}`}
+                      >
+                        <PlatformIcon family={family} size={18} />
+                        {FAMILY_LABEL[family]}
+                      </span>
+                      {i < (fact.values?.length ?? 0) - 1 && (
+                        <span aria-hidden className="mx-2 text-muted">
+                          ·
+                        </span>
+                      )}
+                    </span>
+                  )
+                })}
               </span>
             ) : (
               fact.value

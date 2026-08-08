@@ -84,3 +84,27 @@ export const MEDIA_INITIAL: Record<MediaType, string> = {
   anime: 'text-media-anime/70',
   book: 'text-media-book/70',
 }
+
+/**
+ * A cor de cada FAMÍLIA de plataforma, para o texto e o ícone da ficha.
+ *
+ * Vale a mesma regra 1 do topo do arquivo: o nome está sempre escrito ao lado,
+ * então a cor reforça e nunca informa sozinha. E vale uma regra a mais, própria
+ * daqui — cor de PLATAFORMA não pode invadir a leitura de cor de MÍDIA. Por
+ * isso ela aparece num lugar só, a linha "Plataformas" da ficha, e nunca numa
+ * capa, linha de estante ou chip de filtro.
+ *
+ * Apple e "Outras" ficam em `muted` de propósito: a maçã é monocromática por
+ * natureza e "Outras" não é marca nenhuma — inventar cor para elas seria dar
+ * significado a um agrupamento que não tem.
+ */
+export const PLATFORM_TEXT: Record<string, string> = {
+  playstation: 'text-platform-playstation',
+  xbox: 'text-platform-xbox',
+  nintendo: 'text-platform-nintendo',
+  pc: 'text-platform-pc',
+  linux: 'text-platform-linux',
+  android: 'text-platform-android',
+  apple: 'text-muted',
+  other: 'text-muted',
+}

@@ -55,6 +55,14 @@ const PAIRS = [
   ['on-media', 'media-series', 4.5, 'texto sobre a cor de séries'],
   ['on-media', 'media-anime', 4.5, 'texto sobre a cor de animes'],
   ['on-media', 'media-book', 4.5, 'texto sobre a cor de livros'],
+  // Cor por plataforma: aparece SÓ como texto (a linha "Plataformas" da ficha,
+  // que fica sobre a superfície do sheet), então um mínimo só — 4.5.
+  ['platform-playstation', 'surface', 4.5, 'PlayStation como texto no sheet'],
+  ['platform-xbox', 'surface', 4.5, 'Xbox como texto no sheet'],
+  ['platform-nintendo', 'surface', 4.5, 'Nintendo como texto no sheet'],
+  ['platform-pc', 'surface', 4.5, 'PC como texto no sheet'],
+  ['platform-linux', 'surface', 4.5, 'Linux como texto no sheet'],
+  ['platform-android', 'surface', 4.5, 'Android como texto no sheet'],
   // O botão dentro do toast NÃO é verificado contra a superfície do toast: pela
   // 1.4.11, componente identificado pelo próprio rótulo de alto contraste não
   // exige contraste de borda — e o rótulo já é conferido em `on-primary`.
