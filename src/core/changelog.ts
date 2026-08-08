@@ -32,7 +32,6 @@ export const CHANGELOG: ChangelogEntry[] = [
         'Cada seção fecha, e continua fechada da próxima vez — bom para tirar "Zerado" e "Abandonado" da frente.',
         'A ordem das seções muda por mídia: jogos, séries, animes e livros abrem pelo que está em andamento; filmes abrem pela fila.',
         'Buscar dentro da estante abre todas as seções e mostra quantos acertos há em cada uma.',
-        'A capa do que está em andamento ganhou um traço na cor da mídia.',
         'A busca de jogos deixou de perder títulos conhecidos: procurar "zelda" agora traz Majora\u2019s Mask e Tears of the Kingdom.',
       ],
       en: [
@@ -40,7 +39,6 @@ export const CHANGELOG: ChangelogEntry[] = [
         'Each section collapses, and stays collapsed next time — handy for pushing "Finished" and "Dropped" out of the way.',
         'Section order changes per media: games, series, anime and books open with what is in progress; films open with the queue.',
         'Searching inside a shelf opens every section and shows how many hits each one has.',
-        'Covers of things in progress now carry a stroke in the media colour.',
         'Game search stopped losing well-known titles: searching "zelda" now brings Majora\u2019s Mask and Tears of the Kingdom.',
       ],
     },

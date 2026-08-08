@@ -123,22 +123,3 @@ export const GENRE_TEXT: string[] = [
   'text-genre-7',
 ]
 
-/**
- * O traço de 2px na capa do que está EM ANDAMENTO.
- *
- * É a única vez que a cor de mídia encosta numa capa, e vale a exceção porque
- * aqui ela não compete com a arte: fica na borda, por fora do retângulo da
- * imagem, e o que ela diz não é "isto é um jogo" (o grid inteiro já é de jogos)
- * e sim "é NESTE que você está". Numa estante de trinta capas, achar o que está
- * em andamento era ler título por título.
- *
- * 2px e não mais: o traço tem que existir de relance e sumir quando a pessoa
- * está olhando a arte, não emoldurar a capa como um quadro.
- */
-export const MEDIA_RING: Record<MediaType, string> = {
-  game: 'ring-2 ring-media-game',
-  movie: 'ring-2 ring-media-movie',
-  series: 'ring-2 ring-media-series',
-  anime: 'ring-2 ring-media-anime',
-  book: 'ring-2 ring-media-book',
-}

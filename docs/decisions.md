@@ -504,8 +504,12 @@ desfecho: a tela pareceria dizer "nada encontrado" com a resposta a um toque de
 distância. Buscando, a contagem do título vira contagem de ACERTOS por seção.
 
 **O badge de status sobre a capa saiu junto:** dentro da seção "Jogando", dizer
-"Jogando" em cada capa era repetir a mesma palavra N vezes. É o título da seção
-que agora cobre a WCAG 1.4.1 para o traço colorido das capas em andamento.
+"Jogando" em cada capa era repetir a mesma palavra N vezes.
+
+**E o traço colorido nas capas em andamento saiu logo depois**, pelo mesmo
+motivo: ele existia para achar o que está em andamento no meio de uma lista
+misturada, e a lista deixou de ser misturada. Uma seção inteira de capas
+contornadas não distingue nada — só pinta.
 
 **O que custa:** os chips diziam a contagem de todos os estados sem rolar. Agora
 é preciso rolar para ver a contagem das seções de baixo. Troca aceita: ler cinco

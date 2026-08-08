@@ -217,7 +217,6 @@ export function ShelfScreen() {
                           src={item.coverUrl}
                           title={item.title}
                           media={item.mediaType}
-                          active={item.status === 'active'}
                           lazy={index > 5}
                         />
                         <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
