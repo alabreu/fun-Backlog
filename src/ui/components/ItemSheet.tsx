@@ -218,17 +218,28 @@ function Detail({
         </div>
       )}
 
+      {/* A ORDEM DESTE BLOCO É A DECISÃO DO PAINEL.
+          Primeiro o STATUS, que é a razão nº 1 de abrir a ficha de uma obra que
+          já é sua — e um toque só. Depois a ficha da FONTE, que é leitura ("o
+          que é isto mesmo?"). Por último o que é SEU e demorado de preencher:
+          progresso, nota, notas e a remoção.
+          Antes, progresso e notas ficavam entre o status e a sinopse, e
+          empurravam a informação da obra para depois de quatro campos em branco
+          — quem só queria lembrar do que se tratava rolava por um formulário. */}
       {matched && (
-        <ShelfControls
-          item={matched}
-          onClose={onClose}
-          update={update}
-          setStatus={setStatus}
-          remove={remove}
-        />
+        <StatusPicker item={matched} onClose={onClose} setStatus={setStatus} />
       )}
 
       <SourceFacts detail={detail} loading={loadingDetail} />
+
+      {matched && (
+        <PersonalControls
+          item={matched}
+          onClose={onClose}
+          update={update}
+          remove={remove}
+        />
+      )}
     </div>
   )
 }
@@ -308,18 +319,55 @@ function SourceFacts({
   )
 }
 
-/** Os controles que só existem para obra que já é sua. */
-function ShelfControls({
+/**
+ * O seletor de status — o controle mais usado do painel, e por isso o primeiro.
+ * Separado do resto para a ficha da fonte poder entrar entre ele e o formulário.
+ */
+function StatusPicker({
+  item,
+  onClose,
+  setStatus,
+}: {
+  item: Item
+  onClose: () => void
+  setStatus: ReturnType<typeof useItems>['setStatus']
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <div>
+      <SectionTitle className="mb-2">{t('item.statusLabel')}</SectionTitle>
+      <div className="flex flex-wrap gap-2">
+        {ITEM_STATUSES.map((value) => (
+          <Chip
+            key={value}
+            selected={item.status === value}
+            onClick={() => {
+              void setStatus(item.id, value)
+              // Concluir fecha o sheet: a comemoração assume a tela, e
+              // deixar o detalhe aberto atrás dela transforma o momento de
+              // recompensa em duas camadas empilhadas.
+              if (value === 'done' && item.status !== 'done') onClose()
+            }}
+          >
+            {t(statusLabelKey(value, item.mediaType))}
+          </Chip>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** O que é SEU sobre a obra: progresso, nota, notas — e tirar da estante. */
+function PersonalControls({
   item,
   onClose,
   update,
-  setStatus,
   remove,
 }: {
   item: Item
   onClose: () => void
   update: ReturnType<typeof useItems>['update']
-  setStatus: ReturnType<typeof useItems>['setStatus']
   remove: ReturnType<typeof useItems>['remove']
 }) {
   const { t } = useTranslation()
@@ -330,27 +378,6 @@ function ShelfControls({
 
   return (
     <>
-      <div>
-        <SectionTitle className="mb-2">{t('item.statusLabel')}</SectionTitle>
-        <div className="flex flex-wrap gap-2">
-          {ITEM_STATUSES.map((value) => (
-            <Chip
-              key={value}
-              selected={item.status === value}
-              onClick={() => {
-                void setStatus(item.id, value)
-                // Concluir fecha o sheet: a comemoração assume a tela, e
-                // deixar o detalhe aberto atrás dela transforma o momento de
-                // recompensa em duas camadas empilhadas.
-                if (value === 'done' && item.status !== 'done') onClose()
-              }}
-            >
-              {t(statusLabelKey(value, item.mediaType))}
-            </Chip>
-          ))}
-        </div>
-      </div>
-
       {unit && (
         <Field label={t('item.progressLabel')}>
           {(id) => (
@@ -431,6 +458,11 @@ function ShelfControls({
         )}
       </Field>
 
+      {/* Remover é `danger`: uma secundária vermelha. Antes era `ghost`, que
+          fazia a única ação irreversível do painel parecer um link. Vermelha
+          ela lê como "cuidado"; secundária e não primária, ela não convida.
+          A confirmação mantém o par: sair é o caminho fácil (secundária) e
+          continuar é o que carrega o vermelho. */}
       {confirmingRemove ? (
         <div className="flex flex-col gap-2">
           <p className="text-body font-semibold">{t('item.removeConfirm')}</p>
@@ -443,19 +475,21 @@ function ShelfControls({
               {t('common.cancel')}
             </Button>
             <Button
+              variant="danger"
               size="sm"
               onClick={() => {
                 void remove(item.id)
                 onClose()
               }}
             >
+              <Trash size={18} weight="bold" />
               {t('common.remove')}
             </Button>
           </div>
         </div>
       ) : (
         <Button
-          variant="ghost"
+          variant="danger"
           size="sm"
           onClick={() => setConfirmingRemove(true)}
           className="self-start"

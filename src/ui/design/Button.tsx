@@ -9,13 +9,22 @@ import type { ButtonHTMLAttributes } from 'react'
  * link de doação é um <a> e precisa parecer igual. Receita de classe + componente
  * é o par que evita a cópia divergir.
  */
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 export type ButtonSize = 'sm' | 'md'
 
+/**
+ * `danger` é uma SECUNDÁRIA vermelha, e não uma primária vermelha: uma ação
+ * destrutiva não pode ter o peso visual de um call to action. Ela precisa ser
+ * legível como "cuidado", e não convidativa como "faça isto".
+ *
+ * O anel também é `danger` (e não `ink/10`): sem ele, no tema escuro, sobrava
+ * só o texto vermelho e o botão perdia a borda que o separa do painel.
+ */
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-on-primary font-semibold',
   secondary: 'bg-surface text-ink font-semibold ring-1 ring-ink/10',
   ghost: 'text-primary font-medium',
+  danger: 'bg-surface text-danger font-semibold ring-1 ring-danger/40',
 }
 
 const SIZES: Record<ButtonSize, string> = {

@@ -229,6 +229,9 @@ export function DesignScreen() {
               <Button variant="ghost" size="sm">
                 ghost sm
               </Button>
+              <Button variant="danger" size="sm">
+                danger sm
+              </Button>
             </div>
             <Button fullWidth>
               <PaperPlaneRight size={18} weight="fill" aria-hidden />

@@ -39,6 +39,11 @@ import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react'
  * seja. `dvh` e não `vh` porque no Safari do iOS a barra de endereço entra e
  * sai, e `vh` congela na altura maior — o rodapé do painel ficaria embaixo da
  * barra do navegador.
+ *
+ * A altura do teto (92%) é o equilíbrio entre caber conteúdo e sobrar backdrop:
+ * os 8% que restam dão uma faixa confortável para tocar fora e fechar, e na
+ * prática deixam à mostra o título da tela de baixo, que é o que diz de onde
+ * você veio. Subir mais transforma o sheet numa tela cheia disfarçada.
  */
 
 /** Quanto é preciso puxar para fechar. Curto o bastante para não exigir força,
@@ -145,7 +150,11 @@ export function Sheet({ open, onClose, label, children }: SheetProps) {
       <div
         aria-hidden="true"
         onClick={onClose}
-        className={`absolute inset-0 bg-scrim/40 transition-opacity duration-200 ${
+        // 70% e não 40%: no tema escuro o fundo da página e a superfície do
+        // painel são vizinhos próximos, e um véu fraco deixava as duas
+        // interfaces parecendo uma coisa só, sem hierarquia. O escurecimento é
+        // o que diz "isto aqui está por cima, e aquilo lá está esperando".
+        className={`absolute inset-0 bg-scrim/70 transition-opacity duration-200 ${
           open ? 'opacity-100' : 'opacity-0'
         }`}
       />
@@ -160,7 +169,7 @@ export function Sheet({ open, onClose, label, children }: SheetProps) {
         style={
           dragY === null ? undefined : { transform: `translateY(${dragY}px)` }
         }
-        className={`app-grain absolute inset-x-0 bottom-0 mx-auto flex max-h-[85dvh] max-w-md flex-col rounded-t-sheet bg-surface px-gutter pt-gutter shadow-2xl ease-out ${
+        className={`app-grain absolute inset-x-0 bottom-0 mx-auto flex max-h-[92dvh] max-w-md flex-col rounded-t-sheet bg-surface px-gutter pt-gutter shadow-2xl ring-1 ring-ink/10 ease-out ${
           dragY === null ? 'transition-transform duration-200' : ''
         } ${open ? 'translate-y-0' : 'translate-y-full'}`}
       >

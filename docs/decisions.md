@@ -141,6 +141,20 @@ quando chegarem, e se a fonte não responder a tela não muda de forma — só n
 ganha o extra. `fetchDetail` devolve `null` em vez de estourar pelo mesmo
 motivo: uma fonte fora do ar não pode impedir alguém de marcar um episódio.
 
+**A ORDEM DENTRO DO PAINEL** (08/08/2026): capa e título, **status**, ficha da
+fonte, e por último progresso, nota, notas e remover. O status vem primeiro
+porque é a razão nº 1 de abrir a ficha de algo que já é seu, e é um toque só.
+A ficha vem em seguida porque é leitura ("o que era isto mesmo?"). O formulário
+vai para o fim porque é o que demora e o que menos gente preenche. Na primeira
+versão progresso e notas ficavam entre o status e a sinopse, e empurravam a
+informação da obra para depois de quatro campos em branco.
+
+**Teto de altura: 92% da tela** — sobra uma faixa de backdrop confortável para
+fechar tocando fora, e o título da tela de baixo continua visível, dizendo de
+onde você veio. O backdrop é escuro (70%) porque no tema escuro o fundo da
+página e a superfície do painel são vizinhos próximos: com véu fraco as duas
+interfaces liam como uma coisa só, sem hierarquia.
+
 **O que custa:** o sheet não é linkável nem compartilhável. Isso passou a doer
 mais agora que ele tem conteúdo de ler, não só controles — mandar "olha esse
 jogo" para alguém continua impossível. É o motivo mais provável de uma terceira
