@@ -90,22 +90,35 @@ export const MEDIA_GRADIENT: Record<MediaType, string> = {
  * não um rótulo. Quem precisa do rótulo tem o nome escrito (ver a legenda para
  * leitor de tela no cartão do carrossel).
  *
- * 30% e mistura NORMAL, e as duas escolhas foram medidas na tela contra pôster
- * claro, escuro e médio:
+ * A OPACIDADE É UMA POR COR, e não uma só para as cinco. Com 30% para todas, o
+ * âmbar quase sumia sobre pôster de tom quente — mesmo matiz, luminosidade
+ * parecida — enquanto o magenta já gritava. Os valores abaixo saíram de medir,
+ * em ΔE (CIELAB), quanto cada cor MUDA o pixel sobre cinco fundos
+ * representativos (escuro, médio, claro, quente, frio), e ajustar o alfa até o
+ * PIOR fundo de cada uma chegar perto de ΔE 18 — o limiar de "dá para notar
+ * sem procurar".
  *
- * - 45% pintava. Sobre um pôster claro, um terço da arte virava lilás — a cor
- *   deixava de acompanhar a imagem e passava a disputar com ela.
- * - `mix-blend-screen` é o que mais PARECE luz (só clareia, nunca escurece),
- *   e por isso mesmo some sobre pôster claro: não dá para iluminar o que já
- *   está claro. Ficaria lindo e sumiria justamente onde a dica é mais difícil
- *   de perceber por outro meio. Dica que só funciona às vezes não é dica.
+ *   cor       alfa   pior fundo   melhor fundo
+ *   índigo     28%       17.9         27.0
+ *   ciano      29%       17.9         28.3
+ *   magenta    20%       18.3         22.2   (era a que mais pintava)
+ *   âmbar      34%       15.1         39.7   (era a que sumia)
+ *   verde      29%       17.8         37.3
+ *
+ * O âmbar tem teto: acima de 34% ele passa de 40 de ΔE sobre pôster escuro, e
+ * aí deixa de iluminar e vira tinta. É o preço de uma cor clara e quente — ela
+ * some no que é claro e quente. Igualar perfeitamente exigiria mudar o matiz,
+ * o que quebraria a associação com a cor da mídia.
+ *
+ * AO MEXER EM QUALQUER COR DA PALETA, refaça a conta: estes números são
+ * derivados dela, não escolhidos no olho.
  */
 export const MEDIA_GLOW: Record<MediaType, string> = {
-  game: 'from-media-game/30',
-  movie: 'from-media-movie/30',
-  series: 'from-media-series/30',
-  anime: 'from-media-anime/30',
-  book: 'from-media-book/30',
+  game: 'from-media-game/28',
+  movie: 'from-media-movie/29',
+  series: 'from-media-series/20',
+  anime: 'from-media-anime/34',
+  book: 'from-media-book/29',
 }
 
 /** A inicial desenhada sobre o tint. */
