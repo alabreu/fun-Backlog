@@ -9,7 +9,7 @@ export function ScreenHeader({ title }: { title: string }) {
   const { t } = useTranslation()
 
   return (
-    <header className="flex items-center gap-3 px-gutter pb-2 pt-3">
+    <header className="flex items-center gap-3 px-gutter pb-2 pt-6">
       <IconButton aria-label={t('common.back')} onClick={() => navigate(-1)}>
         <CaretLeft size={20} weight="bold" />
       </IconButton>

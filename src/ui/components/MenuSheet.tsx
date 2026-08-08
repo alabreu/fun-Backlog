@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router'
 import { getUnreadCount } from '@core/changelog'
 import { donateConfigured } from '@core/donate'
 import type { MessageKey } from '@core/i18n'
-import { Sheet } from '@ui/design'
+import { Avatar, Sheet } from '@ui/design'
 import { VersionLabel } from '@ui/components/VersionLabel'
 import { useAuth } from '@ui/hooks/useAuth'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -73,7 +73,15 @@ export function MenuSheet({ open, onClose }: MenuSheetProps) {
             onClick={() => go(item.to)}
             className="flex items-center gap-3 rounded-card px-3 py-3 text-left transition active:bg-ink/5"
           >
-            <item.icon size={22} aria-hidden />
+            {item.to === '/login' && user?.avatarUrl ? (
+              // A foto ocupa o lugar do ícone, no mesmo tamanho, para a lista
+              // não ganhar um degrau de altura só nessa linha.
+              <span className="h-[22px] w-[22px] shrink-0 overflow-hidden rounded-control">
+                <Avatar src={user.avatarUrl} size={22} />
+              </span>
+            ) : (
+              <item.icon size={22} aria-hidden />
+            )}
             <span className="min-w-0 truncate font-medium">
               {item.to === '/login' && user
                 ? (user.name ?? user.email)

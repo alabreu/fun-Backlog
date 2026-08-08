@@ -16,6 +16,7 @@
  * existe aqui — e aí o certo é adicionar a variante ao componente, não deixar a
  * classe solta na tela.
  */
+export { Avatar } from './Avatar'
 export { Badge } from './Badge'
 export type { BadgeProps, BadgeTone } from './Badge'
 export { Button, buttonClasses } from './Button'

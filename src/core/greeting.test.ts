@@ -130,16 +130,29 @@ describe('rerollVocative', () => {
 describe('aberturas da home', () => {
   const dia = new Date(2026, 7, 7, 20)
 
-  it('\u00e9 est\u00e1vel ao longo do mesmo dia e muda no dia seguinte', () => {
+  it('\u00e9 est\u00e1vel ao longo do mesmo dia', () => {
     expect(openingFor(new Date(2026, 7, 7, 8), 'pt', 'resume')).toBe(
       openingFor(new Date(2026, 7, 7, 23), 'pt', 'resume'),
     )
-    const hoje = openingFor(dia, 'pt', 'resume')
-    const amanha = openingFor(new Date(2026, 7, 8, 20), 'pt', 'resume')
-    expect(hoje).not.toBe(amanha)
   })
 
-  it('cada estado tem a sua frase', () => {
+  // Testa o MECANISMO, n\u00e3o a configura\u00e7\u00e3o de hoje: com a rota\u00e7\u00e3o desligada
+  // (uma frase por estado) a frase tem que ficar; com mais de uma, tem que
+  // trocar de um dia para o outro. Assim o teste sobrevive a ligar e desligar
+  // a rota\u00e7\u00e3o, em vez de precisar ser reescrito junto.
+  it('rotaciona com mais de uma frase, e segura quando h\u00e1 uma s\u00f3', () => {
+    for (const locale of LOCALES) {
+      for (const kind of ['resume', 'pick', 'start'] as const) {
+        const pool = OPENINGS[locale][kind]
+        const hoje = openingFor(dia, locale, kind)
+        const amanha = openingFor(new Date(2026, 7, 8, 20), locale, kind)
+        if (pool.length > 1) expect(hoje).not.toBe(amanha)
+        else expect(hoje).toBe(amanha)
+      }
+    }
+  })
+
+  it('cada estado tem a sua frase — "onde paramos" numa estante vazia mentiria', () => {
     const kinds = ['resume', 'pick', 'start'] as const
     const frases = kinds.map((k) => openingFor(dia, 'pt', k))
     expect(new Set(frases).size).toBe(kinds.length)

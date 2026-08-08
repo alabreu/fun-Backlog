@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { MagnifyingGlass, User } from '@phosphor-icons/react'
+import { MagnifyingGlass } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
 import { getUnreadCount } from '@core/changelog'
 import { openingFor, splitOpening, vocativeFor } from '@core/greeting'
@@ -12,6 +12,7 @@ import {
 } from '@core/items/stats'
 import { MEDIA_TYPES, type Item } from '@core/items/types'
 import {
+  Avatar,
   Badge,
   Button,
   Cover,
@@ -28,6 +29,7 @@ import {
 import { ItemSheet } from '@ui/components/ItemSheet'
 import { MenuSheet } from '@ui/components/MenuSheet'
 import { MergeSheet } from '@ui/components/MergeSheet'
+import { useAuth } from '@ui/hooks/useAuth'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
@@ -43,6 +45,7 @@ export function HomeScreen() {
   const { t, locale } = useTranslation()
   const navigate = useNavigate()
   const { items, loading } = useItems()
+  const { user } = useAuth()
   const nickname = useNicknameStore((s) => s.nickname)
   const reroll = useNicknameStore((s) => s.reroll)
 
@@ -79,7 +82,7 @@ export function HomeScreen() {
 
   return (
     <Screen>
-      <header className="flex items-start justify-between gap-2 px-gutter pb-4 pt-3">
+      <header className="flex items-start justify-between gap-2 px-gutter pb-4 pt-6">
         <div className="min-w-0">
           <h1 className="text-display font-extrabold tracking-tight text-balance">
             {opening.before}
@@ -94,9 +97,11 @@ export function HomeScreen() {
             unread > 0 ? t('home.menuButtonUnread') : t('home.menuButton')
           }
           onClick={() => setMenuOpen(true)}
-          className="relative shrink-0"
+          // `overflow-hidden` porque a foto preenche o botão inteiro e
+          // precisa ser recortada pelo raio dele.
+          className="relative shrink-0 overflow-hidden"
         >
-          <User size={20} weight="bold" />
+          <Avatar src={user?.avatarUrl} />
           {unread > 0 && (
             <span
               aria-hidden

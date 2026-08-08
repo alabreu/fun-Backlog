@@ -84,6 +84,12 @@ export function sanitizeNickname(value: string | null | undefined): string | nul
  * Como em VOCATIVES, as listas são independentes por idioma e não traduções
  * uma da outra — o que soa natural em português não é o que soa natural em
  * inglês. `{name}` é onde o vocativo entra; a tela pinta essa parte de accent.
+ *
+ * A ROTAÇÃO ESTÁ DESLIGADA por decisão do usuário (08/08/2026): cada estado
+ * tem UMA frase. A mecânica continua de pé — `openingFor` segue sorteando por
+ * dia — então voltar a rotacionar é acrescentar frases a estas listas, e nada
+ * mais. Os três estados permanecem porque a diferença entre eles não é
+ * estilo: "Onde paramos?" numa estante vazia é mentira, e continuaria sendo.
  */
 export type OpeningKind =
   /** Há algo em andamento: o carrossel é de continuar. */
@@ -95,44 +101,14 @@ export type OpeningKind =
 
 export const OPENINGS: Record<Locale, Record<OpeningKind, string[]>> = {
   pt: {
-    resume: [
-      'Onde paramos, {name}?',
-      'Continuamos, {name}?',
-      'Bora seguir, {name}?',
-      'No que estávamos, {name}?',
-    ],
-    pick: [
-      'O que vai ser hoje, {name}?',
-      'Por onde começamos, {name}?',
-      'Escolhe uma, {name}?',
-      'Hora de começar algo, {name}?',
-    ],
-    start: [
-      'Bora começar, {name}?',
-      'Vamos encher essa estante, {name}?',
-      'Primeira obra, {name}?',
-      'Por onde começamos, {name}?',
-    ],
+    resume: ['Onde paramos, {name}?'],
+    pick: ['O que vai ser hoje, {name}?'],
+    start: ['Bora começar, {name}?'],
   },
   en: {
-    resume: [
-      'Where were we, {name}?',
-      'Shall we continue, {name}?',
-      'Back at it, {name}?',
-      'Pick it up, {name}?',
-    ],
-    pick: [
-      'What will it be, {name}?',
-      'Where do we start, {name}?',
-      'Pick one, {name}?',
-      'Time to start something, {name}?',
-    ],
-    start: [
-      'Shall we start, {name}?',
-      'Ready to fill this shelf, {name}?',
-      'First one in, {name}?',
-      'Where do we begin, {name}?',
-    ],
+    resume: ['Where we left off, {name}?'],
+    pick: ['What will it be, {name}?'],
+    start: ['Shall we start, {name}?'],
   },
 }
 
