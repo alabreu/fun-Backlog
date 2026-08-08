@@ -489,15 +489,20 @@ mídia. Seção vazia também informa: "não tenho nada pausado" é uma resposta
 
 | Mídia | Ordem |
 | --- | --- |
-| Jogos, séries, animes, livros | em andamento → fila → pausado → concluído → abandonado |
+| Jogos, séries, animes, livros | em andamento → **pausado** → fila → concluído → abandonado |
 | Filmes | **fila** → em andamento → pausado → concluído → abandonado |
 
 A regra é "primeiro o que você mais provavelmente veio fazer". Jogos, séries,
 animes e livros são mídias de sessão longa: você volta para CONTINUAR. Filme é o
 contrário — "assistindo" é um estado de duas horas, quase sempre vazio, e a
 estante de filmes serve para ESCOLHER. Pôr uma seção vazia no topo dela seria
-organizar pela exceção. Concluído e abandonado são arquivo (consulta, não
-decisão) e vão ao fim em todas.
+organizar pela exceção.
+
+**Pausado vem logo depois de em andamento**, e não depois da fila: as duas
+seções falam de coisas que você já COMEÇOU ("estou fazendo" e "estava fazendo"),
+e retomar uma é mais provável que escolher da fila do zero. A fila é o passo
+seguinte, para quando nenhuma das duas serve. Concluído e abandonado são arquivo
+(consulta, não decisão) e vão ao fim em todas.
 
 **Buscar abre tudo.** Um acerto dentro de uma seção fechada seria o pior
 desfecho: a tela pareceria dizer "nada encontrado" com a resposta a um toque de

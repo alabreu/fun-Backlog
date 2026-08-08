@@ -107,5 +107,14 @@ describe('SHELF_SECTIONS', () => {
   it('filmes abrem com a fila', () => {
     expect(shelfSections('movie')[0]).toBe('backlog')
   })
+
+  // Em andamento e pausado falam da mesma coisa — o que você já começou — e
+  // retomar é mais provável que escolher da fila do zero.
+  it('pausado vem logo depois do que está em andamento, em toda mídia', () => {
+    for (const media of MEDIA_TYPES) {
+      const secoes = shelfSections(media)
+      expect(secoes[secoes.indexOf('active') + 1]).toBe('paused')
+    }
+  })
 })
 

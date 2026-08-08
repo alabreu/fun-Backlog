@@ -129,19 +129,22 @@ export function datesForStatus(
  *   que na prática está quase sempre vazio — pôr uma seção vazia no topo da
  *   estante mais usada para escolher seria organizar pela exceção.
  *
- * Depois disso: pausado (a fila viva de segunda ordem), concluído e abandonado.
- * Os dois últimos são ARQUIVO — consulta, não decisão — e por isso vão ao fim
- * em todas as mídias.
+ * PAUSADO VEM LOGO DEPOIS DO QUE ESTÁ EM ANDAMENTO, e não depois da fila. É a
+ * mesma pergunta feita duas vezes: "em andamento" é o que você está fazendo,
+ * "pausado" é o que você estava fazendo — as duas seções falam de coisas que
+ * você já COMEÇOU, e retomar uma é mais provável que escolher da fila do zero.
+ * A fila é o passo seguinte, para quando nenhuma das duas serve.
  *
- * Pausado fica alto de propósito em jogos, séries, animes e livros: é onde mora
- * o que foi largado no meio, que é candidato a retomar. Em filmes ele desce,
- * porque filme pausado é raro.
+ * Concluído e abandonado fecham todas as listas: são ARQUIVO, consulta e não
+ * decisão.
  */
 export const SHELF_SECTIONS: Record<MediaType, ItemStatus[]> = {
-  game: ['active', 'backlog', 'paused', 'done', 'abandoned'],
-  series: ['active', 'backlog', 'paused', 'done', 'abandoned'],
-  anime: ['active', 'backlog', 'paused', 'done', 'abandoned'],
-  book: ['active', 'backlog', 'paused', 'done', 'abandoned'],
+  game: ['active', 'paused', 'backlog', 'done', 'abandoned'],
+  series: ['active', 'paused', 'backlog', 'done', 'abandoned'],
+  anime: ['active', 'paused', 'backlog', 'done', 'abandoned'],
+  book: ['active', 'paused', 'backlog', 'done', 'abandoned'],
+  // Filmes já tinham pausado logo após "assistindo" — aqui quem abre a lista
+  // é a fila, porque escolher é o que se faz nesta estante.
   movie: ['backlog', 'active', 'paused', 'done', 'abandoned'],
 }
 
