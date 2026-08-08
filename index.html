@@ -11,8 +11,15 @@
     <!-- Uma cor só, e escura: o app está travado no tema escuro (ver
          docs/decisions.md, decisão 10). Duas linhas com `prefers-color-scheme`
          deixariam a barra do navegador clara sobre um app escuro em quem usa o
-         aparelho no claro. Ao destravar o tema, volte a versão em duas linhas. -->
-    <meta name="theme-color" content="#131316" />
+         aparelho no claro. Ao destravar o tema, volte a versão em duas linhas.
+
+         NÃO é o `--color-bg` (#131316), e a diferença é o ponto: o Safari do
+         iOS pinta as barras de cima e de baixo com ESTE valor, chapado, e a
+         página tem o grão por cima do fundo. Com a cor pura as barras ficavam
+         mais escuras que o conteúdo e apareciam como duas faixas. #1a1a1d é a
+         cor MEDIDA do fundo já granulado (média dos pixels renderizados), então
+         as barras somem no app. Ao mexer na opacidade do grão, meça de novo. -->
+    <meta name="theme-color" content="#1a1a1d" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta

@@ -17,7 +17,12 @@ const APP_DESCRIPTION =
 // Escuro: o app está travado no tema escuro (docs/decisions.md, decisão 10).
 // É a cor da splash do PWA instalado — clara aqui daria um flash branco a
 // cada abertura, antes de o app pintar.
-const THEME_COLOR = '#131316'
+//
+// O valor é o fundo JÁ GRANULADO (#1a1a1d), medido, e não o `--color-bg`
+// puro (#131316): é o mesmo motivo do `theme-color` no index.html — a cor
+// chapada destoa do conteúdo e vira uma faixa visível. Mantenha os dois em
+// sincronia.
+const THEME_COLOR = '#1a1a1d'
 
 // Sha do commit para o rótulo de versão: CI (Vercel/GitHub) fornece por env
 // var; local cai no git; sem repo, "dev".

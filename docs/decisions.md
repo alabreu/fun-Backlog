@@ -340,6 +340,14 @@ referência. A 9% ninguém distingue — mas se um dia a diferença incomodar, a
 volta é trocar a classe por um `::after` sobreposto, aceitando de novo o
 problema das capas.
 
+**Efeito colateral que custou um bug visível:** o Safari do iOS pinta as barras
+de cima e de baixo com o `theme-color`, chapado. Com ele no `--color-bg` puro
+(`#131316`) as barras ficavam mais escuras que a página — que tem o grão por
+cima — e apareciam como duas faixas. O `theme-color` do `index.html` e o
+`THEME_COLOR` do `vite.config.ts` passaram a valer **#1a1a1d**, a cor MEDIDA do
+fundo já granulado (média dos pixels renderizados, não estimativa). **Ao mexer
+na opacidade do grão, meça de novo e atualize os dois.**
+
 **Fallback de capa é a exceção aparente:** ele parece granulado porque o tint
 de mídia tem 15% de opacidade e o grão do fundo aparece através. Arte de
 verdade é opaca e cobre — que é exatamente o comportamento desejado.
