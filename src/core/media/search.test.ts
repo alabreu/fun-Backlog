@@ -248,6 +248,8 @@ describe('ficha do AniList', () => {
   it('separa STREAMING do resto dos links externos', () => {
     const d = mapAniListDetail({
       id: 21,
+      episodes: null,
+      seasonYear: null,
       title: { romaji: 'Cowboy Bebop', english: null },
       coverImage: { large: '' },
       externalLinks: [
@@ -271,6 +273,8 @@ describe('ficha do AniList', () => {
   it('sem streaming, n\u00e3o inventa a se\u00e7\u00e3o', () => {
     const d = mapAniListDetail({
       id: 1,
+      episodes: null,
+      seasonYear: null,
       title: { romaji: 'X', english: null },
       coverImage: { large: '' },
       externalLinks: [{ site: 'Official Site', type: 'INFO' }],
