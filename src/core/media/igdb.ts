@@ -1,4 +1,5 @@
 import { callMediaFunction } from './server'
+import { FAMILY_LABEL, groupPlatforms } from './platforms'
 import type { MediaDetail, MediaProvider, MediaSearchResult } from './types'
 
 /**
@@ -107,6 +108,8 @@ export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
     .map((p) => p?.abbreviation)
     .filter((a): a is string => Boolean(a))
 
+  const families = groupPlatforms(platforms)
+
   // Quem DESENVOLVEU vem antes de quem publicou: é a informação que a pessoa
   // procura ("é da FromSoftware?"), e a publisher costuma ser a menos
   // interessante das duas.
@@ -128,8 +131,15 @@ export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
     facts: [
       // `lead`: em jogo, plataforma e modo de jogo são o filtro que vem antes
       // da leitura ("roda no meu console? dá pra jogar com alguém?").
-      ...(platforms.length > 0
-        ? [{ labelKey: 'fact.platforms', value: platforms.join(', '), lead: true }]
+      // Famílias e não modelos: "PS3, PS4, PS5, X360, XONE, Series X|S" são
+      // seis itens dizendo duas coisas. Ver `platforms.ts`.
+      ...(families.length > 0
+        ? [{
+            labelKey: 'fact.platforms',
+            value: families.map((f) => FAMILY_LABEL[f]).join(' · '),
+            values: families,
+            lead: true,
+          }]
         : []),
       ...((game.game_modes ?? []).length > 0
         ? [{

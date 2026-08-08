@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Star, Trash } from '@phosphor-icons/react'
 import { detailSourceFor, fetchDetail } from '@core/media/detail'
+import { FAMILY_LABEL, type PlatformFamily } from '@core/media/platforms'
 import type {
   MediaDetail,
   MediaFact,
@@ -22,6 +23,7 @@ import {
   Cover,
   Field,
   Input,
+  PlatformIcon,
   SectionTitle,
   Sheet,
   Textarea,
@@ -343,7 +345,24 @@ function FactList({ facts }: { facts: MediaFact[] }) {
           <dt className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
             {t(fact.labelKey as MessageKey)}
           </dt>
-          <dd className="min-w-0 flex-1 text-body">{fact.value}</dd>
+          <dd className="min-w-0 flex-1 text-body">
+            {/* UM `if`, e sobre a CHAVE SEMÂNTICA do fato — não sobre o
+                provider. Plataforma é a única lista que ganha desenho, porque é
+                a única em que a forma identifica mais rápido que a palavra.
+                O nome fica escrito do lado: o ícone reforça, nunca substitui. */}
+            {fact.labelKey === 'fact.platforms' && fact.values ? (
+              <span className="flex flex-wrap gap-1.5">
+                {fact.values.map((family) => (
+                  <Badge key={family}>
+                    <PlatformIcon family={family as PlatformFamily} />
+                    {FAMILY_LABEL[family as PlatformFamily]}
+                  </Badge>
+                ))}
+              </span>
+            ) : (
+              fact.value
+            )}
+          </dd>
         </div>
       ))}
     </dl>

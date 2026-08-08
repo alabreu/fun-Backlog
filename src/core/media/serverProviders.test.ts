@@ -217,9 +217,12 @@ describe('ficha da IGDB', () => {
     expect(d?.score).toBe(93)
     // `lead`: em jogo, plataforma vem ANTES da sinopse — "roda no meu
     // aparelho?" é a pergunta que decide se vale ler o resto.
+    // `values` são FAMÍLIAS, não modelos, e `value` é o texto pronto delas —
+    // quem não souber desenhar ícone ainda mostra algo legível.
     expect(d?.facts?.[0]).toEqual({
       labelKey: 'fact.platforms',
-      value: 'PC, PS4',
+      value: 'PlayStation · PC',
+      values: ['playstation', 'pc'],
       lead: true,
     })
   })

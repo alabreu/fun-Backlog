@@ -38,7 +38,10 @@ export function Badge({
   const look = media ? `${MEDIA_BG[media]} text-on-media` : TONES[tone]
   return (
     <span
-      className={`inline-flex items-center rounded-control px-2 py-0.5 text-label font-semibold ${look} ${className}`}
+      // `gap-1` só tem efeito quando há dois filhos (ícone + texto): num badge
+      // de texto puro não muda nada, e evita que cada chamada com ícone
+      // precise lembrar de passar o espaçamento.
+      className={`inline-flex items-center gap-1 rounded-control px-2 py-0.5 text-label font-semibold ${look} ${className}`}
       {...rest}
     />
   )

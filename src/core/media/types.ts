@@ -56,6 +56,12 @@ export interface MediaFact {
    * contexto vem depois da leitura.
    */
   lead?: boolean
+  /**
+   * O fato é uma LISTA, e não uma frase. `value` continua sendo o texto pronto
+   * (é ele que a tela mostra quando não sabe fazer nada de especial), e isto
+   * aqui é a mesma informação em itens, para quem souber render melhor.
+   */
+  values?: string[]
 }
 
 export interface MediaDetail {

@@ -9,6 +9,7 @@ import {
   Cover,
   CoverGrid,
   NavRow,
+  PlatformIcon,
   Field,
   IconButton,
   Input,
@@ -21,6 +22,7 @@ import {
   Toggle,
 } from '@ui/design'
 import { MEDIA_TYPES, type MediaType } from '@core/items/types'
+import { FAMILY_LABEL, PLATFORM_FAMILIES } from '@core/media/platforms'
 import { useThemeStore } from '@core/state/themeStore'
 import { THEMES, type Theme } from '@core/theme'
 import { applyTheme } from '@ui/theme'
@@ -297,6 +299,22 @@ export function DesignScreen() {
               bordered — borda mais marcada
             </Card>
           </div>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">PlatformIcon</SectionTitle>
+          <div className="flex flex-wrap gap-1.5">
+            {PLATFORM_FAMILIES.map((family) => (
+              <Badge key={family}>
+                <PlatformIcon family={family} />
+                {FAMILY_LABEL[family]}
+              </Badge>
+            ))}
+          </div>
+          <p className="mt-2 text-label text-muted">
+            PlayStation, Xbox e Nintendo são desenhados aqui — o Phosphor não os
+            tem. O nome fica sempre ao lado: o ícone reforça, não substitui.
+          </p>
         </section>
 
         <section>
