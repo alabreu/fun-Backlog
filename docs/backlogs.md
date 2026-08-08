@@ -31,7 +31,7 @@ da TMDB, cadastrados como secrets do Supabase.
 | 🟡 | `OPENROUTER_API_KEY` como secret + **teto de gasto na chave** | Destrava "Me ajude a escolher". O teto é a única defesa que sobrevive a um bug no código | Supabase → Edge Functions → Secrets |
 | 🟢 | `ALLOWED_ORIGIN` da Edge Function `llm` | Restringe o CORS à origin do app em vez de `*` | Supabase → Edge Functions → Secrets |
 | 🟢 | SMTP customizado (ex.: Resend) | O SMTP padrão do Supabase é lento e limitado — problema real antes de abrir para outras pessoas | Supabase → Auth → SMTP |
-| 🟢 | Arte real dos ícones do PWA | Hoje são os placeholders de `npm run icons` | `public/` — sai junto da identidade visual |
+| 🟢 | Rever o ícone do PWA | Já não é placeholder: é o marcador de página, escolhido como decisão provisória (08/08/2026). O gerador desenha a marca sem dependência e o `favicon.svg` repete a mesma forma. Rever junto da identidade visual — houve candidatos de "estante" (lombadas coloridas) que dizem mais sobre o produto | `scripts/generate-icons.mjs` + `public/favicon.svg` |
 | 🟢 | Levar duas correções ao `app-boilerplate` | (1) `client.test.ts` tinha o prefixo de storage escrito à mão e quebrava na renomeação; (2) a `LoginScreen` engolia o motivo do erro de auth. Ambas corrigidas aqui, nenhuma lá | repo `alabreu/app-boilerplate` |
 | 🟢 | Stripe Payment Link (`VITE_STRIPE_DONATE_URL`) | Só se quiser o item "Apoiar o app" no menu. **⚠️ Antes de ligar, falar com a TMDB**: a chave foi pedida como *personal use*, certificando "generates no revenue" — doação, ainda que voluntária, pode quebrar isso e revogar o acesso (decisão 8) | Stripe → Vercel |
 

@@ -536,9 +536,12 @@ números de uma vez é menos frequente que procurar dentro de um deles.
 
 ## Ainda em aberto
 
-- **Identidade visual**: paleta (primitivos em `src/index.css`), ícones reais e
-  a linguagem do grid de capas. Sessão própria, com opções — é a última etapa
-  planejada.
+- **Identidade visual**: paleta (primitivos em `src/index.css`) e a linguagem do
+  grid de capas. Sessão própria, com opções — é a última etapa planejada. O
+  ícone do PWA já saiu do placeholder (marcador de página, 08/08/2026), mas é
+  escolha provisória: os candidatos de "estante" — lombadas de livro nas cinco
+  cores de mídia — dizem mais sobre o produto e merecem uma segunda olhada
+  quando a identidade for fechada.
 - **Densidade por peso da mídia**: o briefing pede que um RPG de 80 horas não
   ocupe o mesmo espaço mental que um filme de 90 minutos. Hoje o grid é
   uniforme. As saídas plausíveis (capa maior ou span de duas colunas para
