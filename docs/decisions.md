@@ -323,12 +323,21 @@ dos projetos do Alexandre**. Mesma receita do `tutor-brew`
 (`alabreu.github.io/mtg-deck-builder`): `feTurbulence` fractal, ladrilho de
 180px, ~9% em fundo escuro e ~11% em fundo claro.
 
-**A diferença deliberada em relação à referência:** lá o grão é um overlay
-`position: fixed` sobre TUDO, inclusive as imagens. Aqui ele é sempre
-`background-image`, nunca sobreposição — porque o pedido era não tocar nas
-capas, e fundo pinta ABAIXO do conteúdo. Assim é estruturalmente impossível o
-grão cair sobre uma capa: não depende de acertar um `z-index`, nem de lembrar
-de excluir a capa em cada tela nova.
+**Dois modos, num interruptor** (`GRAIN_MODE` em `src/ui/theme.ts`):
+
+- `background` — o grão é `background-image` no body e nas superfícies opacas.
+  Fundo pinta ABAIXO do conteúdo, então é *estruturalmente* impossível ele cair
+  numa capa: não depende de acertar um `z-index` nem de lembrar de excluir a
+  capa em cada tela nova. Em compensação a textura recomeça em cada superfície,
+  o que quebra um pouco a sensação de "uma película sobre a tela".
+- `overlay` — a receita literal do tutor-brew: uma camada `fixed` em z-60 (acima
+  do sheet e do toast) com `mix-blend-mode: screen`. Mais coesa e mais presente,
+  porque a textura atravessa a tela inteira sem emenda. **Cai também sobre as
+  capas e o texto** — o que contraria o pedido original de não tocar nas capas,
+  e por isso a escolha é do usuário, não minha.
+
+**Em uso: `overlay`**, a pedido do usuário em 08/08/2026, depois de comparar os
+dois lado a lado.
 
 **Onde é aplicado:** no `body` (fundo da página) e nas superfícies opacas que
 esconderiam esse fundo — `Card`, `NavRow` e o painel do `Sheet`, via a classe

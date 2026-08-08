@@ -52,6 +52,7 @@
      Duas versões porque grão branco some em fundo claro: o preto serve o tema
      claro (que segue vivo, ver decisão 10) e o branco serve o escuro. */
   --app-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.075'/></svg>");
+  --app-grain-overlay: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.11'/></svg>");
 }
 
 /* ===========================================================================
@@ -210,6 +211,7 @@
     --color-media-book: var(--palette-green-400);
     --color-on-media: var(--palette-gray-950);
     --app-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/></svg>");
+    --app-grain-overlay: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/></svg>");
   }
 }
 
@@ -232,6 +234,7 @@
   --color-media-book: var(--palette-green-400);
   --color-on-media: var(--palette-gray-950);
   --app-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/></svg>");
+  --app-grain-overlay: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/></svg>");
 }
 
 html,
@@ -254,8 +257,6 @@ body {
 body {
   margin: 0;
   background-color: var(--color-bg);
-  background-image: var(--app-grain);
-  background-size: 180px 180px;
   color: var(--color-ink);
   font-family:
     system-ui,
@@ -280,9 +281,29 @@ body {
    fundo e abaixo do conteúdo: uma capa dentro de um sheet continua limpa.
    Controles pequenos (chip, botão, badge) ficam de fora de propósito: grão num
    pill de 24px não se vê, e só custaria pintura. */
-.app-grain {
+:root:not([data-grain='overlay']) body,
+:root:not([data-grain='overlay']) .app-grain {
   background-image: var(--app-grain);
   background-size: 180px 180px;
+}
+
+/* MODO OVERLAY — a receita literal do tutor-brew: uma camada só, `fixed`, por
+   cima de TUDO. Inclusive das capas: é a diferença que este modo existe para
+   deixar sentir. z-60 fica acima do sheet e do toast (z-50), então não precisa
+   de uma cópia dentro do sheet como a referência precisou. */
+.app-grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background-image: var(--app-grain-overlay);
+  background-size: 180px 180px;
+  mix-blend-mode: screen;
+}
+
+/* No tema claro o ruído é preto: `screen` o apagaria. */
+:root[data-theme='light'] .app-grain-overlay {
+  mix-blend-mode: normal;
 }
 
 /* Indicador de foco visível e consistente para navegação por teclado.

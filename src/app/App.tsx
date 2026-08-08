@@ -8,7 +8,7 @@ import { useLocaleStore } from '@core/state/localeStore'
 import { useNicknameStore } from '@core/state/nicknameStore'
 import { useThemeStore } from '@core/state/themeStore'
 import { DEFAULT_THEME, LOCKED_THEME, normalizeTheme } from '@core/theme'
-import { applyTheme } from '@ui/theme'
+import { applyGrainMode, applyTheme, GRAIN_MODE } from '@ui/theme'
 import { UpdateToast } from '@ui/components/UpdateToast'
 import { useAuthInit } from '@ui/hooks/useAuth'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -109,6 +109,11 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Modo do grão: constante de build, aplicada uma vez.
+  useEffect(() => {
+    applyGrainMode(GRAIN_MODE)
+  }, [])
+
   // Restaura + observa a sessão (no-op quando o backend não está configurado).
   useAuthInit()
 
@@ -178,6 +183,10 @@ export function App() {
           comemoração tem que sobreviver à navegação que ela mesma oferece. */}
       <CompletionCelebration />
       <UpdateToast />
+      {/* Acima de tudo (z-60) e sem capturar toque. Ver GRAIN_MODE. */}
+      {GRAIN_MODE === 'overlay' && (
+        <div aria-hidden className="app-grain-overlay" />
+      )}
     </BrowserRouter>
   )
 }
