@@ -21,6 +21,8 @@ export const en: Record<keyof typeof pt, string> = {
   'home.emptyAction': 'Add the first one',
 
   // A single medium's shelf
+  'shelf.searchPlaceholder': 'Search this shelf, or add',
+  'shelf.notOnShelf': 'Not on your shelf',
   'shelf.emptyTitle': 'Nothing on this shelf yet',
   'shelf.emptyBody': 'Whatever you add of this medium shows up here.',
 

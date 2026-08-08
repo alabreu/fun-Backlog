@@ -19,6 +19,8 @@ export const pt = {
   'home.emptyAction': 'Adicionar o primeiro',
 
   // Estante de uma mídia
+  'shelf.searchPlaceholder': 'Buscar nesta estante ou adicionar',
+  'shelf.notOnShelf': 'Fora da sua estante',
   'shelf.emptyTitle': 'Nada nesta estante ainda',
   'shelf.emptyBody': 'O que você adicionar desta mídia aparece aqui.',
 

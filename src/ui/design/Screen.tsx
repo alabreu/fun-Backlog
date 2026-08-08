@@ -33,7 +33,12 @@ export function ScreenBody({
       className={
         centered
           ? `flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center ${className}`
-          : `min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pb-8 ${className}`
+          : // `pt-1` não é respiro estético: `overflow-y-auto` CORTA o que
+            // passa da borda, e o anel de foco de um campo cresce 2px para
+            // fora dele. Sem esses 4px, um input colado no topo aparece com a
+            // borda decepada pelo cabeçalho assim que recebe foco — que foi
+            // exatamente o que aconteceu na busca da estante.
+            `min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pb-8 pt-1 ${className}`
       }
       {...rest}
     >
