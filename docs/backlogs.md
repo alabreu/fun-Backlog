@@ -32,6 +32,7 @@ da TMDB, cadastrados como secrets do Supabase.
 | 🟢 | `ALLOWED_ORIGIN` da Edge Function `llm` | Restringe o CORS à origin do app em vez de `*` | Supabase → Edge Functions → Secrets |
 | 🟢 | SMTP customizado (ex.: Resend) | O SMTP padrão do Supabase é lento e limitado — problema real antes de abrir para outras pessoas | Supabase → Auth → SMTP |
 | 🟢 | Rever o ícone do PWA | Já não é placeholder: é o marcador de página, escolhido como decisão provisória (08/08/2026). O gerador desenha a marca sem dependência e o `favicon.svg` repete a mesma forma. Rever junto da identidade visual — houve candidatos de "estante" (lombadas coloridas) que dizem mais sobre o produto | `scripts/generate-icons.mjs` + `public/favicon.svg` |
+| 🟢 | Logo do JustWatch no crédito | O crédito em texto já está na tela de Créditos e é o que a condição de uso pede. O guia de marca deles também oferece o logo — arte a baixar, mesmo caso do da TMDB | `src/ui/screens/CreditsScreen.tsx` |
 | 🟢 | Levar duas correções ao `app-boilerplate` | (1) `client.test.ts` tinha o prefixo de storage escrito à mão e quebrava na renomeação; (2) a `LoginScreen` engolia o motivo do erro de auth. Ambas corrigidas aqui, nenhuma lá | repo `alabreu/app-boilerplate` |
 | 🟢 | Stripe Payment Link (`VITE_STRIPE_DONATE_URL`) | Só se quiser o item "Apoiar o app" no menu. **⚠️ Antes de ligar, falar com a TMDB**: a chave foi pedida como *personal use*, certificando "generates no revenue" — doação, ainda que voluntária, pode quebrar isso e revogar o acesso (decisão 8) | Stripe → Vercel |
 
@@ -55,7 +56,8 @@ da TMDB, cadastrados como secrets do Supabase.
 | 🟢 | Ordenação configurável | A estante agora é por seções (decisão 13) e a ordem DELAS é fixa por mídia. Falta poder ordenar DENTRO da seção — hoje é por data de entrada, mais novo primeiro |
 | 🟢 | Progresso ao mudar de status | Concluir não preenche o progresso até o total conhecido, nem o contrário. Falta decidir se é automático |
 | 🟢 | `status_detail` sem UI | "Platinado", "em dia": o campo existe no banco e nada o escreve |
-| 🟢 | Google Books como fallback de livros | Open Library tem buracos de cobertura e capa ruim — o briefing já previa |
+| 🟢 | Preferências por mídia dentro do país | Hoje o país é um só para tudo. Quem assina streaming brasileiro morando em Portugal precisaria de um país por mídia — só vale se aparecer de verdade |
+| 🟢 | "Em cartaz" na estante, não só na ficha | O filme só avisa que está em cartaz quando o sheet abre. Um selo na capa mostraria sem precisar tocar — depende da identidade visual |
 | 🟢 | HowLongToBeat | Sem API oficial. Avaliar viabilidade antes de prometer tempo estimado |
 | 🟢 | Web Share Target | Compartilhar do navegador do celular direto para o app (PWA) |
 | 🟢 | Code splitting do cliente Supabase | Ligar as variáveis levou o bundle de 337 kB para 539 kB (105 → 156 kB comprimido): sem elas o Rollup prova que `backendConfigured` é `false` e remove a biblioteca inteira. Um import dinâmico tira esse peso do caminho crítico de quem abre o app sem sessão |
