@@ -23,7 +23,7 @@ import {
 } from '@ui/design'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
-import { useCollapsedSections } from '@ui/hooks/useCollapsedSections'
+import { useSectionState } from '@ui/hooks/useSectionState'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -50,10 +50,11 @@ function isMediaType(value: string | undefined): value is MediaType {
  * inteira de uma vez, com a contagem no título, e quem quiser esconder o
  * arquivo fecha a seção (e ela continua fechada da próxima vez).
  *
- * TODAS AS SEÇÕES APARECEM, inclusive as vazias, e todas nascem abertas. É uma
- * decisão de produto: com nada escondido, a ORDEM é o que organiza a tela, e
- * ela muda por mídia (ver `SHELF_SECTIONS`). Uma seção vazia também informa —
- * "não tenho nada pausado" é uma resposta.
+ * TODAS AS SEÇÕES APARECEM, inclusive as vazias — "não tenho nada pausado" é
+ * uma resposta. Mas VAZIA NASCE FECHADA: aberta, ela gasta duas linhas para
+ * dizer "nada aqui", e cinco dessas empurram o conteúdo de verdade para fora da
+ * tela. Com nada escondido, a ORDEM é o que organiza, e ela muda por mídia
+ * (ver `SHELF_SECTIONS`).
  *
  * BUSCAR ABRE TUDO. Um acerto dentro de uma seção fechada seria o pior desfecho
  * possível: a tela diria "nada encontrado" com a resposta escondida a um toque
@@ -84,7 +85,7 @@ export function ShelfScreen() {
     enabled: Boolean(mediaType),
   })
 
-  const { closed, toggle } = useCollapsedSections(mediaType)
+  const { isOpen, toggle } = useSectionState(mediaType)
 
   const visible = useMemo(
     () =>
@@ -197,8 +198,8 @@ export function ShelfScreen() {
                 title={t(statusLabelKey(value, mediaType))}
                 count={found.length}
                 // Com busca em curso, aberto SEMPRE: ver o cabeçalho do arquivo.
-                open={searchingExternal || !closed.includes(value)}
-                onToggle={() => toggle(value)}
+                open={searchingExternal || isOpen(value, found.length)}
+                onToggle={() => toggle(value, found.length)}
                 emptyLabel={t('shelf.sectionEmpty')}
               >
                 <CoverGrid>

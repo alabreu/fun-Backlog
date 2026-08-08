@@ -481,9 +481,16 @@ Saber "quantos eu tenho pausados" custava um toque e um retorno. As seções
 mostram a estrutura inteira de uma vez, e quem quer esconder o arquivo fecha a
 seção — que continua fechada da próxima vez (localStorage, por mídia).
 
-**Todas aparecem, inclusive as vazias, e todas nascem abertas.** Com nada
-escondido, a ORDEM é a única coisa que organiza a tela — e por isso ela muda por
-mídia. Seção vazia também informa: "não tenho nada pausado" é uma resposta.
+**Todas aparecem, inclusive as vazias** — "não tenho nada pausado" é uma
+resposta. Mas **vazia nasce FECHADA**: aberta, ela gasta duas linhas para dizer
+"nada aqui", e cinco dessas empurram o conteúdo de verdade para fora da tela.
+Com nada escondido, a ORDEM é a única coisa que organiza — e por isso ela muda
+por mídia.
+
+**O que fica guardado é a ESCOLHA EXPLÍCITA, não o estado.** Guardar o estado
+congelaria o padrão: uma seção vazia que ninguém tocou continuaria fechada
+depois de ganhar itens, e a estante pareceria estar escondendo coisa. Guardando
+só o que a pessoa mexeu, o resto acompanha o conteúdo sozinho.
 
 **A ordem, e o porquê de cada uma** (`SHELF_SECTIONS` em `core/items/status.ts`):
 
