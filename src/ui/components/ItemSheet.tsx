@@ -347,8 +347,12 @@ function FactList({ facts }: { facts: MediaFact[] }) {
       {facts.map((fact) => {
         // As duas formas de valor que viram LISTA (flex aninhado), decididas
         // uma vez porque o alinhamento da linha depende delas.
-        const comIcones = fact.labelKey === 'fact.platforms' && fact.values
-        const comLinks = !comIcones && fact.links?.some(Boolean)
+        // Guarda o ARRAY, e não um booleano: assim o `.map` abaixo trabalha
+        // sobre um valor que o compilador já sabe existir, em vez de depender
+        // de o TypeScript estreitar `fact.values` através de outra variável.
+        const icones =
+          fact.labelKey === 'fact.platforms' ? fact.values : undefined
+        const links = !icones && fact.links?.some(Boolean) ? fact.values : undefined
 
         return (
           // ALINHAMENTO, e por que ele é condicional (medido no Chromium, com
@@ -368,7 +372,7 @@ function FactList({ facts }: { facts: MediaFact[] }) {
           // mede melhor.
           <div
             key={fact.labelKey}
-            className={`flex gap-2 ${comIcones || comLinks ? '' : 'items-baseline'}`}
+            className={`flex gap-2 ${icones || links ? '' : 'items-baseline'}`}
           >
             <dt className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
               {t(fact.labelKey as MessageKey)}
@@ -378,7 +382,7 @@ function FactList({ facts }: { facts: MediaFact[] }) {
                 provider. Plataforma é a única lista que ganha desenho, porque é
                 a única em que a forma identifica mais rápido que a palavra.
                 O nome fica escrito do lado: o ícone reforça, nunca substitui. */}
-              {comIcones ? (
+              {icones ? (
                 // SEM cápsula, separado por ponto. O rótulo "PLATAFORMAS" à
                 // esquerda já emoldura a lista — pôr cada item numa pílula era
                 // emoldurar duas vezes. O que separa um item do outro passa a ser
@@ -389,7 +393,7 @@ function FactList({ facts }: { facts: MediaFact[] }) {
                 // mesma cor; o ponto separador fica em `muted`, senão ele
                 // pertenceria visualmente ao item da esquerda.
                 <span className="flex flex-wrap items-center gap-y-1">
-                  {fact.values.map((value, i) => {
+                  {icones.map((value, i) => {
                     const family = value as PlatformFamily
                     return (
                       // O separador vem DEPOIS do item e dentro do mesmo bloco:
@@ -403,7 +407,7 @@ function FactList({ facts }: { facts: MediaFact[] }) {
                           <PlatformIcon family={family} size={18} />
                           {FAMILY_LABEL[family]}
                         </span>
-                        {i < (fact.values?.length ?? 0) - 1 && (
+                        {i < icones.length - 1 && (
                           <span aria-hidden className="mx-2 text-muted">
                             ·
                           </span>
@@ -412,7 +416,7 @@ function FactList({ facts }: { facts: MediaFact[] }) {
                     )
                   })}
                 </span>
-              ) : comLinks ? (
+              ) : links ? (
                 // Lista COM LINK: cada item vira o caminho para a página da obra
                 // naquele serviço ou loja. Mesma forma da linha de plataformas —
                 // ponto separador depois do item, dentro do mesmo bloco, para o
@@ -421,7 +425,7 @@ function FactList({ facts }: { facts: MediaFact[] }) {
                 // Item sem link continua sendo texto: `links` é paralelo a
                 // `values`, e um buraco no meio não pode empurrar os outros.
                 <span className="flex flex-wrap items-center gap-y-1">
-                  {(fact.values ?? []).map((value, i) => {
+                  {links.map((value, i) => {
                     const href = fact.links?.[i]
                     return (
                       <span key={value} className="inline-flex items-center">
@@ -430,7 +434,7 @@ function FactList({ facts }: { facts: MediaFact[] }) {
                         ) : (
                           value
                         )}
-                        {i < (fact.values?.length ?? 0) - 1 && (
+                        {i < links.length - 1 && (
                           <span aria-hidden className="mx-2 text-muted">
                             ·
                           </span>
