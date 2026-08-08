@@ -170,9 +170,10 @@ describe('aberturas da home', () => {
     expect(openingFor(new Date(1969, 0, 1, 10), 'pt', 'pick')).toBeTruthy()
   })
 
-  it('splitOpening parte no lugar do vocativo', () => {
+  // Sem espaço no fim: a tela quebra a linha exatamente neste ponto.
+  it('splitOpening parte no lugar do vocativo, sem espaço pendurado', () => {
     expect(splitOpening('Onde paramos, {name}?')).toEqual({
-      before: 'Onde paramos, ',
+      before: 'Onde paramos,',
       after: '?',
     })
   })

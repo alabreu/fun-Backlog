@@ -84,12 +84,19 @@ export function HomeScreen() {
     <Screen>
       <header className="flex items-start justify-between gap-2 px-gutter pb-4 pt-6">
         <div className="min-w-0">
+          {/* A quebra é fixa, não consequência da largura: a frase fica numa
+              linha e o vocativo na seguinte, sempre. Assim o nome ganha o peso
+              de uma linha inteira em vez de aparecer onde a sobra de espaço
+              deixar — e a altura do cabeçalho para de mudar conforme o
+              vocativo do dia é "Fera" ou "Sobrevivente". */}
           <h1 className="text-display font-extrabold tracking-tight text-balance">
-            {opening.before}
-            <span className="text-accent">
-              {vocativeFor(now, locale, nickname, reroll)}
+            <span className="block">{opening.before}</span>
+            <span className="block">
+              <span className="text-accent">
+                {vocativeFor(now, locale, nickname, reroll)}
+              </span>
+              {opening.after}
             </span>
-            {opening.after}
           </h1>
         </div>
         <IconButton

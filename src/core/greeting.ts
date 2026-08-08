@@ -106,7 +106,10 @@ export const OPENINGS: Record<Locale, Record<OpeningKind, string[]>> = {
     start: ['Bora começar, {name}?'],
   },
   en: {
-    resume: ['Where we left off, {name}?'],
+    // "Where we left off?" é pedaço de frase em inglês ("...pick up where we
+    // left off"), não pergunta. "Where were we?" é a pergunta equivalente — e
+    // é curta, que é o que a quebra em duas linhas pede.
+    resume: ['Where were we, {name}?'],
     pick: ['What will it be, {name}?'],
     start: ['Shall we start, {name}?'],
   },
@@ -131,13 +134,18 @@ export function openingFor(
  * Parte a frase no lugar do vocativo, para a tela poder pintar só ele de
  * accent. Devolver duas strings (e não a frase montada) é o que permite isso
  * sem a tela precisar saber onde o `{name}` estava — nem interpolar HTML.
+ *
+ * `before` vem sem o espaço final porque a tela quebra a linha exatamente
+ * aqui ("Onde paramos," / "Sobrevivente?"). Espaço em fim de linha não some
+ * sozinho: ele desloca o texto quando a linha é centralizada e conta para a
+ * largura quando não é.
  */
 export function splitOpening(phrase: string): { before: string; after: string } {
   const at = phrase.indexOf(NAME_SLOT)
   // Frase sem o marcador ainda renderiza inteira, em vez de sumir da tela.
   if (at < 0) return { before: phrase, after: '' }
   return {
-    before: phrase.slice(0, at),
+    before: phrase.slice(0, at).trimEnd(),
     after: phrase.slice(at + NAME_SLOT.length),
   }
 }
