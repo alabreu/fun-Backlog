@@ -107,30 +107,34 @@ export function HomeScreen() {
             )}
           </h1>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-3">
           <IconButton
             aria-label={t('home.searchFab')}
             onClick={() => navigate('/buscar')}
           >
             <MagnifyingGlass size={20} weight="bold" />
           </IconButton>
-          <IconButton
-            aria-label={
-              unread > 0 ? t('home.menuButtonUnread') : t('home.menuButton')
-            }
-            onClick={() => setMenuOpen(true)}
-            // `overflow-hidden` porque a foto preenche o botão inteiro e
-            // precisa ser recortada pelo raio dele.
-            className="relative overflow-hidden"
-          >
-            <Avatar src={user?.avatarUrl} />
+          {/* A bolinha de não lido fica FORA do botão, num invólucro próprio.
+              O botão precisa de `overflow-hidden` para a foto ser recortada
+              pelo raio dele — e esse mesmo recorte decepava a bolinha, que por
+              construção passa da borda. Irmã do botão, ela sobra inteira. */}
+          <span className="relative">
+            <IconButton
+              aria-label={
+                unread > 0 ? t('home.menuButtonUnread') : t('home.menuButton')
+              }
+              onClick={() => setMenuOpen(true)}
+              className="overflow-hidden"
+            >
+              <Avatar src={user?.avatarUrl} />
+            </IconButton>
             {unread > 0 && (
               <span
                 aria-hidden
-                className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-control bg-accent ring-2 ring-bg"
+                className="pointer-events-none absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-control bg-accent ring-2 ring-bg"
               />
             )}
-          </IconButton>
+          </span>
         </div>
       </header>
 
