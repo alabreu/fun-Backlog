@@ -17,6 +17,7 @@ import {
   Cover,
   Fab,
   IconButton,
+  MediaDot,
   NavRow,
   Rail,
   RailItem,
@@ -229,8 +230,22 @@ function ItemCard({
           </Badge>
         )}
       </div>
-      <span className="mt-2 line-clamp-2 block text-body font-semibold">
-        {item.title}
+      {/* O ponto vem ANTES do título, não depois.
+          À direita ele encostava na borda do card e, num carrossel horizontal,
+          a borda direita de um card fica a 12px do título do PRÓXIMO — o ponto
+          verde de um livro lia como se fosse do anime ao lado. À esquerda ele
+          fica grudado no que descreve, e é como o resto do app já usa (linha da
+          estante, cabeçalho da busca, lista mista).
+          O `mt-1.5` centra a bolinha de 8px na primeira linha de 20px. */}
+      <span className="mt-2 flex items-start gap-1.5">
+        <MediaDot
+          media={item.mediaType}
+          label={t(mediaLabelKey(item.mediaType))}
+          className="mt-1.5"
+        />
+        <span className="line-clamp-2 text-body font-semibold">
+          {item.title}
+        </span>
       </span>
     </button>
   )
