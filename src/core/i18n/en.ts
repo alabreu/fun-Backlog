@@ -148,7 +148,7 @@ export const en: Record<keyof typeof pt, string> = {
 
   // Menu
   'menu.feedback': 'Send feedback',
-  'menu.language': 'Language',
+  'menu.language': 'Language & region',
   'menu.news': "What's new",
   'menu.completed': 'Completed',
   'menu.nickname': 'What to call me',
@@ -270,8 +270,12 @@ export const en: Record<keyof typeof pt, string> = {
   'credits.openlibrary': 'Books: details, cover art and page count.',
 
   // Language
-  'language.title': 'Language',
+  'language.title': 'Language & region',
   'language.subtitle': 'Choose the app language.',
+  'language.languageSection': 'Language',
+  'language.regionSection': 'Country',
+  'language.regionSubtitle':
+    'Sets where we look things up: which services carry the film, where to buy the book, whether it is still in cinemas.',
 
   // News (changelog)
   'news.title': "What's new",

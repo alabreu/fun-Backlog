@@ -16,6 +16,7 @@ import {
 } from '@core/items/status'
 import { ITEM_STATUSES, type Item } from '@core/items/types'
 import type { MessageKey } from '@core/i18n'
+import { useRegionStore } from '@core/state/regionStore'
 import {
   Badge,
   Button,
@@ -93,6 +94,8 @@ function Detail({
 }) {
   const { t, locale } = useTranslation()
   const { items, add, update, setStatus, remove } = useItems()
+  // País da pessoa: decide qual bloco de "onde assistir" a TMDB mostra.
+  const region = useRegionStore((s) => s.region)
 
   // Qual item da estante corresponde a esta obra. Derivado, não estado: assim
   // que `add` resolve, o store muda e o painel vira modo estante sozinho.
@@ -123,12 +126,10 @@ function Detail({
   useEffect(() => {
     if (!source) return
     const controller = new AbortController()
-    void fetchDetail(
-      source.provider,
-      source.externalId,
-      mediaType,
-      controller.signal,
-    ).then((found) => {
+    void fetchDetail(source.provider, source.externalId, mediaType, {
+      signal: controller.signal,
+      region,
+    }).then((found) => {
       if (controller.signal.aborted) return
       setDetail(found)
       setLoadingDetail(false)

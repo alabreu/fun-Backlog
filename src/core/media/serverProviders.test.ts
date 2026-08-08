@@ -309,6 +309,25 @@ describe('ficha da TMDB', () => {
     expect(d?.facts?.[0].value).toBe('22min')
   })
 
+  it('o pa\u00eds pedido escolhe o bloco, e n\u00e3o o primeiro que a TMDB mandar', () => {
+    const body = {
+      id: 3,
+      title: 'X',
+      'watch/providers': {
+        results: {
+          BR: { flatrate: [{ provider_name: 'Globoplay' }] },
+          PT: { flatrate: [{ provider_name: 'RTP Play' }] },
+        },
+      },
+    }
+    // Mesma resposta, dois pa\u00edses: quem mora em Portugal n\u00e3o pode ver a lista
+    // brasileira s\u00f3 porque o padr\u00e3o do app \u00e9 BR.
+    const br = mapTmdbDetail(body, 'movie', 'BR')
+    const pt = mapTmdbDetail(body, 'movie', 'PT')
+    expect(br?.facts?.[0].values).toEqual(['Globoplay'])
+    expect(pt?.facts?.[0].values).toEqual(['RTP Play'])
+  })
+
   it('sem provedor no pa\u00eds pedido, "onde assistir" fica vazio', () => {
     const d = mapTmdbDetail(
       {

@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router'
 import { getUnreadCount } from '@core/changelog'
 import { donateConfigured } from '@core/donate'
 import type { MessageKey } from '@core/i18n'
+import { useRegionStore } from '@core/state/regionStore'
 import { Avatar, Sheet } from '@ui/design'
 import { VersionLabel } from '@ui/components/VersionLabel'
 import { useAuth } from '@ui/hooks/useAuth'
@@ -55,6 +56,7 @@ const ITEMS: MenuItem[] = [
 export function MenuSheet({ open, onClose }: MenuSheetProps) {
   const navigate = useNavigate()
   const { t, locale } = useTranslation()
+  const region = useRegionStore((s) => s.region)
   const { user } = useAuth()
   const newsUnread = getUnreadCount()
 
@@ -89,7 +91,7 @@ export function MenuSheet({ open, onClose }: MenuSheetProps) {
             </span>
             {item.to === '/idioma' ? (
               <span className="ml-auto text-label font-semibold uppercase text-muted">
-                {locale}
+                {locale} · {region}
               </span>
             ) : item.to === '/novidades' && newsUnread > 0 ? (
               <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-control bg-accent px-1.5 text-label font-bold text-on-accent">

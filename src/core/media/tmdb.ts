@@ -1,3 +1,4 @@
+import { DEFAULT_REGION } from '@core/region'
 import {
   SEARCH_LIMIT,
   type MediaDetail,
@@ -108,7 +109,7 @@ export function mapTmdbDetail(
   body: TmdbDetailBody,
   kind: 'movie' | 'tv',
   /** País para "onde assistir" — a TMDB devolve um bloco por país. */
-  region = 'BR',
+  region: string = DEFAULT_REGION,
 ): MediaDetail | null {
   const base = mapTmdbResult(body, kind)
   if (!base) return null
@@ -190,13 +191,16 @@ export const tmdbProvider: MediaProvider = {
       .slice(0, SEARCH_LIMIT)
   },
 
-  async detail(externalId, mediaType, signal) {
+  async detail(externalId, mediaType, { signal, region } = {}) {
     const kind = mediaType === 'series' ? 'tv' : 'movie'
     const body = await callMediaFunction<TmdbDetailBody>(
       { source: 'tmdb', detailId: externalId, detailKind: kind },
       signal,
     )
-    const mapped = mapTmdbDetail(body, kind)
+    // O país NÃO vai na requisição: a TMDB devolve o bloco de TODOS os países
+    // na mesma resposta, e escolher aqui mantém a resposta cacheável por obra
+    // em vez de por obra × país.
+    const mapped = mapTmdbDetail(body, kind, region)
     if (!mapped) throw new Error('tmdb-unavailable')
     return mapped
   },

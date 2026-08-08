@@ -79,7 +79,7 @@ export const openLibraryProvider: MediaProvider = {
       .filter((r): r is MediaSearchResult => r !== null)
   },
 
-  async detail(externalId, _mediaType, signal) {
+  async detail(externalId, _mediaType, { signal } = {}) {
     const response = await fetch(
       `https://openlibrary.org/works/${encodeURIComponent(externalId)}.json`,
       { headers: { accept: 'application/json' }, signal },

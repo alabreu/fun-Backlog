@@ -1,6 +1,6 @@
 import type { MediaType } from '@core/items/types'
 import { PROVIDERS } from './search'
-import type { MediaDetail } from './types'
+import type { DetailOptions, MediaDetail } from './types'
 
 /**
  * Busca a ficha completa de uma obra na fonte que a forneceu.
@@ -18,13 +18,13 @@ export async function fetchDetail(
   provider: string,
   externalId: string,
   mediaType: MediaType,
-  signal?: AbortSignal,
+  options?: DetailOptions,
 ): Promise<MediaDetail | null> {
   const source = PROVIDERS.find((p) => p.id === provider)
   if (!source?.detail) return null
 
   try {
-    return await source.detail(externalId, mediaType, signal)
+    return await source.detail(externalId, mediaType, options)
   } catch {
     return null
   }

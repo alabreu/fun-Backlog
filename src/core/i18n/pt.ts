@@ -146,7 +146,7 @@ export const pt = {
 
   // Menu (sheet do botão no topo direito)
   'menu.feedback': 'Enviar feedback',
-  'menu.language': 'Idioma',
+  'menu.language': 'Idioma e região',
   'menu.news': 'Novidades',
   'menu.completed': 'Concluídos',
   'menu.nickname': 'Como me chamar',
@@ -269,9 +269,13 @@ export const pt = {
   'credits.anilist': 'Animes: ficha, capa e total de episódios.',
   'credits.openlibrary': 'Livros: ficha, capa e número de páginas.',
 
-  // Idioma
-  'language.title': 'Idioma',
+  // Idioma e região
+  'language.title': 'Idioma e região',
   'language.subtitle': 'Escolha o idioma do app.',
+  'language.languageSection': 'Idioma',
+  'language.regionSection': 'País',
+  'language.regionSubtitle':
+    'Define onde procuramos cada obra: quais streamings têm o filme, onde comprar o livro, se ainda está em cartaz.',
 
   // Novidades (changelog)
   'news.title': 'Novidades',

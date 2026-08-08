@@ -71,7 +71,7 @@ export const igdbProvider: MediaProvider = {
       .filter((r): r is MediaSearchResult => r !== null)
   },
 
-  async detail(externalId, _mediaType, signal) {
+  async detail(externalId, _mediaType, { signal } = {}) {
     const game = await callMediaFunction<IgdbDetail>(
       { source: 'igdb', detailId: externalId },
       signal,

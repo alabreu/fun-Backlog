@@ -88,6 +88,21 @@ export interface MediaDetail {
   total?: number
 }
 
+/**
+ * O contexto da pessoa que pede a ficha. Objeto, e não mais parâmetros soltos,
+ * porque só a TMDB liga para o país e só ela vai ligar para o próximo campo que
+ * entrar aqui — os outros providers continuam ignorando o que não usam.
+ */
+export interface DetailOptions {
+  signal?: AbortSignal
+  /**
+   * País da pessoa (ISO 3166-1 alfa-2). "Onde assistir" muda inteiro entre
+   * Brasil e Portugal, então quem pede a ficha precisa dizer de onde fala.
+   * Ausente = o padrão do provider.
+   */
+  region?: string
+}
+
 export interface MediaProvider {
   id: string
   /** Que mídias este provider cobre. */
@@ -102,7 +117,7 @@ export interface MediaProvider {
   detail?(
     externalId: string,
     mediaType: MediaType,
-    signal?: AbortSignal,
+    options?: DetailOptions,
   ): Promise<MediaDetail>
 }
 

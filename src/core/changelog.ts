@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-08-pais',
+    date: '2026-08-08',
+    emoji: '🌎',
+    title: {
+      pt: 'Agora dá para dizer em que país você está',
+      en: 'You can now tell the app which country you are in',
+    },
+    items: {
+      pt: [
+        '"Idioma" virou "Idioma e região": o país entrou como escolha separada, porque ler o app em inglês não quer dizer morar nos Estados Unidos.',
+        '"Onde assistir" passou a seguir esse país — quem está em Portugal vê os serviços de lá, e não os do Brasil.',
+        'No primeiro uso o país vem do navegador; se ele não disser, o app chuta pelo idioma e você corrige em dois toques.',
+      ],
+      en: [
+        '"Language" became "Language & region": country is now its own choice, because reading the app in English does not mean living in the US.',
+        '"Where to watch" follows that country — someone in Portugal sees the services available there, not the Brazilian ones.',
+        'On first run the country comes from your browser; if it stays quiet, the app guesses from the language and you fix it in two taps.',
+      ],
+    },
+  },
+  {
     id: '2026-08-08-onde-assistir',
     date: '2026-08-08',
     emoji: '📺',

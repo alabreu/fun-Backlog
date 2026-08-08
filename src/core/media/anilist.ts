@@ -89,7 +89,7 @@ export const anilistProvider: MediaProvider = {
       .filter((r): r is MediaSearchResult => r !== null)
   },
 
-  async detail(externalId, _mediaType, signal) {
+  async detail(externalId, _mediaType, { signal } = {}) {
     const response = await fetch(ANILIST_URL, {
       method: 'POST',
       headers: {

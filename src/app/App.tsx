@@ -3,7 +3,13 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { trackSessionStart } from '@core/analytics'
 import { storageKey } from '@core/config'
 import { DEFAULT_LOCALE, normalizeLocale } from '@core/i18n'
+import {
+  normalizeRegion,
+  regionForLocale,
+  regionFromLanguageTag,
+} from '@core/region'
 import { useLocaleStore } from '@core/state/localeStore'
+import { useRegionStore } from '@core/state/regionStore'
 import { useMediaStore } from '@core/state/mediaStore'
 import { useNicknameStore } from '@core/state/nicknameStore'
 import { useThemeStore } from '@core/state/themeStore'
@@ -35,6 +41,7 @@ const LOCALE_STORAGE_KEY = storageKey('locale')
 const THEME_STORAGE_KEY = storageKey('theme')
 const NICKNAME_STORAGE_KEY = storageKey('nickname')
 const MEDIA_STORAGE_KEY = storageKey('media-preferences')
+const REGION_STORAGE_KEY = storageKey('region')
 
 /** localStorage falha de verdade: modo privado, cota cheia, política do
  *  navegador. Preferência é um "seria bom", nunca um motivo para a tela não
@@ -73,6 +80,8 @@ const DesignScreen = lazy(() =>
 export function App() {
   const { locale } = useTranslation()
   const setLocale = useLocaleStore((s) => s.setLocale)
+  const region = useRegionStore((s) => s.region)
+  const setRegion = useRegionStore((s) => s.setRegion)
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const nickname = useNicknameStore((s) => s.nickname)
@@ -87,14 +96,22 @@ export function App() {
   // StrictMode, a leitura seguinte já pegaria o padrão recém-gravado e a
   // escolha se perderia de verdade a cada recarga.
   const mediaSeededRef = useRef(false)
+  const regionSeededRef = useRef(false)
 
   // Semeia as preferências salvas uma vez no boot. Idioma cai para o do
   // navegador; tema cai para "seguir o sistema".
   useEffect(() => {
-    setLocale(
+    const startingLocale =
       normalizeLocale(readStored(LOCALE_STORAGE_KEY)) ??
-        normalizeLocale(navigator.language) ??
-        DEFAULT_LOCALE,
+      normalizeLocale(navigator.language) ??
+      DEFAULT_LOCALE
+    setLocale(startingLocale)
+    // País: escolha salva > o que o navegador declara (`pt-BR` diz "BR") > o
+    // país que combina com o idioma. Só o último é chute nosso.
+    setRegion(
+      normalizeRegion(readStored(REGION_STORAGE_KEY)) ??
+        regionFromLanguageTag(navigator.language) ??
+        regionForLocale(startingLocale),
     )
     // Com tema travado a escolha salva é ignorada de propósito: quem tinha
     // "claro" gravado antes não fica preso num tema que o app não oferece mais.
@@ -106,6 +123,7 @@ export function App() {
     setNickname(readStored(NICKNAME_STORAGE_KEY))
     setMediaPreferences(parsePreferences(readStored(MEDIA_STORAGE_KEY)))
     mediaSeededRef.current = true
+    regionSeededRef.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -127,6 +145,14 @@ export function App() {
     document.documentElement.lang = locale
     writeStored(LOCALE_STORAGE_KEY, locale)
   }, [locale])
+
+  // Persiste o país, com a mesma trava das mídias: no primeiro commit o estado
+  // ainda é o padrão, e gravar 'BR' por cima de um 'PT' salvo faria a leitura
+  // seguinte do StrictMode ler o padrão recém-gravado — a escolha se perderia.
+  useEffect(() => {
+    if (!regionSeededRef.current) return
+    writeStored(REGION_STORAGE_KEY, region)
+  }, [region])
 
   // Aplica + persiste o tema. Travado, não há o que persistir.
   useEffect(() => {
