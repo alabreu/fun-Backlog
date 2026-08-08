@@ -63,6 +63,16 @@ const PAIRS = [
   ['platform-pc', 'surface', 4.5, 'PC como texto no sheet'],
   ['platform-linux', 'surface', 4.5, 'Linux como texto no sheet'],
   ['platform-android', 'surface', 4.5, 'Android como texto no sheet'],
+  // Gênero é PASTEL e mesmo assim passa AA: claro sobre escuro é o caso fácil.
+  // Quem aperta é o tema claro, onde o tom vira fechado. "Secundário" não é
+  // exceção na 1.4.3 — o mínimo de texto normal é 4.5 seja qual for o papel.
+  ['genre-1', 'surface', 4.5, 'gênero 1 como texto no sheet'],
+  ['genre-2', 'surface', 4.5, 'gênero 2 como texto no sheet'],
+  ['genre-3', 'surface', 4.5, 'gênero 3 como texto no sheet'],
+  ['genre-4', 'surface', 4.5, 'gênero 4 como texto no sheet'],
+  ['genre-5', 'surface', 4.5, 'gênero 5 como texto no sheet'],
+  ['genre-6', 'surface', 4.5, 'gênero 6 como texto no sheet'],
+  ['genre-7', 'surface', 4.5, 'gênero 7 como texto no sheet'],
   // O botão dentro do toast NÃO é verificado contra a superfície do toast: pela
   // 1.4.11, componente identificado pelo próprio rótulo de alto contraste não
   // exige contraste de borda — e o rótulo já é conferido em `on-primary`.

@@ -69,6 +69,36 @@
   --palette-plat-spring-400: #3cecab; /* 158° — Android    */
   --palette-plat-spring-700: #087f53;
 
+  /* Família dos GÊNEROS: sete tons PASTEL, a 45° um do outro, pulando a faixa
+     proibida (rosa 351° e vermelho 0°, que são accent e danger).
+
+     Pastel aqui é literal — luminosidade alta e saturação baixa — e é o que
+     separa esta família das outras duas: mídia e plataforma são cores VIVAS
+     porque informam; gênero é lavado porque é textura. Saturação, e não matiz,
+     é o que impede as três linguagens de se confundirem na mesma tela.
+
+     Sete e não sessenta: são ~65 gêneros distintos nas fontes fechadas e um
+     vocabulário ABERTO na Open Library. Ninguém aprende 65 cores, então a cor
+     não é código — é sorteada por hash do nome (ver core/media/genres.ts).
+
+     Bônus do pastel: no tema escuro ele passa AA com folga (8-12:1), porque
+     claro sobre escuro é justamente o caso fácil. Quem aperta é o tema claro,
+     e por isso o -700 aqui é bem mais fechado que o -400. */
+  --palette-genre-1-400: #e3c8b5; /*  25° */
+  --palette-genre-1-700: #9e6135;
+  --palette-genre-2-400: #dbe3b5; /*  70° */
+  --palette-genre-2-700: #687527;
+  --palette-genre-3-400: #b9e3b5; /* 115° */
+  --palette-genre-3-700: #317e2a;
+  --palette-genre-4-400: #b5e3d4; /* 160° */
+  --palette-genre-4-700: #2a7d61;
+  --palette-genre-5-400: #b5d0e3; /* 205° */
+  --palette-genre-5-700: #3675a1;
+  --palette-genre-6-400: #bdb5e3; /* 250° */
+  --palette-genre-6-700: #4c39ac;
+  --palette-genre-7-400: #dfb5e3; /* 295° */
+  --palette-genre-7-700: #a339ac;
+
   /* GRÃO — a assinatura visual dos projetos do Alexandre. Mesma textura e
      mesmos números do tutor-brew (mtg-deck-builder): feTurbulence fractal,
      ladrilho de 180px. Mais leve que a referência
@@ -142,6 +172,15 @@
   --color-platform-pc: var(--palette-plat-sky-700);
   --color-platform-linux: var(--palette-plat-orange-700);
   --color-platform-android: var(--palette-plat-spring-700);
+
+  /* Gêneros — ver primitivos. */
+  --color-genre-1: var(--palette-genre-1-700);
+  --color-genre-2: var(--palette-genre-2-700);
+  --color-genre-3: var(--palette-genre-3-700);
+  --color-genre-4: var(--palette-genre-4-700);
+  --color-genre-5: var(--palette-genre-5-700);
+  --color-genre-6: var(--palette-genre-6-700);
+  --color-genre-7: var(--palette-genre-7-700);
   --color-on-media: var(--palette-white);
 
   /* --- Raio: nomeado pelo PAPEL, não pelo tamanho. --- */
@@ -257,6 +296,13 @@
     --color-platform-pc: var(--palette-plat-sky-400);
     --color-platform-linux: var(--palette-plat-orange-400);
     --color-platform-android: var(--palette-plat-spring-400);
+    --color-genre-1: var(--palette-genre-1-400);
+    --color-genre-2: var(--palette-genre-2-400);
+    --color-genre-3: var(--palette-genre-3-400);
+    --color-genre-4: var(--palette-genre-4-400);
+    --color-genre-5: var(--palette-genre-5-400);
+    --color-genre-6: var(--palette-genre-6-400);
+    --color-genre-7: var(--palette-genre-7-400);
     --color-on-media: var(--palette-gray-950);
     --app-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/></svg>");
     --app-grain-overlay: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/></svg>");
@@ -286,6 +332,13 @@
   --color-platform-pc: var(--palette-plat-sky-400);
   --color-platform-linux: var(--palette-plat-orange-400);
   --color-platform-android: var(--palette-plat-spring-400);
+  --color-genre-1: var(--palette-genre-1-400);
+  --color-genre-2: var(--palette-genre-2-400);
+  --color-genre-3: var(--palette-genre-3-400);
+  --color-genre-4: var(--palette-genre-4-400);
+  --color-genre-5: var(--palette-genre-5-400);
+  --color-genre-6: var(--palette-genre-6-400);
+  --color-genre-7: var(--palette-genre-7-400);
   --color-on-media: var(--palette-gray-950);
   --app-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/></svg>");
   --app-grain-overlay: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/></svg>");

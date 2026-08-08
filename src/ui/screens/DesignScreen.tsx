@@ -12,6 +12,7 @@ import {
   PlatformIcon,
   PLATFORM_TEXT,
   Field,
+  GENRE_TEXT,
   IconButton,
   Input,
   Screen,
@@ -23,6 +24,7 @@ import {
   Toggle,
 } from '@ui/design'
 import { MEDIA_TYPES, type MediaType } from '@core/items/types'
+import { genreColorIndexes } from '@core/media/genres'
 import { FAMILY_LABEL, PLATFORM_FAMILIES } from '@core/media/platforms'
 import { useThemeStore } from '@core/state/themeStore'
 import { THEMES, type Theme } from '@core/theme'
@@ -78,6 +80,13 @@ const LONGO =
   'medição funciona: o botão só aparece quando a altura real do parágrafo passa ' +
   'da altura visível, e o ResizeObserver refaz a conta quando a largura muda. ' +
   'Girar o aparelho não pode deixar um "Ler mais" órfão na tela.'
+
+const GENEROS = [
+  'Shooter', 'Role-playing (RPG)', 'Adventure', 'Puzzle', 'Racing',
+  'Slice of Life', 'Horror', 'Comedy', 'Strategy', 'Indie',
+]
+
+const CORES_GENERO = genreColorIndexes(GENEROS)
 
 export function DesignScreen() {
   const [chip, setChip] = useState('a')
@@ -320,6 +329,27 @@ export function DesignScreen() {
             marca, não por distância — Apple e Outras ficam em muted de
             propósito. O nome fica sempre ao lado: o ícone reforça, não
             substitui.
+          </p>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">Gêneros</SectionTitle>
+          <p className="flex flex-wrap items-center text-body">
+            {GENEROS.map((g, i) => (
+              <span key={g} className="inline-flex items-center">
+                <span className={GENRE_TEXT[CORES_GENERO[i]]}>{g}</span>
+                {i < GENEROS.length - 1 && (
+                  <span aria-hidden className="mx-2 text-muted">
+                    ·
+                  </span>
+                )}
+              </span>
+            ))}
+          </p>
+          <p className="mt-2 text-label text-muted">
+            Sete pastéis sorteados por hash do nome: estável, e colide de
+            propósito. Cor aqui é textura, não código — são ~65 gêneros nas
+            fontes fechadas e um vocabulário aberto na Open Library.
           </p>
         </section>
 

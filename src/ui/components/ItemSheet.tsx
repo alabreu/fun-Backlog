@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Star, Trash } from '@phosphor-icons/react'
 import { detailSourceFor, fetchDetail } from '@core/media/detail'
+import { genreColorIndexes } from '@core/media/genres'
 import { FAMILY_LABEL, type PlatformFamily } from '@core/media/platforms'
 import type {
   MediaDetail,
@@ -22,6 +23,7 @@ import {
   ClampedText,
   Cover,
   Field,
+  GENRE_TEXT,
   Input,
   PlatformIcon,
   PLATFORM_TEXT,
@@ -275,6 +277,7 @@ function SourceFacts({
   const restFacts = facts.filter((f) => !f.lead)
 
   const genres = detail.genres ?? []
+  const genreColors = genreColorIndexes(genres)
   const people = detail.people ?? []
   const where = detail.where ?? []
 
@@ -293,7 +296,22 @@ function SourceFacts({
           no painel inteiro: os chips de status. Forma passou a significar
           "isto se toca", que é a única distinção que valia a pena manter. */}
       {genres.length > 0 && (
-        <p className="text-body text-muted">{genres.join('\u00a0\u00b7 ')}</p>
+        // Cada gênero na SUA cor, com o ponto separador em `muted` — se o
+        // ponto herdasse a cor, ele pertenceria visualmente ao gênero da
+        // esquerda. Igual à linha das plataformas, o separador vem depois do
+        // item e dentro do mesmo bloco, para "Aventura ·" quebrar inteiro.
+        <p className="flex flex-wrap items-center text-body">
+          {genres.map((genre, i) => (
+            <span key={genre} className="inline-flex items-center">
+              <span className={GENRE_TEXT[genreColors[i]]}>{genre}</span>
+              {i < genres.length - 1 && (
+                <span aria-hidden className="mx-2 text-muted">
+                  ·
+                </span>
+              )}
+            </span>
+          ))}
+        </p>
       )}
 
       {detail.synopsis && (

@@ -108,3 +108,17 @@ export const PLATFORM_TEXT: Record<string, string> = {
   apple: 'text-muted',
   other: 'text-muted',
 }
+
+/**
+ * Os sete tons de gênero, na ordem dos tokens. Índice e não nome de propósito:
+ * quem escolhe é o hash em `core/media/genres.ts`, e a tela só pinta.
+ */
+export const GENRE_TEXT: string[] = [
+  'text-genre-1',
+  'text-genre-2',
+  'text-genre-3',
+  'text-genre-4',
+  'text-genre-5',
+  'text-genre-6',
+  'text-genre-7',
+]
