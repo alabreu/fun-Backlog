@@ -13,6 +13,14 @@ import type { ReactNode } from 'react'
  * por isso o item tem largura fixa e o trilho sangra até a margem da tela
  * (`-mx-gutter` + `px-gutter`), em vez de terminar certinho no gutter.
  *
+ * `scroll-px-gutter` NÃO é decorativo, é o que faz o `px-gutter` acima
+ * sobreviver ao snap. O snap ignora o padding do container: com o trilho
+ * rolável (3 itens ou mais), o browser encaixava a primeira capa no início da
+ * CAIXA e não do conteúdo — ou seja, entrava na tela já com `scrollLeft: 16`,
+ * e a capa nascia colada na borda esquerda. Com dois itens não aparecia,
+ * porque sem rolagem não há snap para fazer. O `scroll-padding` move a
+ * régua do snap para dentro do gutter e resolve nas duas pontas.
+ *
  * ACESSIBILIDADE: é uma lista rolável de verdade, com itens focáveis. Quem
  * navega por teclado dá Tab e o browser rola sozinho até o item — nenhuma seta
  * customizada para reimplementar. `scroll-smooth` fica de fora de propósito:
@@ -27,7 +35,7 @@ export function Rail({
 }) {
   return (
     <ul
-      className={`-mx-gutter flex snap-x snap-mandatory gap-3 overflow-x-auto px-gutter pb-2 ${className}`}
+      className={`-mx-gutter flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-gutter px-gutter pb-2 ${className}`}
     >
       {children}
     </ul>
