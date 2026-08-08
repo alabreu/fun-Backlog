@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mapAniListMedia } from './anilist'
-import { mapOpenLibraryDoc, openLibraryCover } from './openlibrary'
+import { mapAniListDetail, mapAniListMedia, stripHtml } from './anilist'
+import {
+  mapOpenLibraryDoc,
+  mapOpenLibraryWork,
+  openLibraryCover,
+} from './openlibrary'
 import { PROVIDERS, searchAll } from './search'
 import type { MediaProvider, MediaSearchResult } from './types'
 
@@ -184,5 +188,63 @@ describe('searchAll', () => {
     await searchAll('bebop', { mediaType: 'anime' })
     expect(anime).toHaveBeenCalledOnce()
     expect(books).not.toHaveBeenCalled()
+  })
+})
+
+describe('ficha do AniList', () => {
+  it('tira o HTML que vem mesmo pedindo texto puro', () => {
+    expect(stripHtml('Um <i>anime</i>.<br><br>Segunda linha.')).toBe(
+      'Um anime.\n\nSegunda linha.',
+    )
+  })
+
+  it('mapeia est\u00fadio, g\u00eaneros e dura\u00e7\u00e3o por epis\u00f3dio', () => {
+    const d = mapAniListDetail({
+      id: 21,
+      episodes: 26,
+      duration: 24,
+      seasonYear: 1998,
+      genres: ['Action', 'Sci-Fi'],
+      averageScore: 86,
+      description: 'Ca\u00e7adores de recompensa.<br>No espa\u00e7o.',
+      bannerImage: 'https://img/banner.jpg',
+      title: { romaji: 'Cowboy Bebop', english: null },
+      coverImage: { large: 'https://img/1.jpg' },
+      studios: { nodes: [{ name: 'Sunrise' }] },
+    })
+
+    expect(d?.people).toEqual(['Sunrise'])
+    expect(d?.genres).toEqual(['Action', 'Sci-Fi'])
+    expect(d?.score).toBe(86)
+    expect(d?.backdropUrl).toBe('https://img/banner.jpg')
+    expect(d?.synopsis).toBe('Ca\u00e7adores de recompensa.\nNo espa\u00e7o.')
+    expect(d?.facts).toEqual([
+      { labelKey: 'fact.episodes', value: '26' },
+      { labelKey: 'fact.episodeLength', value: '24min' },
+    ])
+  })
+})
+
+describe('ficha da Open Library', () => {
+  it('aceita a descri\u00e7\u00e3o nas DUAS formas que a API usa', () => {
+    expect(
+      mapOpenLibraryWork('OL1W', { title: 'A', description: 'Texto solto.' })
+        .synopsis,
+    ).toBe('Texto solto.')
+    expect(
+      mapOpenLibraryWork('OL2W', {
+        title: 'B',
+        description: { value: 'Dentro de objeto.' },
+      }).synopsis,
+    ).toBe('Dentro de objeto.')
+  })
+
+  it('corta a lista de assuntos, que a Open Library entrega enorme', () => {
+    const many = Array.from({ length: 20 }, (_, i) => `Assunto ${i}`)
+    expect(mapOpenLibraryWork('OL3W', { subjects: many }).genres).toHaveLength(6)
+  })
+
+  it('obra sem descri\u00e7\u00e3o n\u00e3o inventa string vazia', () => {
+    expect(mapOpenLibraryWork('OL4W', { title: 'C' }).synopsis).toBeUndefined()
   })
 })

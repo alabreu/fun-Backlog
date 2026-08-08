@@ -119,16 +119,32 @@ automática.
 
 ---
 
-## 6. Detalhe do item: bottom sheet, não rota
+## 6. Detalhe da obra: UM bottom sheet, para estante e busca
 
-**Decidido em:** 04/08/2026.
+**Decidido em:** 04/08/2026. **Revisto em 08/08/2026** — a condição escrita
+aqui para reabrir ("quando o detalhe ganhar elenco, tempo estimado ou onde
+assistir") aconteceu, e a revisão manteve o sheet em vez de virar rota.
 
-**Por quê:** mudar status ou progresso é uma ação de dois toques a partir da
-estante. Uma rota dedicada cobraria navegação, botão de voltar e a perda da
-posição de scroll do grid por uma edição de um toque.
+**Por quê sheet e não rota:** mudar status ou progresso é uma ação de dois
+toques a partir da estante. Uma rota dedicada cobraria navegação, botão de
+voltar e a perda da posição de scroll do grid por uma edição de um toque.
 
-**O que custa:** o sheet não é linkável nem compartilhável, e cresce mal. Vale
-reabrir quando o detalhe ganhar elenco, tempo estimado ou "onde assistir".
+**Por quê UM sheet, e não um para cada caso:** a obra é a mesma esteja ela na
+sua estante ou num resultado de busca. Dois detalhes diferentes dependendo de
+você já possuí-la seria o app dividindo em duas coisas o que na cabeça da
+pessoa é uma. Adicionar de dentro do sheet não navega nem fecha: o mesmo painel
+passa a mostrar status, progresso e notas, porque agora eles existem.
+
+**A ficha da fonte é ADITIVA e carregada depois de abrir.** Título, capa e ano
+já estão em mãos quando o sheet abre; sinopse, elenco e "onde assistir" chegam
+quando chegarem, e se a fonte não responder a tela não muda de forma — só não
+ganha o extra. `fetchDetail` devolve `null` em vez de estourar pelo mesmo
+motivo: uma fonte fora do ar não pode impedir alguém de marcar um episódio.
+
+**O que custa:** o sheet não é linkável nem compartilhável. Isso passou a doer
+mais agora que ele tem conteúdo de ler, não só controles — mandar "olha esse
+jogo" para alguém continua impossível. É o motivo mais provável de uma terceira
+revisão.
 
 ---
 

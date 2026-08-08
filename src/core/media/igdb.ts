@@ -1,5 +1,5 @@
 import { callMediaFunction } from './server'
-import type { MediaProvider, MediaSearchResult } from './types'
+import type { MediaDetail, MediaProvider, MediaSearchResult } from './types'
 
 /**
  * Jogos via IGDB. Cobre TODAS as plataformas — console, portátil, arcade,
@@ -69,4 +69,76 @@ export const igdbProvider: MediaProvider = {
       .map(mapIgdbGame)
       .filter((r): r is MediaSearchResult => r !== null)
   },
+
+  async detail(externalId, _mediaType, signal) {
+    const game = await callMediaFunction<IgdbDetail>(
+      { source: 'igdb', detailId: externalId },
+      signal,
+    )
+    const mapped = mapIgdbDetail(game)
+    if (!mapped) throw new Error('igdb-unavailable')
+    return mapped
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Ficha completa
+// ---------------------------------------------------------------------------
+
+interface IgdbDetail extends IgdbGame {
+  summary?: string
+  storyline?: string
+  total_rating?: number
+  genres?: { name?: string }[]
+  game_modes?: { name?: string }[]
+  involved_companies?: {
+    developer?: boolean
+    publisher?: boolean
+    company?: { name?: string }
+  }[]
+}
+
+/** Exportado para teste: o mapeamento é a parte que quebra quando a API muda. */
+export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
+  const base = mapIgdbGame(game)
+  if (!base) return null
+
+  const platforms = (game.platforms ?? [])
+    .map((p) => p?.abbreviation)
+    .filter((a): a is string => Boolean(a))
+
+  // Quem DESENVOLVEU vem antes de quem publicou: é a informação que a pessoa
+  // procura ("é da FromSoftware?"), e a publisher costuma ser a menos
+  // interessante das duas.
+  const companies = game.involved_companies ?? []
+  const people = [
+    ...companies.filter((c) => c?.developer).map((c) => c?.company?.name),
+    ...companies.filter((c) => c?.publisher && !c?.developer).map((c) => c?.company?.name),
+  ].filter((n): n is string => Boolean(n))
+
+  return {
+    ...base,
+    // `summary` é a sinopse; `storyline` é o enredo e às vezes tem spoiler —
+    // por isso só entra quando não há summary.
+    synopsis: game.summary || game.storyline || undefined,
+    genres: (game.genres ?? [])
+      .map((g) => g?.name)
+      .filter((n): n is string => Boolean(n)),
+    people: [...new Set(people)].slice(0, 4),
+    facts: [
+      ...(platforms.length > 0
+        ? [{ labelKey: 'fact.platforms', value: platforms.join(', ') }]
+        : []),
+      ...((game.game_modes ?? []).length > 0
+        ? [{
+            labelKey: 'fact.status',
+            value: (game.game_modes ?? [])
+              .map((m) => m?.name)
+              .filter(Boolean)
+              .join(', '),
+          }]
+        : []),
+    ],
+    score: game.total_rating ? Math.round(game.total_rating) : undefined,
+  }
 }

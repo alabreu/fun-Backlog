@@ -181,7 +181,7 @@ export function HomeScreen() {
         <MagnifyingGlass size={24} weight="bold" />
       </Fab>
 
-      <ItemSheet item={openItem} onClose={() => setSelected(null)} />
+      <ItemSheet subject={openItem} onClose={() => setSelected(null)} />
       <MenuSheet open={menuOpen} onClose={() => setMenuOpen(false)} />
       <MergeSheet />
     </Screen>

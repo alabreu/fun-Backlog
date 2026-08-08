@@ -19,6 +19,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-08-ficha',
+    date: '2026-08-08',
+    emoji: '📖',
+    title: {
+      pt: 'Agora dá para conhecer a obra antes de adicionar',
+      en: 'Now you can look before you add',
+    },
+    items: {
+      pt: [
+        'Tocar numa obra abre a ficha dela: sinopse, gêneros, quem fez, e onde assistir no caso de filmes e séries.',
+        'A mesma ficha serve para o que já está na sua estante — com seu status, progresso e notas no mesmo lugar.',
+        'Para adicionar direto, sem abrir nada, use o botão + sobre a capa. Ele também tira da estante.',
+        'Jogos mostram plataformas e desenvolvedora; animes, estúdio e duração; livros, a sinopse da obra.',
+      ],
+      en: [
+        'Tapping a title opens its details: synopsis, genres, who made it, and where to watch for films and series.',
+        'The same panel serves what is already on your shelf — with your status, progress and notes in one place.',
+        'To add straight away, use the + button on the cover. It removes, too.',
+        'Games show platforms and developer; anime, studio and runtime; books, the synopsis.',
+      ],
+    },
+  },
+  {
     id: '2026-08-07-busca-e-ajustes',
     date: '2026-08-07',
     emoji: '🔗',

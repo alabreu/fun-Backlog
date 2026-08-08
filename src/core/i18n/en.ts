@@ -70,7 +70,7 @@ export const en: Record<keyof typeof pt, string> = {
   'add.noResults': 'Nothing found for “{query}”.',
   'add.added': '“{title}” is on your shelf.',
   'add.addFailed': 'Could not add it. Try again.',
-  'add.alreadyIn': 'Already on the shelf',
+  'add.removeFromShelf': 'Remove from shelf',
   'add.noSource':
     'Searching {media} is not available here yet. You can add it by hand.',
   'add.onShelf': 'On your shelf',
@@ -126,6 +126,21 @@ export const en: Record<keyof typeof pt, string> = {
   'item.removeConfirm': 'Remove from the shelf?',
   'item.removed': 'Removed from the shelf.',
   'item.saveFailed': 'Could not save. Try again.',
+  'item.addToShelf': 'Add to shelf',
+  'item.adding': 'Adding…',
+  'item.synopsis': 'Synopsis',
+  'item.people': 'Made by',
+  'item.where': 'Where to watch',
+  'item.detailLoading': 'Loading the details…',
+  'item.detailFailed': 'Could not load the full details.',
+
+  // Labels for what each source provides (see MediaFact)
+  'fact.runtime': 'Runtime',
+  'fact.episodes': 'Episodes',
+  'fact.seasons': 'Seasons',
+  'fact.platforms': 'Platforms',
+  'fact.status': 'Status',
+  'fact.episodeLength': 'Per episode',
 
   // Menu
   'menu.feedback': 'Send feedback',

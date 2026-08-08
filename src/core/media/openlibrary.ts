@@ -1,5 +1,6 @@
 import {
   SEARCH_LIMIT,
+  type MediaDetail,
   type MediaProvider,
   type MediaSearchResult,
 } from './types'
@@ -77,4 +78,59 @@ export const openLibraryProvider: MediaProvider = {
       .map(mapOpenLibraryDoc)
       .filter((r): r is MediaSearchResult => r !== null)
   },
+
+  async detail(externalId, _mediaType, signal) {
+    const response = await fetch(
+      `https://openlibrary.org/works/${encodeURIComponent(externalId)}.json`,
+      { headers: { accept: 'application/json' }, signal },
+    )
+    if (!response.ok) throw new Error('openlibrary-unavailable')
+    return mapOpenLibraryWork(externalId, await response.json())
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Ficha completa
+// ---------------------------------------------------------------------------
+
+interface OpenLibraryWork {
+  title?: string
+  /** Ora string, ora `{ value }`. A API tem as duas formas em circulação. */
+  description?: string | { value?: string }
+  subjects?: string[]
+  covers?: number[]
+}
+
+/**
+ * A ficha da Open Library é MAGRA de propósito no que ela devolve por obra:
+ * autor, páginas e editora vivem nas EDIÇÕES, não na obra, e buscá-las custaria
+ * uma requisição por autor e outra por edição.
+ *
+ * Não é problema porque o detalhe do app é ADITIVO: a tela já tem título,
+ * capa, ano, autor e número de páginas — do resultado da busca ou do item
+ * guardado — e o que vem daqui só acrescenta sinopse e assuntos.
+ */
+export function mapOpenLibraryWork(
+  externalId: string,
+  work: OpenLibraryWork,
+): MediaDetail {
+  const description =
+    typeof work.description === 'string'
+      ? work.description
+      : work.description?.value
+
+  return {
+    provider: 'openlibrary',
+    externalId,
+    mediaType: 'book',
+    title: work.title ?? '',
+    coverUrl: work.covers?.[0]
+      ? openLibraryCover(work.covers[0], 'L')
+      : undefined,
+    synopsis: description?.trim() || undefined,
+    // "Assuntos" da Open Library são muitos e repetitivos ("Fiction",
+    // "Fiction, general", "Science fiction"): os seis primeiros bastam para
+    // dar o tom sem virar uma parede de etiquetas.
+    genres: (work.subjects ?? []).slice(0, 6),
+  }
 }

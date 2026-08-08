@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { igdbCoverUrl, igdbProvider, mapIgdbGame } from './igdb'
+import {
+  igdbCoverUrl,
+  igdbProvider,
+  mapIgdbDetail,
+  mapIgdbGame,
+} from './igdb'
 import {
   findByImdbId,
+  mapTmdbDetail,
   mapTmdbResult,
   tmdbPosterUrl,
   tmdbProvider,
@@ -187,5 +193,123 @@ describe('findByImdbId', () => {
   it('devolve null quando a TMDB não conhece o id', async () => {
     called.mockResolvedValue({ movie_results: [], tv_results: [] })
     expect(await findByImdbId('tt9999999')).toBeNull()
+  })
+})
+
+describe('ficha da IGDB', () => {
+  it('separa desenvolvedora de publisher e p\u00f5e a primeira na frente', () => {
+    const d = mapIgdbDetail({
+      id: 1942,
+      name: 'The Witcher 3',
+      summary: 'Um bruxo procura a filha adotiva.',
+      total_rating: 93.4,
+      genres: [{ name: 'RPG' }],
+      platforms: [{ abbreviation: 'PC' }, { abbreviation: 'PS4' }],
+      involved_companies: [
+        { publisher: true, company: { name: 'Bandai Namco' } },
+        { developer: true, company: { name: 'CD Projekt RED' } },
+      ],
+    })
+
+    expect(d?.people).toEqual(['CD Projekt RED', 'Bandai Namco'])
+    expect(d?.synopsis).toBe('Um bruxo procura a filha adotiva.')
+    expect(d?.genres).toEqual(['RPG'])
+    expect(d?.score).toBe(93)
+    expect(d?.facts?.[0]).toEqual({
+      labelKey: 'fact.platforms',
+      value: 'PC, PS4',
+    })
+  })
+
+  it('cai para storyline quando n\u00e3o h\u00e1 summary', () => {
+    const d = mapIgdbDetail({ id: 1, name: 'X', storyline: 'O enredo.' })
+    expect(d?.synopsis).toBe('O enredo.')
+  })
+
+  it('a mesma empresa que desenvolve e publica aparece uma vez s\u00f3', () => {
+    const d = mapIgdbDetail({
+      id: 2,
+      name: 'Y',
+      involved_companies: [
+        { developer: true, publisher: true, company: { name: 'Nintendo' } },
+      ],
+    })
+    expect(d?.people).toEqual(['Nintendo'])
+  })
+
+  it('descarta ficha sem nome', () => {
+    expect(mapIgdbDetail({ id: 3 })).toBeNull()
+  })
+})
+
+describe('ficha da TMDB', () => {
+  it('formata dura\u00e7\u00e3o, elenco e onde assistir', () => {
+    const d = mapTmdbDetail(
+      {
+        id: 693134,
+        title: 'Duna: Parte Dois',
+        overview: 'Paul se une aos Fremen.',
+        backdrop_path: '/bd.jpg',
+        runtime: 166,
+        vote_average: 8.15,
+        genres: [{ name: 'Fic\u00e7\u00e3o cient\u00edfica' }],
+        credits: {
+          crew: [
+            { name: 'Denis Villeneuve', job: 'Director' },
+            { name: 'Outro', job: 'Editor' },
+          ],
+          cast: [{ name: 'A' }, { name: 'B' }, { name: 'C' }, { name: 'D' }],
+        },
+        'watch/providers': {
+          results: { BR: { flatrate: [{ provider_name: 'Max' }] } },
+        },
+      },
+      'movie',
+    )
+
+    expect(d?.facts).toEqual([{ labelKey: 'fact.runtime', value: '2h 46min' }])
+    // Direção antes do elenco, e o elenco cortado em tr\u00eas.
+    expect(d?.people).toEqual(['Denis Villeneuve', 'A', 'B', 'C'])
+    expect(d?.where).toEqual(['Max'])
+    expect(d?.score).toBe(82)
+    expect(d?.synopsis).toBe('Paul se une aos Fremen.')
+  })
+
+  it('s\u00e9rie usa temporadas e epis\u00f3dios em vez de dura\u00e7\u00e3o', () => {
+    const d = mapTmdbDetail(
+      {
+        id: 1396,
+        name: 'Breaking Bad',
+        episode_run_time: [47],
+        number_of_seasons: 5,
+        number_of_episodes: 62,
+      },
+      'tv',
+    )
+    expect(d?.facts).toEqual([
+      { labelKey: 'fact.episodeLength', value: '47min' },
+      { labelKey: 'fact.seasons', value: '5' },
+      { labelKey: 'fact.episodes', value: '62' },
+    ])
+    expect(d?.total).toBe(62)
+  })
+
+  it('dura\u00e7\u00e3o abaixo de uma hora n\u00e3o mostra "0h"', () => {
+    const d = mapTmdbDetail({ id: 1, title: 'Curta', runtime: 22 }, 'movie')
+    expect(d?.facts?.[0].value).toBe('22min')
+  })
+
+  it('sem provedor no pa\u00eds pedido, "onde assistir" fica vazio', () => {
+    const d = mapTmdbDetail(
+      {
+        id: 2,
+        title: 'X',
+        'watch/providers': {
+          results: { US: { flatrate: [{ provider_name: 'Hulu' }] } },
+        },
+      },
+      'movie',
+    )
+    expect(d?.where).toEqual([])
   })
 })

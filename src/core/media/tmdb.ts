@@ -1,4 +1,10 @@
-import { SEARCH_LIMIT, type MediaProvider, type MediaSearchResult } from './types'
+import {
+  SEARCH_LIMIT,
+  type MediaDetail,
+  type MediaFact,
+  type MediaProvider,
+  type MediaSearchResult,
+} from './types'
 import { callMediaFunction } from './server'
 
 /**
@@ -73,6 +79,96 @@ export function mapTmdbResult(
   }
 }
 
+/** Backdrop: a arte larga do topo da ficha. `w780` cobre a largura de qualquer
+ *  celular sem baixar o original, que passa de 1MB. */
+export function tmdbBackdropUrl(path: string): string {
+  return `https://image.tmdb.org/t/p/w780${path}`
+}
+
+interface TmdbDetailBody extends TmdbResult {
+  overview?: string
+  backdrop_path?: string | null
+  vote_average?: number
+  genres?: { name?: string }[]
+  runtime?: number
+  episode_run_time?: number[]
+  number_of_seasons?: number
+  number_of_episodes?: number
+  credits?: {
+    cast?: { name?: string }[]
+    crew?: { name?: string; job?: string }[]
+  }
+  'watch/providers'?: {
+    results?: Record<string, { flatrate?: { provider_name?: string }[] }>
+  }
+}
+
+/** "2h 46min" / "46min" — minutos crus não dizem nada num relance. */
+function formatRuntime(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return h > 0 ? `${h}h ${m}min` : `${m}min`
+}
+
+/** Exportado para teste: o mapeamento é a parte que quebra quando a API muda. */
+export function mapTmdbDetail(
+  body: TmdbDetailBody,
+  kind: 'movie' | 'tv',
+  /** País para "onde assistir" — a TMDB devolve um bloco por país. */
+  region = 'BR',
+): MediaDetail | null {
+  const base = mapTmdbResult(body, kind)
+  if (!base) return null
+
+  const facts: MediaFact[] = []
+  if (body.runtime)
+    facts.push({ labelKey: 'fact.runtime', value: formatRuntime(body.runtime) })
+  const perEpisode = body.episode_run_time?.[0]
+  if (perEpisode)
+    facts.push({
+      labelKey: 'fact.episodeLength',
+      value: formatRuntime(perEpisode),
+    })
+  if (body.number_of_seasons)
+    facts.push({
+      labelKey: 'fact.seasons',
+      value: String(body.number_of_seasons),
+    })
+  if (body.number_of_episodes)
+    facts.push({
+      labelKey: 'fact.episodes',
+      value: String(body.number_of_episodes),
+    })
+
+  // Direção primeiro, depois os três primeiros do elenco: é a ordem em que a
+  // pergunta costuma vir ("de quem é?" antes de "quem está nele?").
+  const directors = (body.credits?.crew ?? [])
+    .filter((c) => c?.job === 'Director')
+    .map((c) => c?.name)
+  const cast = (body.credits?.cast ?? []).slice(0, 3).map((c) => c?.name)
+
+  return {
+    ...base,
+    synopsis: body.overview || undefined,
+    backdropUrl: body.backdrop_path
+      ? tmdbBackdropUrl(body.backdrop_path)
+      : undefined,
+    genres: (body.genres ?? [])
+      .map((g) => g?.name)
+      .filter((n): n is string => Boolean(n)),
+    facts,
+    people: [...directors, ...cast].filter((n): n is string => Boolean(n)),
+    // Só `flatrate` (incluído na assinatura). Aluguel e compra virariam uma
+    // lista de dez serviços que não responde "dá para ver hoje?".
+    where: (body['watch/providers']?.results?.[region]?.flatrate ?? [])
+      .map((p) => p?.provider_name)
+      .filter((n): n is string => Boolean(n)),
+    // vote_average é 0–10; o resto do app fala em 0–100.
+    score: body.vote_average ? Math.round(body.vote_average * 10) : undefined,
+    total: body.number_of_episodes,
+  }
+}
+
 export const tmdbProvider: MediaProvider = {
   id: 'tmdb',
   mediaTypes: ['movie', 'series'],
@@ -92,6 +188,17 @@ export const tmdbProvider: MediaProvider = {
       // A TMDB devolve 20 por página; o app mostra 12 por fonte. Cortar aqui, e
       // não no servidor, porque `person` só sai depois do mapeamento.
       .slice(0, SEARCH_LIMIT)
+  },
+
+  async detail(externalId, mediaType, signal) {
+    const kind = mediaType === 'series' ? 'tv' : 'movie'
+    const body = await callMediaFunction<TmdbDetailBody>(
+      { source: 'tmdb', detailId: externalId, detailKind: kind },
+      signal,
+    )
+    const mapped = mapTmdbDetail(body, kind)
+    if (!mapped) throw new Error('tmdb-unavailable')
+    return mapped
   },
 }
 

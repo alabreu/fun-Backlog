@@ -21,10 +21,14 @@ export type MediaSource = 'igdb' | 'tmdb'
 
 interface MediaRequest {
   source: MediaSource
-  /** Texto digitado. Exclusivo com `imdbId`. */
+  /** Texto digitado. Exclusivo com `imdbId` e `detailId`. */
   query?: string
   /** Id do IMDb (`tt0111161`), resolvido pela TMDB. Exclusivo com `query`. */
   imdbId?: string
+  /** Id da obra NA FONTE, para pedir a ficha completa. */
+  detailId?: string
+  /** A TMDB separa filme de série já na URL, então o tipo vai junto. */
+  detailKind?: 'movie' | 'tv'
 }
 
 /**

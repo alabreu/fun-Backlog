@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Star, Trash } from '@phosphor-icons/react'
+import { detailSourceFor, fetchDetail } from '@core/media/detail'
+import type { MediaDetail, MediaSearchResult } from '@core/media/types'
 import {
   mediaLabelKey,
   progressLabelKey,
@@ -7,6 +9,7 @@ import {
   statusLabelKey,
 } from '@core/items/status'
 import { ITEM_STATUSES, type Item } from '@core/items/types'
+import type { MessageKey } from '@core/i18n'
 import {
   Badge,
   Button,
@@ -14,52 +17,119 @@ import {
   Cover,
   Field,
   Input,
+  SectionTitle,
   Sheet,
   Textarea,
 } from '@ui/design'
-import { SectionTitle } from '@ui/design'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
 /**
- * Detalhe do item, como bottom sheet e não página dedicada: mexer em status ou
- * progresso é uma ação de dois toques a partir da estante, e uma rota inteira
- * (com navegação, voltar e perda de scroll do grid) cobraria caro por isso.
- * Quando o detalhe crescer — elenco, tempo estimado, onde assistir — vale
- * reabrir a decisão.
+ * O detalhe de UMA OBRA — venha ela da estante ou de um resultado de busca.
+ *
+ * Um sheet só para os dois casos, e não uma tela para cada: a obra é a mesma,
+ * e ter dois detalhes diferentes dependendo de você já possuí-la ou não seria
+ * o app dividindo em duas coisas o que na cabeça da pessoa é uma. Adicionar
+ * daqui não navega nem fecha — o mesmo painel simplesmente passa a mostrar
+ * status, progresso e notas, porque agora eles existem.
+ *
+ * Segue sendo sheet e não rota (decisão 6): mexer em progresso a partir da
+ * estante continua sendo dois toques, sem perder a posição de rolagem do grid.
+ *
+ * A ficha da fonte é ADITIVA e carregada depois de abrir. Título, capa e ano já
+ * estão em mãos; sinopse, elenco e "onde assistir" chegam quando chegarem. Se a
+ * fonte não responder, a tela não muda de forma — só não ganha o extra.
  */
+export type SheetSubject = Item | MediaSearchResult
+
+/** Um `Item` tem status; um resultado de busca, não. É o que os separa. */
+function isShelfItem(subject: SheetSubject): subject is Item {
+  return 'status' in subject
+}
+
 export function ItemSheet({
-  item,
+  subject,
   onClose,
 }: {
-  item: Item | null
+  subject: SheetSubject | null
   onClose: () => void
 }) {
   const { t } = useTranslation()
+  const label = subject?.title ?? t('common.close')
+
+  // `key` remonta o detalhe ao trocar de obra, e é isso que zera as notas
+  // rascunhadas, a confirmação de remoção e a ficha carregada. Um effect de
+  // reset faria o mesmo com um render a mais e um cascading-render que o lint
+  // de hooks barra — com razão.
+  const key = subject
+    ? isShelfItem(subject)
+      ? subject.id
+      : `${subject.provider}:${subject.externalId}`
+    : ''
 
   return (
-    <Sheet
-      open={Boolean(item)}
-      onClose={onClose}
-      label={item?.title ?? t('common.close')}
-    >
-      {/* `key` remonta o detalhe ao trocar de item, e é isso que zera as notas
-          rascunhadas e a confirmação de remoção. Um effect de reset faria o
-          mesmo com um render a mais e um cascading-render que o lint de hooks
-          barra — com razão. */}
-      {item && <ItemDetail key={item.id} item={item} onClose={onClose} />}
+    <Sheet open={Boolean(subject)} onClose={onClose} label={label}>
+      {subject && <Detail key={key} subject={subject} onClose={onClose} />}
     </Sheet>
   )
 }
 
-function ItemDetail({ item, onClose }: { item: Item; onClose: () => void }) {
+function Detail({
+  subject,
+  onClose,
+}: {
+  subject: SheetSubject
+  onClose: () => void
+}) {
   const { t, locale } = useTranslation()
-  const { update, setStatus, remove } = useItems()
+  const { items, add, update, setStatus, remove } = useItems()
 
-  const [notes, setNotes] = useState(item.notes ?? '')
-  const [confirmingRemove, setConfirmingRemove] = useState(false)
+  // Qual item da estante corresponde a esta obra. Derivado, não estado: assim
+  // que `add` resolve, o store muda e o painel vira modo estante sozinho.
+  const fromShelf = isShelfItem(subject) ? subject : undefined
+  const fromSearch = isShelfItem(subject) ? undefined : subject
+  const matched =
+    fromShelf ??
+    (fromSearch &&
+      items.find(
+        (i) => i.externalIds[fromSearch.provider] === fromSearch.externalId,
+      ))
 
-  const unit = progressUnitFor(item.mediaType)
+  const mediaType = subject.mediaType
+  const source = fromShelf
+    ? detailSourceFor(fromShelf.externalIds)
+    : fromSearch
+      ? { provider: fromSearch.provider, externalId: fromSearch.externalId }
+      : null
+
+  const [detail, setDetail] = useState<MediaDetail | null>(null)
+  // Já nasce sabendo se há o que carregar, em vez de nascer `true` e ser
+  // corrigido por um setState dentro do effect — que é o que o lint de hooks
+  // barra, e com razão: seria um render a mais só para desdizer o anterior.
+  const [loadingDetail, setLoadingDetail] = useState(Boolean(source))
+  const [adding, setAdding] = useState(false)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    if (!source) return
+    const controller = new AbortController()
+    void fetchDetail(
+      source.provider,
+      source.externalId,
+      mediaType,
+      controller.signal,
+    ).then((found) => {
+      if (controller.signal.aborted) return
+      setDetail(found)
+      setLoadingDetail(false)
+    })
+    return () => controller.abort()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const title = matched?.title ?? subject.title
+  const coverUrl = detail?.coverUrl ?? matched?.coverUrl ?? subject.coverUrl
+  const year = detail?.year ?? fromSearch?.year
 
   function formatDate(iso: string): string {
     return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
@@ -67,35 +137,199 @@ function ItemDetail({ item, onClose }: { item: Item; onClose: () => void }) {
     )
   }
 
+  async function addToShelf() {
+    if (!fromSearch || adding) return
+    setAdding(true)
+    setFailed(false)
+    const unit = progressUnitFor(fromSearch.mediaType)
+    const total = detail?.total ?? fromSearch.total
+    try {
+      await add({
+        mediaType: fromSearch.mediaType,
+        title: fromSearch.title,
+        coverUrl: fromSearch.coverUrl,
+        externalIds: { [fromSearch.provider]: fromSearch.externalId },
+        progress: unit && total ? { unit, current: 0, total } : undefined,
+      })
+    } catch {
+      setFailed(true)
+    } finally {
+      setAdding(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-5">
+      {/* Arte larga sangrando para fora do padding do sheet, com o degradê
+          entregando na superfície — sem ele a imagem termina numa borda reta
+          no meio do painel. */}
+      {detail?.backdropUrl && (
+        <div className="relative -mx-gutter -mt-2 h-28 overflow-hidden">
+          <img
+            src={detail.backdropUrl}
+            alt=""
+            className="h-full w-full object-cover opacity-40"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent" />
+        </div>
+      )}
+
       <div className="flex gap-3">
         <div className="w-20 shrink-0">
-          <Cover
-            src={item.coverUrl}
-            title={item.title}
-            media={item.mediaType}
-            lazy={false}
-          />
+          <Cover src={coverUrl} title={title} media={mediaType} lazy={false} />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-title font-bold">{item.title}</h2>
+          <h2 className="text-title font-bold">{title}</h2>
+          {detail?.originalTitle && detail.originalTitle !== title && (
+            <p className="text-label text-muted">{detail.originalTitle}</p>
+          )}
           <div className="mt-1.5 flex flex-wrap gap-1.5">
-            <Badge media={item.mediaType}>{t(mediaLabelKey(item.mediaType))}</Badge>
-            {item.completedAt && (
+            <Badge media={mediaType}>{t(mediaLabelKey(mediaType))}</Badge>
+            {year !== undefined && <Badge>{year}</Badge>}
+            {detail?.score !== undefined && (
+              <Badge>{`${detail.score}/100`}</Badge>
+            )}
+            {matched?.completedAt && (
               <Badge tone="accent">
-                {t('item.completedAt', {
-                  date: formatDate(item.completedAt),
-                })}
+                {t('item.completedAt', { date: formatDate(matched.completedAt) })}
               </Badge>
             )}
           </div>
-          <p className="mt-1.5 text-label text-muted">
-            {t('item.addedAt', { date: formatDate(item.addedAt) })}
-          </p>
+          {matched && (
+            <p className="mt-1.5 text-label text-muted">
+              {t('item.addedAt', { date: formatDate(matched.addedAt) })}
+            </p>
+          )}
         </div>
       </div>
 
+      {/* Não está na estante: o painel é sobre DECIDIR, então a ação vem antes
+          da leitura, ao alcance do polegar em vez de no fim da sinopse. */}
+      {!matched && (
+        <div>
+          <Button fullWidth disabled={adding} onClick={() => void addToShelf()}>
+            {adding ? t('item.adding') : t('item.addToShelf')}
+          </Button>
+          {failed && (
+            <p role="alert" className="mt-2 text-body text-danger">
+              {t('add.addFailed')}
+            </p>
+          )}
+        </div>
+      )}
+
+      {matched && (
+        <ShelfControls
+          item={matched}
+          onClose={onClose}
+          update={update}
+          setStatus={setStatus}
+          remove={remove}
+        />
+      )}
+
+      <SourceFacts detail={detail} loading={loadingDetail} />
+    </div>
+  )
+}
+
+/** A ficha que veio da fonte. Separada porque ela é a mesma nos dois modos —
+ *  e porque uma obra sem ficha simplesmente não renderiza nada aqui. */
+function SourceFacts({
+  detail,
+  loading,
+}: {
+  detail: MediaDetail | null
+  loading: boolean
+}) {
+  const { t } = useTranslation()
+
+  if (loading)
+    return <p className="text-body text-muted">{t('item.detailLoading')}</p>
+  if (!detail) return null
+
+  const facts = detail.facts ?? []
+  const genres = detail.genres ?? []
+  const people = detail.people ?? []
+  const where = detail.where ?? []
+
+  return (
+    <>
+      {detail.synopsis && (
+        <div>
+          <SectionTitle className="mb-2">{t('item.synopsis')}</SectionTitle>
+          {/* `whitespace-pre-line` porque a sinopse do AniList vem com quebras
+              de parágrafo de verdade, e achatá-las viraria um bloco só. */}
+          <p className="whitespace-pre-line text-body text-muted">
+            {detail.synopsis}
+          </p>
+        </div>
+      )}
+
+      {facts.length > 0 && (
+        <dl className="flex flex-col gap-1.5">
+          {facts.map((fact) => (
+            <div key={fact.labelKey} className="flex gap-2">
+              <dt className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
+                {t(fact.labelKey as MessageKey)}
+              </dt>
+              <dd className="min-w-0 flex-1 text-body">{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      {people.length > 0 && (
+        <div>
+          <SectionTitle className="mb-2">{t('item.people')}</SectionTitle>
+          <p className="text-body text-muted">{people.join(' · ')}</p>
+        </div>
+      )}
+
+      {where.length > 0 && (
+        <div>
+          <SectionTitle className="mb-2">{t('item.where')}</SectionTitle>
+          <div className="flex flex-wrap gap-1.5">
+            {where.map((service) => (
+              <Badge key={service}>{service}</Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {genres.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {genres.map((genre) => (
+            <Badge key={genre}>{genre}</Badge>
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
+
+/** Os controles que só existem para obra que já é sua. */
+function ShelfControls({
+  item,
+  onClose,
+  update,
+  setStatus,
+  remove,
+}: {
+  item: Item
+  onClose: () => void
+  update: ReturnType<typeof useItems>['update']
+  setStatus: ReturnType<typeof useItems>['setStatus']
+  remove: ReturnType<typeof useItems>['remove']
+}) {
+  const { t } = useTranslation()
+  const [notes, setNotes] = useState(item.notes ?? '')
+  const [confirmingRemove, setConfirmingRemove] = useState(false)
+
+  const unit = progressUnitFor(item.mediaType)
+
+  return (
+    <>
       <div>
         <SectionTitle className="mb-2">{t('item.statusLabel')}</SectionTitle>
         <div className="flex flex-wrap gap-2">
@@ -230,6 +464,6 @@ function ItemDetail({ item, onClose }: { item: Item; onClose: () => void }) {
           {t('common.remove')}
         </Button>
       )}
-    </div>
+    </>
   )
 }

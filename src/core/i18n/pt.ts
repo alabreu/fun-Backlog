@@ -68,7 +68,7 @@ export const pt = {
   'add.noResults': 'Nada encontrado para “{query}”.',
   'add.added': '“{title}” entrou na sua estante.',
   'add.addFailed': 'Não deu para adicionar. Tente de novo.',
-  'add.alreadyIn': 'Já está na estante',
+  'add.removeFromShelf': 'Tirar da estante',
   'add.noSource':
     'Ainda não dá para buscar {media} por aqui. Você pode adicionar à mão.',
   'add.onShelf': 'Na sua estante',
@@ -124,6 +124,21 @@ export const pt = {
   'item.removeConfirm': 'Remover da estante?',
   'item.removed': 'Removido da estante.',
   'item.saveFailed': 'Não deu para salvar. Tente de novo.',
+  'item.addToShelf': 'Adicionar à estante',
+  'item.adding': 'Adicionando…',
+  'item.synopsis': 'Sinopse',
+  'item.people': 'Quem fez',
+  'item.where': 'Onde assistir',
+  'item.detailLoading': 'Carregando a ficha…',
+  'item.detailFailed': 'Não deu para carregar a ficha completa.',
+
+  // Rótulos dos dados que cada fonte entrega (ver MediaFact)
+  'fact.runtime': 'Duração',
+  'fact.episodes': 'Episódios',
+  'fact.seasons': 'Temporadas',
+  'fact.platforms': 'Plataformas',
+  'fact.status': 'Situação',
+  'fact.episodeLength': 'Por episódio',
 
   // Menu (sheet do botão no topo direito)
   'menu.feedback': 'Enviar feedback',

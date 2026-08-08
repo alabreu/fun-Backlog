@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Check, LinkSimple, Plus } from '@phosphor-icons/react'
+import { LinkSimple } from '@phosphor-icons/react'
 import { filterItems } from '@core/items/filter'
 import { mediaLabelKey, progressUnitFor, statusLabelKey } from '@core/items/status'
 import { MEDIA_TYPES, type Item, type MediaType } from '@core/items/types'
@@ -11,12 +11,13 @@ import {
 } from '@core/media/search'
 import { findByImdbId } from '@core/media/tmdb'
 import type { MediaSearchResult } from '@core/media/types'
-import { ItemSheet } from '@ui/components/ItemSheet'
+import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import {
   Badge,
   Button,
   Chip,
   Cover,
+  CoverAction,
   CoverGrid,
   Field,
   Input,
@@ -52,7 +53,7 @@ const EMPTY: SearchOutcome = { groups: [], failed: [], skippedNeedingAuth: [] }
  */
 export function AddScreen() {
   const { t } = useTranslation()
-  const { items, add, signedIn } = useItems()
+  const { items, add, remove, signedIn } = useItems()
 
   const [query, setQuery] = useState('')
   const [media, setMedia] = useState<MediaType | undefined>()
@@ -60,18 +61,18 @@ export function AddScreen() {
   const [searching, setSearching] = useState(false)
   const [flash, setFlash] = useState<string | null>(null)
   const [manualOpen, setManualOpen] = useState(false)
-  const [selected, setSelected] = useState<Item | null>(null)
+  const [selected, setSelected] = useState<SheetSubject | null>(null)
 
   const abortRef = useRef<AbortController | null>(null)
 
-  // Chaves "provider:id" do que já está na estante, para marcar os duplicados
-  // na lista em vez de deixar a pessoa adicionar de novo e descobrir depois.
+  // "provider:id" -> item da estante. Mapa e não Set porque o botão sobre a
+  // capa precisa REMOVER, e para isso precisa do id do item.
   const alreadyIn = useMemo(() => {
-    const keys = new Set<string>()
+    const byKey = new Map<string, Item>()
     for (const item of items)
       for (const [provider, id] of Object.entries(item.externalIds))
-        if (id) keys.add(`${provider}:${id}`)
-    return keys
+        if (id) byKey.set(`${provider}:${id}`, item)
+    return byKey
   }, [items])
 
   const trimmed = query.trim()
@@ -178,6 +179,15 @@ export function AddScreen() {
       setFlash(t('add.added', { title: result.title }))
     } catch {
       setFlash(t('add.addFailed'))
+    }
+  }
+
+  async function removeResult(item: Item) {
+    try {
+      await remove(item.id)
+      setFlash(t('item.removed'))
+    } catch {
+      setFlash(t('item.saveFailed'))
     }
   }
 
@@ -332,48 +342,48 @@ export function AddScreen() {
                 </SectionTitle>
                 <CoverGrid>
                   {group.results.map((result) => {
-                    const known = alreadyIn.has(
+                    const mine = alreadyIn.get(
                       `${result.provider}:${result.externalId}`,
                     )
                     return (
                       <li key={`${result.provider}:${result.externalId}`}>
-                        <button
-                          type="button"
-                          disabled={known}
-                          onClick={() => void addResult(result)}
-                          className="w-full text-left transition active:scale-95 disabled:opacity-50 disabled:active:scale-100"
-                        >
-                          <div className="relative">
+                        {/* Dois irmãos, não um dentro do outro: botão dentro
+                            de botão é HTML inválido. O container posicionado
+                            é o que deixa o +/- flutuar sobre a capa. */}
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => setSelected(mine ?? result)}
+                            className="w-full text-left transition active:scale-95"
+                          >
                             <Cover
                               src={result.coverUrl}
                               title={result.title}
                               media={result.mediaType}
                             />
-                            <Badge
-                              tone="onCover"
-                              className="absolute bottom-1.5 left-1.5"
-                            >
-                              {known ? (
-                                <Check size={12} weight="bold" />
-                              ) : (
-                                <Plus size={12} weight="bold" />
-                              )}
-                              <span className="sr-only">
-                                {known ? t('add.alreadyIn') : t('catalog.add')}
-                              </span>
-                            </Badge>
-                          </div>
-                          <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
-                            {result.title}
-                          </span>
-                          {(result.year || result.subtitle) && (
-                            <span className="line-clamp-1 block text-label text-muted">
-                              {[result.year, result.subtitle]
-                                .filter(Boolean)
-                                .join(' · ')}
+                            <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
+                              {result.title}
                             </span>
-                          )}
-                        </button>
+                            {(result.year || result.subtitle) && (
+                              <span className="line-clamp-1 block text-label text-muted">
+                                {[result.year, result.subtitle]
+                                  .filter(Boolean)
+                                  .join(' · ')}
+                              </span>
+                            )}
+                          </button>
+                          <CoverAction
+                            added={Boolean(mine)}
+                            label={
+                              mine ? t('add.removeFromShelf') : t('catalog.add')
+                            }
+                            onClick={() =>
+                              mine
+                                ? void removeResult(mine)
+                                : void addResult(result)
+                            }
+                          />
+                        </div>
                       </li>
                     )
                   })}
@@ -405,9 +415,14 @@ export function AddScreen() {
 
       {/* O detalhe do item vem do mesmo componente da estante: tocar em algo
           que você já tem tem que fazer a MESMA coisa em qualquer tela. */}
+      {/* Item da estante é reidratado do store a cada render, para o sheet
+          refletir uma edição feita nele mesmo. Resultado de busca não tem o
+          que reidratar — ele é o dado da fonte, e não muda. */}
       <ItemSheet
-        item={
-          selected ? (items.find((i) => i.id === selected.id) ?? null) : null
+        subject={
+          selected && 'id' in selected
+            ? (items.find((i) => i.id === selected.id) ?? null)
+            : selected
         }
         onClose={() => setSelected(null)}
       />

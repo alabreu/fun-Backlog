@@ -25,6 +25,51 @@ export interface MediaSearchResult {
   subtitle?: string
 }
 
+/**
+ * A ficha completa de uma obra, como o app a entende.
+ *
+ * O desafio aqui é que as quatro fontes descrevem coisas diferentes: a IGDB
+ * fala de plataformas e desenvolvedora, a TMDB de elenco e onde assistir, o
+ * AniList de estúdio e episódios, a Open Library de editora e páginas. Em vez
+ * de um campo por conceito de cada fonte — o que faria a tela crescer um `if`
+ * por provider —, o formato comum tem CAIXAS genéricas:
+ *
+ * - `facts`: pares rótulo/valor, já formatados pela fonte. É onde "Duração:
+ *   2h 46min" e "Editora: Aleph" convivem sem o app precisar saber qual é qual.
+ * - `people`: quem fez. Diretor, desenvolvedora, autor, estúdio — a fonte
+ *   escolhe o que é relevante e o app só lista.
+ * - `where`: onde assistir/jogar/ler. Hoje só a TMDB preenche.
+ *
+ * A tradução dos rótulos fica com a FONTE (via chave de i18n), não com a tela.
+ */
+export interface MediaFact {
+  /** Chave de i18n do rótulo — as fontes não inventam texto solto. */
+  labelKey: string
+  value: string
+}
+
+export interface MediaDetail {
+  provider: string
+  externalId: string
+  mediaType: MediaType
+  title: string
+  /** Título original, quando difere. */
+  originalTitle?: string
+  coverUrl?: string
+  /** Arte larga de fundo, quando a fonte tem (TMDB e AniList têm). */
+  backdropUrl?: string
+  year?: number
+  synopsis?: string
+  genres?: string[]
+  facts?: MediaFact[]
+  people?: string[]
+  where?: string[]
+  /** Nota da fonte, normalizada para 0–100. */
+  score?: number
+  /** Total de episódios/páginas, para preencher o progresso ao adicionar. */
+  total?: number
+}
+
 export interface MediaProvider {
   id: string
   /** Que mídias este provider cobre. */
@@ -32,6 +77,15 @@ export interface MediaProvider {
   /** Precisa passar por Edge Function (tem chave)? */
   requiresServer: boolean
   search(query: string, signal?: AbortSignal): Promise<MediaSearchResult[]>
+  /**
+   * Ficha completa de uma obra. Opcional porque um provider novo pode entrar
+   * só com busca — a tela cai no que já tem em mãos quando falta.
+   */
+  detail?(
+    externalId: string,
+    mediaType: MediaType,
+    signal?: AbortSignal,
+  ): Promise<MediaDetail>
 }
 
 /** Quantos resultados pedir por provider — a lista é para escolher, não para

@@ -150,6 +150,14 @@ function escapeApicalypse(query: string): string {
 // INTEIRA, e resultado sujo é melhor que resultado nenhum.
 const IGDB_FIELDS = 'fields name,first_release_date,cover.image_id,platforms.abbreviation;'
 
+// A ficha pede bem mais campos que a busca — e só a ficha paga por eles, uma
+// obra por vez. Pedir isto na LISTA multiplicaria o payload por doze.
+const IGDB_DETAIL_FIELDS =
+  'fields name,summary,storyline,first_release_date,cover.image_id,' +
+  'platforms.abbreviation,genres.name,game_modes.name,total_rating,' +
+  'involved_companies.developer,involved_companies.publisher,' +
+  'involved_companies.company.name;'
+
 /** Manda uma query APICalypse, renovando o token uma vez se levar 401. */
 async function askIgdb(body: string): Promise<unknown> {
   const run = async (token: string) =>
@@ -208,6 +216,16 @@ async function searchIgdb(query: string): Promise<unknown> {
   }
 }
 
+/** Ficha de UM jogo. `where id = N` e não `search`: aqui o id é exato. */
+async function detailIgdb(id: string): Promise<unknown> {
+  const numeric = Number(id)
+  if (!Number.isInteger(numeric) || numeric <= 0) throw new UpstreamError(400)
+
+  const rows = await askIgdb(`where id = ${numeric}; ${IGDB_DETAIL_FIELDS} limit 1;`)
+  // A IGDB sempre devolve ARRAY, mesmo para um id só. O app espera o objeto.
+  return Array.isArray(rows) ? (rows[0] ?? null) : null
+}
+
 // ---------------------------------------------------------------------------
 // TMDB (filmes e séries)
 // ---------------------------------------------------------------------------
@@ -236,6 +254,20 @@ async function searchTmdb(query: string): Promise<unknown> {
   return await tmdbGet('/search/multi', {
     query,
     include_adult: 'false',
+  })
+}
+
+/**
+ * Ficha de um filme ou série. `append_to_response` junta elenco e "onde
+ * assistir" NA MESMA requisição — sem ele seriam três idas à TMDB para montar
+ * uma tela só.
+ */
+async function detailTmdb(id: string, kind: 'movie' | 'tv'): Promise<unknown> {
+  const numeric = Number(id)
+  if (!Number.isInteger(numeric) || numeric <= 0) throw new UpstreamError(400)
+
+  return await tmdbGet(`/${kind}/${numeric}`, {
+    append_to_response: 'credits,watch/providers',
   })
 }
 
@@ -283,7 +315,13 @@ Deno.serve(async (req: Request) => {
   if (userError || !userData?.user) return json(401, { error: 'unauthenticated' })
 
   // 2. Validar o body antes de gastar rede com terceiro.
-  let body: { source?: unknown; query?: unknown; imdbId?: unknown }
+  let body: {
+    source?: unknown
+    query?: unknown
+    imdbId?: unknown
+    detailId?: unknown
+    detailKind?: unknown
+  }
   try {
     body = await req.json()
   } catch {
@@ -296,8 +334,15 @@ Deno.serve(async (req: Request) => {
 
   const imdbId = typeof body?.imdbId === 'string' ? body.imdbId.trim() : ''
   const query = typeof body?.query === 'string' ? body.query.trim() : ''
+  const detailId = typeof body?.detailId === 'string' ? body.detailId.trim() : ''
+  // Só os dois caminhos que a TMDB tem: qualquer outra coisa iria para a URL.
+  const detailKind = body?.detailKind === 'tv' ? 'tv' : 'movie'
 
-  if (imdbId) {
+  if (detailId) {
+    // Id da fonte é sempre numérico nas duas. Barrar aqui é o que impede o
+    // valor do cliente de virar caminho de URL ou trecho de query.
+    if (!/^\d{1,12}$/.test(detailId)) return json(400, { error: 'invalid_detail_id' })
+  } else if (imdbId) {
     if (source !== 'tmdb') return json(400, { error: 'invalid_source' })
     if (!IMDB_ID.test(imdbId)) return json(400, { error: 'invalid_imdb_id' })
   } else {
@@ -306,16 +351,24 @@ Deno.serve(async (req: Request) => {
   }
 
   // 3. Cache antes da chamada externa (ver CONFIG.cacheTtlMs).
-  const key = imdbId ? `${source}:imdb:${imdbId}` : `${source}:q:${query.toLowerCase()}`
+  const key = detailId
+    ? `${source}:d:${detailKind}:${detailId}`
+    : imdbId
+      ? `${source}:imdb:${imdbId}`
+      : `${source}:q:${query.toLowerCase()}`
   const cached = cacheGet(key)
   if (cached !== undefined) return json(200, { results: cached })
 
   try {
-    const results = imdbId
-      ? await findByImdb(imdbId)
-      : source === 'igdb'
-        ? await searchIgdb(query)
-        : await searchTmdb(query)
+    const results = detailId
+      ? source === 'igdb'
+        ? await detailIgdb(detailId)
+        : await detailTmdb(detailId, detailKind)
+      : imdbId
+        ? await findByImdb(imdbId)
+        : source === 'igdb'
+          ? await searchIgdb(query)
+          : await searchTmdb(query)
 
     cacheSet(key, results)
     return json(200, { results })
