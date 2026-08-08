@@ -312,8 +312,8 @@ export function DesignScreen() {
             ))}
           </div>
           <p className="mt-2 text-label text-muted">
-            PlayStation, Xbox e Nintendo são desenhados aqui — o Phosphor não os
-            tem. O nome fica sempre ao lado: o ícone reforça, não substitui.
+            Fileira da Tabler Icons (MIT), menos o Tux, que ela não tem. O nome
+            fica sempre ao lado: o ícone reforça, não substitui.
           </p>
         </section>
 

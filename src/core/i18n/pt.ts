@@ -258,6 +258,9 @@ export const pt = {
 
   // Créditos das fontes de dados
   'credits.title': 'Créditos',
+  'credits.iconsLabel': 'Ícones',
+  'credits.icons':
+    'Os ícones do app vêm de duas bibliotecas abertas, ambas sob licença MIT.',
   'credits.intro':
     'O Fun Backlog não teria capa nenhuma sem estas fontes. Todas são usadas dentro dos termos delas.',
   'credits.igdb': 'Jogos: ficha, capa, ano e plataformas.',

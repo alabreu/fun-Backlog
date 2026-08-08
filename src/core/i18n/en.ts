@@ -260,6 +260,9 @@ export const en: Record<keyof typeof pt, string> = {
 
   // Credits for the data sources
   'credits.title': 'Credits',
+  'credits.iconsLabel': 'Icons',
+  'credits.icons':
+    'The icons in the app come from two open libraries, both MIT licensed.',
   'credits.intro':
     'Fun Backlog would have no cover art without these sources. All of them are used within their terms.',
   'credits.igdb': 'Games: details, cover art, year and platforms.',

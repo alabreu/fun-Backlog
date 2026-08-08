@@ -1,7 +1,7 @@
 import { ArrowSquareOut } from '@phosphor-icons/react'
 import type { MessageKey } from '@core/i18n'
 import type { MediaType } from '@core/items/types'
-import { Card, MediaDot, Screen, ScreenBody } from '@ui/design'
+import { Card, MediaDot, Screen, ScreenBody, SectionTitle } from '@ui/design'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
@@ -56,6 +56,13 @@ const SOURCES: Source[] = [
   },
 ]
 
+/** Bibliotecas de ícone, ambas MIT. A Tabler entrou porque o Phosphor não tem
+ *  PlayStation, Xbox nem Nintendo — ver `PlatformIcon`. */
+const ICON_LIBRARIES = [
+  { name: 'Phosphor Icons', url: 'https://phosphoricons.com' },
+  { name: 'Tabler Icons', url: 'https://tabler.io/icons' },
+]
+
 export function CreditsScreen() {
   const { t } = useTranslation()
 
@@ -96,6 +103,30 @@ export function CreditsScreen() {
             </Card>
           ))}
         </div>
+
+        {/* Os ícones não são fonte de dados, então não entram na lista acima —
+            mas a licença MIT das duas bibliotecas pede o aviso, e crédito de
+            software aberto é o tipo de coisa que se cumpre uma vez e fica. */}
+        <SectionTitle className="mb-2 mt-4">
+          {t('credits.iconsLabel')}
+        </SectionTitle>
+        <Card className="mb-4">
+          <p className="text-body text-muted">{t('credits.icons')}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            {ICON_LIBRARIES.map((lib) => (
+              <a
+                key={lib.name}
+                href={lib.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-body font-semibold underline decoration-ink/30 underline-offset-2"
+              >
+                {lib.name}
+                <ArrowSquareOut size={14} aria-hidden />
+              </a>
+            ))}
+          </div>
+        </Card>
       </ScreenBody>
     </Screen>
   )
