@@ -135,6 +135,7 @@ const DETAIL_QUERY = `
       title { romaji english }
       coverImage { large }
       studios(isMain: true) { nodes { name } }
+      externalLinks { site type }
     }
   }
 `
@@ -142,6 +143,7 @@ const DETAIL_QUERY = `
 interface AniListDetail extends AniListMedia {
   duration?: number | null
   status?: string | null
+  externalLinks?: ({ site?: string | null; type?: string | null } | null)[] | null
   genres?: string[] | null
   averageScore?: number | null
   description?: string | null
@@ -168,6 +170,29 @@ export function mapAniListDetail(media: AniListDetail): MediaDetail | null {
   if (media.episodes) facts.push({ labelKey: 'fact.episodes', value: String(media.episodes) })
   if (media.duration)
     facts.push({ labelKey: 'fact.episodeLength', value: `${media.duration}min` })
+
+  // ONDE ASSISTIR. O AniList mistura em `externalLinks` site oficial, rede
+  // social e streaming; só o `type: STREAMING` responde "dá para ver hoje?".
+  //
+  // Teto de seis porque um anime popular lista uma dezena de serviços, muitos
+  // regionais e nenhum útil aqui — e porque isto é fato-líder, então uma lista
+  // longa empurraria a sinopse para fora da tela. `Set` porque a mesma casa
+  // aparece repetida quando há mais de um idioma de legenda.
+  const onde = [
+    ...new Set(
+      (media.externalLinks ?? [])
+        .filter((l) => l?.type === 'STREAMING')
+        .map((l) => l?.site)
+        .filter((n): n is string => Boolean(n)),
+    ),
+  ].slice(0, 6)
+  if (onde.length > 0)
+    facts.unshift({
+      labelKey: 'fact.where',
+      value: onde.join(' · '),
+      values: onde,
+      lead: true,
+    })
 
   return {
     ...base,

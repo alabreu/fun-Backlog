@@ -273,10 +273,14 @@ describe('ficha da TMDB', () => {
       'movie',
     )
 
-    expect(d?.facts).toEqual([{ labelKey: 'fact.runtime', value: '2h 46min' }])
-    // Direção antes do elenco, e o elenco cortado em tr\u00eas.
+    // "Onde assistir" vem PRIMEIRO e com `lead`: sobe acima da sinopse, igual
+    // \u00e0s plataformas de um jogo.
+    expect(d?.facts).toEqual([
+      { labelKey: 'fact.where', value: 'Max', values: ['Max'], lead: true },
+      { labelKey: 'fact.runtime', value: '2h 46min' },
+    ])
+    // Dire\u00e7\u00e3o antes do elenco, e o elenco cortado em tr\u00eas.
     expect(d?.people).toEqual(['Denis Villeneuve', 'A', 'B', 'C'])
-    expect(d?.where).toEqual(['Max'])
     expect(d?.score).toBe(82)
     expect(d?.synopsis).toBe('Paul se une aos Fremen.')
   })
@@ -316,6 +320,8 @@ describe('ficha da TMDB', () => {
       },
       'movie',
     )
-    expect(d?.where).toEqual([])
+    // Regi\u00e3o sem cobertura n\u00e3o vira fato nenhum, em vez de virar um r\u00f3tulo
+    // "Onde assistir" com nada do lado.
+    expect(d?.facts?.some((f) => f.labelKey === 'fact.where')).toBe(false)
   })
 })

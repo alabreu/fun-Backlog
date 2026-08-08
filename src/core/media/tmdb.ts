@@ -140,6 +140,21 @@ export function mapTmdbDetail(
     .map((c) => c?.name)
   const cast = (body.credits?.cast ?? []).slice(0, 3).map((c) => c?.name)
 
+  // Só `flatrate` (incluído na assinatura). Aluguel e compra virariam uma
+  // lista de dez serviços que não responde "dá para ver hoje?".
+  const onde = (body['watch/providers']?.results?.[region]?.flatrate ?? [])
+    .map((p) => p?.provider_name)
+    .filter((n): n is string => Boolean(n))
+  // `lead`: "não tenho essa assinatura" pesa tanto quanto "não roda no meu
+  // console" — e aquela sobe acima da sinopse desde a ficha de jogo.
+  if (onde.length > 0)
+    facts.unshift({
+      labelKey: 'fact.where',
+      value: onde.join(' · '),
+      values: onde,
+      lead: true,
+    })
+
   return {
     ...base,
     synopsis: body.overview || undefined,
@@ -148,11 +163,6 @@ export function mapTmdbDetail(
       .filter((n): n is string => Boolean(n)),
     facts,
     people: [...directors, ...cast].filter((n): n is string => Boolean(n)),
-    // Só `flatrate` (incluído na assinatura). Aluguel e compra virariam uma
-    // lista de dez serviços que não responde "dá para ver hoje?".
-    where: (body['watch/providers']?.results?.[region]?.flatrate ?? [])
-      .map((p) => p?.provider_name)
-      .filter((n): n is string => Boolean(n)),
     // vote_average é 0–10; o resto do app fala em 0–100.
     score: body.vote_average ? Math.round(body.vote_average * 10) : undefined,
     total: body.number_of_episodes,

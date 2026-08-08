@@ -38,7 +38,12 @@ export interface MediaSearchResult {
  *   2h 46min" e "Editora: Aleph" convivem sem o app precisar saber qual é qual.
  * - `people`: quem fez. Diretor, desenvolvedora, autor, estúdio — a fonte
  *   escolhe o que é relevante e o app só lista.
- * - `where`: onde assistir/jogar/ler. Hoje só a TMDB preenche.
+ *
+ * "Onde assistir" NÃO tem caixa própria — é um `fact` com `lead`, igual às
+ * plataformas de um jogo. As duas respondem a mesma pergunta ("eu consigo
+ * consumir isto?"), e uma resposta que vale acima da sinopse num caso vale no
+ * outro. Uma caixa só para ela era o app tratando de forma diferente duas
+ * coisas que a pessoa lê do mesmo jeito.
  *
  * A tradução dos rótulos fica com a FONTE (via chave de i18n), não com a tela.
  */
@@ -77,7 +82,6 @@ export interface MediaDetail {
   genres?: string[]
   facts?: MediaFact[]
   people?: string[]
-  where?: string[]
   /** Nota da fonte, normalizada para 0–100. */
   score?: number
   /** Total de episódios/páginas, para preencher o progresso ao adicionar. */

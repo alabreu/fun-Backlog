@@ -245,6 +245,39 @@ describe('ficha do AniList', () => {
     )
   })
 
+  it('separa STREAMING do resto dos links externos', () => {
+    const d = mapAniListDetail({
+      id: 21,
+      title: { romaji: 'Cowboy Bebop', english: null },
+      coverImage: { large: '' },
+      externalLinks: [
+        { site: 'Official Site', type: 'INFO' },
+        { site: 'Crunchyroll', type: 'STREAMING' },
+        { site: 'Twitter', type: 'SOCIAL' },
+        { site: 'Netflix', type: 'STREAMING' },
+        // Repetido: o AniList lista a mesma casa uma vez por idioma.
+        { site: 'Netflix', type: 'STREAMING' },
+        null,
+      ],
+    })
+
+    const onde = d?.facts?.find((f) => f.labelKey === 'fact.where')
+    expect(onde?.values).toEqual(['Crunchyroll', 'Netflix'])
+    // Fato-l\u00edder e primeiro da lista: sobe acima da sinopse.
+    expect(onde?.lead).toBe(true)
+    expect(d?.facts?.[0]).toBe(onde)
+  })
+
+  it('sem streaming, n\u00e3o inventa a se\u00e7\u00e3o', () => {
+    const d = mapAniListDetail({
+      id: 1,
+      title: { romaji: 'X', english: null },
+      coverImage: { large: '' },
+      externalLinks: [{ site: 'Official Site', type: 'INFO' }],
+    })
+    expect(d?.facts?.some((f) => f.labelKey === 'fact.where')).toBe(false)
+  })
+
   it('mapeia est\u00fadio, g\u00eaneros e dura\u00e7\u00e3o por epis\u00f3dio', () => {
     const d = mapAniListDetail({
       id: 21,

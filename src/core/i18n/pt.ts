@@ -132,7 +132,6 @@ export const pt = {
   'item.readLess': 'Ler menos',
   'item.synopsis': 'Sinopse',
   'item.people': 'Quem fez',
-  'item.where': 'Onde assistir',
   'item.detailLoading': 'Carregando a ficha…',
   'item.detailFailed': 'Não deu para carregar a ficha completa.',
 
@@ -141,6 +140,7 @@ export const pt = {
   'fact.episodes': 'Episódios',
   'fact.seasons': 'Temporadas',
   'fact.platforms': 'Plataformas',
+  'fact.where': 'Onde assistir',
   'fact.players': 'Jogadores',
   'fact.episodeLength': 'Por episódio',
 

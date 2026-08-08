@@ -19,6 +19,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-08-onde-assistir',
+    date: '2026-08-08',
+    emoji: '📺',
+    title: {
+      pt: 'Onde assistir agora aparece também nos animes',
+      en: 'Where to watch now shows for anime too',
+    },
+    items: {
+      pt: [
+        'Animes passaram a mostrar em quais serviços estão — Crunchyroll, Netflix e afins.',
+        '"Onde assistir" subiu para junto do status, no mesmo lugar em que jogos mostram as plataformas: as duas respondem "eu consigo consumir isto?", e essa resposta vem antes da sinopse.',
+      ],
+      en: [
+        'Anime now shows which services carry it — Crunchyroll, Netflix and the like.',
+        '"Where to watch" moved up next to the status, where games show their platforms: both answer "can I actually get to this?", and that answer belongs above the synopsis.',
+      ],
+    },
+  },
+  {
     id: '2026-08-08-secoes',
     date: '2026-08-08',
     emoji: '🗂️',

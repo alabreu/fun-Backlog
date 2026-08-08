@@ -134,7 +134,6 @@ export const en: Record<keyof typeof pt, string> = {
   'item.readLess': 'Read less',
   'item.synopsis': 'Synopsis',
   'item.people': 'Made by',
-  'item.where': 'Where to watch',
   'item.detailLoading': 'Loading the details…',
   'item.detailFailed': 'Could not load the full details.',
 
@@ -143,6 +142,7 @@ export const en: Record<keyof typeof pt, string> = {
   'fact.episodes': 'Episodes',
   'fact.seasons': 'Seasons',
   'fact.platforms': 'Platforms',
+  'fact.where': 'Where to watch',
   'fact.players': 'Players',
   'fact.episodeLength': 'Per episode',
 

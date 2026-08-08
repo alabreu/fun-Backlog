@@ -265,7 +265,6 @@ function SourceFacts({
   const genres = detail.genres ?? []
   const genreColors = genreColorIndexes(genres)
   const people = detail.people ?? []
-  const where = detail.where ?? []
 
   return (
     <>
@@ -322,16 +321,6 @@ function SourceFacts({
         </div>
       )}
 
-      {where.length > 0 && (
-        <div>
-          <SectionTitle className="mb-2">{t('item.where')}</SectionTitle>
-          <div className="flex flex-wrap gap-1.5">
-            {where.map((service) => (
-              <Badge key={service}>{service}</Badge>
-            ))}
-          </div>
-        </div>
-      )}
     </>
   )
 }
