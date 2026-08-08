@@ -279,6 +279,20 @@ function SourceFacts({
     <>
       <FactList facts={leadFacts} />
 
+      {/* Os gêneros ficam ENTRE os dados de identificação e a sinopse: eles são
+          a resposta rápida a "que tipo de coisa é esta?", que é a mesma
+          pergunta da sinopse, só que em três palavras. Quem se satisfaz com
+          "Shooter · RPG · Aventura" não precisa ler o parágrafo; quem não se
+          satisfaz já está com o olho no lugar certo para continuar. No fim da
+          ficha eles eram enfeite, lidos depois de a decisão já ter sido tomada. */}
+      {genres.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {genres.map((genre) => (
+            <Badge key={genre}>{genre}</Badge>
+          ))}
+        </div>
+      )}
+
       {detail.synopsis && (
         <div>
           <SectionTitle className="mb-2">{t('item.synopsis')}</SectionTitle>
@@ -309,14 +323,6 @@ function SourceFacts({
               <Badge key={service}>{service}</Badge>
             ))}
           </div>
-        </div>
-      )}
-
-      {genres.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {genres.map((genre) => (
-            <Badge key={genre}>{genre}</Badge>
-          ))}
         </div>
       )}
     </>
