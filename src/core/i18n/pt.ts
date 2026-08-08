@@ -128,6 +128,8 @@ export const pt = {
   'item.saveFailed': 'Não deu para salvar. Tente de novo.',
   'item.addToShelf': 'Adicionar à estante',
   'item.adding': 'Adicionando…',
+  'item.readMore': 'Ler mais',
+  'item.readLess': 'Ler menos',
   'item.synopsis': 'Sinopse',
   'item.people': 'Quem fez',
   'item.where': 'Onde assistir',
@@ -139,7 +141,7 @@ export const pt = {
   'fact.episodes': 'Episódios',
   'fact.seasons': 'Temporadas',
   'fact.platforms': 'Plataformas',
-  'fact.status': 'Situação',
+  'fact.players': 'Jogadores',
   'fact.episodeLength': 'Por episódio',
 
   // Menu (sheet do botão no topo direito)

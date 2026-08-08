@@ -215,9 +215,12 @@ describe('ficha da IGDB', () => {
     expect(d?.synopsis).toBe('Um bruxo procura a filha adotiva.')
     expect(d?.genres).toEqual(['RPG'])
     expect(d?.score).toBe(93)
+    // `lead`: em jogo, plataforma vem ANTES da sinopse — "roda no meu
+    // aparelho?" é a pergunta que decide se vale ler o resto.
     expect(d?.facts?.[0]).toEqual({
       labelKey: 'fact.platforms',
       value: 'PC, PS4',
+      lead: true,
     })
   })
 

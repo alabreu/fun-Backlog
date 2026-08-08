@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Star, Trash } from '@phosphor-icons/react'
 import { detailSourceFor, fetchDetail } from '@core/media/detail'
-import type { MediaDetail, MediaSearchResult } from '@core/media/types'
+import type {
+  MediaDetail,
+  MediaFact,
+  MediaSearchResult,
+} from '@core/media/types'
 import {
   mediaLabelKey,
   progressLabelKey,
@@ -14,6 +18,7 @@ import {
   Badge,
   Button,
   Chip,
+  ClampedText,
   Cover,
   Field,
   Input,
@@ -260,35 +265,34 @@ function SourceFacts({
   if (!detail) return null
 
   const facts = detail.facts ?? []
+  // Os que IDENTIFICAM a obra sobem para antes da sinopse; o resto é contexto e
+  // fica depois. Quem marca é o provider (ver `MediaFact.lead`) — a tela não
+  // sabe, e não deve saber, que jogo é diferente de série nesse ponto.
+  const leadFacts = facts.filter((f) => f.lead)
+  const restFacts = facts.filter((f) => !f.lead)
+
   const genres = detail.genres ?? []
   const people = detail.people ?? []
   const where = detail.where ?? []
 
   return (
     <>
+      <FactList facts={leadFacts} />
+
       {detail.synopsis && (
         <div>
           <SectionTitle className="mb-2">{t('item.synopsis')}</SectionTitle>
-          {/* `whitespace-pre-line` porque a sinopse do AniList vem com quebras
-              de parágrafo de verdade, e achatá-las viraria um bloco só. */}
-          <p className="whitespace-pre-line text-body text-muted">
+          <ClampedText
+            lines={6}
+            moreLabel={t('item.readMore')}
+            lessLabel={t('item.readLess')}
+          >
             {detail.synopsis}
-          </p>
+          </ClampedText>
         </div>
       )}
 
-      {facts.length > 0 && (
-        <dl className="flex flex-col gap-1.5">
-          {facts.map((fact) => (
-            <div key={fact.labelKey} className="flex gap-2">
-              <dt className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
-                {t(fact.labelKey as MessageKey)}
-              </dt>
-              <dd className="min-w-0 flex-1 text-body">{fact.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
+      <FactList facts={restFacts} />
 
       {people.length > 0 && (
         <div>
@@ -316,6 +320,27 @@ function SourceFacts({
         </div>
       )}
     </>
+  )
+}
+
+/** A lista de rótulo + valor da ficha. Extraída porque agora ela aparece duas
+ *  vezes — antes e depois da sinopse — e duas cópias divergiriam no primeiro
+ *  ajuste de espaçamento. Lista vazia não renderiza nada. */
+function FactList({ facts }: { facts: MediaFact[] }) {
+  const { t } = useTranslation()
+  if (facts.length === 0) return null
+
+  return (
+    <dl className="flex flex-col gap-1.5">
+      {facts.map((fact) => (
+        <div key={fact.labelKey} className="flex gap-2">
+          <dt className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
+            {t(fact.labelKey as MessageKey)}
+          </dt>
+          <dd className="min-w-0 flex-1 text-body">{fact.value}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }
 

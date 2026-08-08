@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   Chip,
+  ClampedText,
   Cover,
   CoverGrid,
   NavRow,
@@ -68,6 +69,12 @@ const TOKENS_TEXT = [
   { name: 'display', cls: 'text-display' },
 ] as const
 
+
+const LONGO =
+  'Um texto suficientemente longo para transbordar três linhas e provar que a ' +
+  'medição funciona: o botão só aparece quando a altura real do parágrafo passa ' +
+  'da altura visível, e o ResizeObserver refaz a conta quando a largura muda. ' +
+  'Girar o aparelho não pode deixar um "Ler mais" órfão na tela.'
 
 export function DesignScreen() {
   const [chip, setChip] = useState('a')
@@ -290,6 +297,19 @@ export function DesignScreen() {
               bordered — borda mais marcada
             </Card>
           </div>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">ClampedText</SectionTitle>
+          <ClampedText lines={3} moreLabel="Ler mais" lessLabel="Ler menos">
+            {LONGO}
+          </ClampedText>
+          <p className="mt-3 text-label text-muted">
+            Abaixo, texto curto: o botão não aparece porque não há o que abrir.
+          </p>
+          <ClampedText lines={3} moreLabel="Ler mais" lessLabel="Ler menos">
+            Uma linha só.
+          </ClampedText>
         </section>
 
         <section>

@@ -130,6 +130,8 @@ export const en: Record<keyof typeof pt, string> = {
   'item.saveFailed': 'Could not save. Try again.',
   'item.addToShelf': 'Add to shelf',
   'item.adding': 'Adding…',
+  'item.readMore': 'Read more',
+  'item.readLess': 'Read less',
   'item.synopsis': 'Synopsis',
   'item.people': 'Made by',
   'item.where': 'Where to watch',
@@ -141,7 +143,7 @@ export const en: Record<keyof typeof pt, string> = {
   'fact.episodes': 'Episodes',
   'fact.seasons': 'Seasons',
   'fact.platforms': 'Platforms',
-  'fact.status': 'Status',
+  'fact.players': 'Players',
   'fact.episodeLength': 'Per episode',
 
   // Menu

@@ -126,16 +126,19 @@ export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
       .filter((n): n is string => Boolean(n)),
     people: [...new Set(people)].slice(0, 4),
     facts: [
+      // `lead`: em jogo, plataforma e modo de jogo são o filtro que vem antes
+      // da leitura ("roda no meu console? dá pra jogar com alguém?").
       ...(platforms.length > 0
-        ? [{ labelKey: 'fact.platforms', value: platforms.join(', ') }]
+        ? [{ labelKey: 'fact.platforms', value: platforms.join(', '), lead: true }]
         : []),
       ...((game.game_modes ?? []).length > 0
         ? [{
-            labelKey: 'fact.status',
+            labelKey: 'fact.players',
             value: (game.game_modes ?? [])
               .map((m) => m?.name)
               .filter(Boolean)
               .join(', '),
+            lead: true,
           }]
         : []),
     ],

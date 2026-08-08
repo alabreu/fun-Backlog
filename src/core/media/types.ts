@@ -46,6 +46,16 @@ export interface MediaFact {
   /** Chave de i18n do rótulo — as fontes não inventam texto solto. */
   labelKey: string
   value: string
+  /**
+   * Este dado IDENTIFICA a obra, então vem ANTES da sinopse em vez de depois.
+   *
+   * É semântica, não estilo: quem marca é o provider, que sabe o que importa na
+   * mídia dele. Em jogo, "em que plataformas roda" e "é single ou multiplayer"
+   * são o que se checa antes de ler qualquer coisa — se não roda no aparelho da
+   * pessoa, a sinopse é irrelevante. Já "temporadas" de uma série é contexto, e
+   * contexto vem depois da leitura.
+   */
+  lead?: boolean
 }
 
 export interface MediaDetail {
