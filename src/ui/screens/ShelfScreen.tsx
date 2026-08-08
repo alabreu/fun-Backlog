@@ -53,13 +53,17 @@ function isMediaType(value: string | undefined): value is MediaType {
 export function ShelfScreen() {
   const { t } = useTranslation()
   const { media } = useParams()
-  const { items, error, add, signedIn } = useItems()
+  const { items, error, add, enabled, signedIn } = useItems()
 
   const [selected, setSelected] = useState<SheetSubject | null>(null)
   const [status, setStatus] = useState<ItemStatus | undefined>()
   const [query, setQuery] = useState('')
 
-  const mediaType = isMediaType(media) ? media : undefined
+  // Mídia desligada vira mídia inexistente: quem chega em /estante/anime pelo
+  // histórico do navegador ou por um link antigo volta para a home, em vez de
+  // cair numa estante vazia de uma categoria que ele mesmo escondeu.
+  const mediaType =
+    isMediaType(media) && enabled.includes(media) ? media : undefined
   const trimmed = query.trim()
   const searchingExternal = trimmed.length >= 2
 

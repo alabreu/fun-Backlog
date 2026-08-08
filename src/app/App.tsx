@@ -1,12 +1,17 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { trackSessionStart } from '@core/analytics'
 import { storageKey } from '@core/config'
 import type { DailyReroll } from '@core/greeting'
 import { DEFAULT_LOCALE, normalizeLocale } from '@core/i18n'
 import { useLocaleStore } from '@core/state/localeStore'
+import { useMediaStore } from '@core/state/mediaStore'
 import { useNicknameStore } from '@core/state/nicknameStore'
 import { useThemeStore } from '@core/state/themeStore'
+import {
+  parsePreferences,
+  serializePreferences,
+} from '@core/media/preferences'
 import { DEFAULT_THEME, LOCKED_THEME, normalizeTheme } from '@core/theme'
 import { applyGrainMode, applyTheme, GRAIN_MODE } from '@ui/theme'
 import { UpdateToast } from '@ui/components/UpdateToast'
@@ -14,6 +19,7 @@ import { useAuthInit } from '@ui/hooks/useAuth'
 import { useTranslation } from '@ui/hooks/useTranslation'
 import { CompletionCelebration } from '@ui/components/CompletionCelebration'
 import { AddScreen } from '@ui/screens/AddScreen'
+import { CategoriesScreen } from '@ui/screens/CategoriesScreen'
 import { CompletedScreen } from '@ui/screens/CompletedScreen'
 import { CreditsScreen } from '@ui/screens/CreditsScreen'
 import { DonateScreen } from '@ui/screens/DonateScreen'
@@ -30,6 +36,7 @@ const LOCALE_STORAGE_KEY = storageKey('locale')
 const THEME_STORAGE_KEY = storageKey('theme')
 const NICKNAME_STORAGE_KEY = storageKey('nickname')
 const REROLL_STORAGE_KEY = storageKey('nickname-reroll')
+const MEDIA_STORAGE_KEY = storageKey('media-preferences')
 
 /** localStorage falha de verdade: modo privado, cota cheia, política do
  *  navegador. Preferência é um "seria bom", nunca um motivo para a tela não
@@ -88,6 +95,16 @@ export function App() {
   const setNickname = useNicknameStore((s) => s.setNickname)
   const reroll = useNicknameStore((s) => s.reroll)
   const setReroll = useNicknameStore((s) => s.setReroll)
+  const mediaPreferences = useMediaStore((s) => s.preferences)
+  const setMediaPreferences = useMediaStore((s) => s.setPreferences)
+
+  // O efeito que persiste roda ANTES de o valor semeado chegar (no mesmo
+  // commit, o estado ainda é o padrão) — sem esta trava ele gravaria "tudo
+  // ligado, ordem canônica" por cima do que está salvo. Em produção o efeito
+  // seguinte consertaria; em desenvolvimento, com a dupla execução do
+  // StrictMode, a leitura seguinte já pegaria o padrão recém-gravado e a
+  // escolha se perderia de verdade a cada recarga.
+  const mediaSeededRef = useRef(false)
 
   // Semeia as preferências salvas uma vez no boot. Idioma cai para o do
   // navegador; tema cai para "seguir o sistema".
@@ -106,6 +123,8 @@ export function App() {
     )
     setNickname(readStored(NICKNAME_STORAGE_KEY))
     setReroll(readReroll())
+    setMediaPreferences(parsePreferences(readStored(MEDIA_STORAGE_KEY)))
+    mediaSeededRef.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -144,6 +163,11 @@ export function App() {
     writeStored(REROLL_STORAGE_KEY, reroll ? JSON.stringify(reroll) : null)
   }, [reroll])
 
+  useEffect(() => {
+    if (!mediaSeededRef.current) return
+    writeStored(MEDIA_STORAGE_KEY, serializePreferences(mediaPreferences))
+  }, [mediaPreferences])
+
   return (
     <BrowserRouter>
       <div className="mx-auto h-dvh max-w-md overflow-hidden">
@@ -153,6 +177,7 @@ export function App() {
           <Route path="/buscar" element={<AddScreen />} />
           <Route path="/concluidos" element={<CompletedScreen />} />
           <Route path="/configuracoes" element={<SettingsScreen />} />
+          <Route path="/categorias" element={<CategoriesScreen />} />
           <Route path="/como-me-chamar" element={<NicknameScreen />} />
           <Route path="/creditos" element={<CreditsScreen />} />
           <Route path="/feedback" element={<FeedbackScreen />} />

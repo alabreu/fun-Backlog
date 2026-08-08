@@ -19,6 +19,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-08-categorias',
+    date: '2026-08-08',
+    emoji: '🎛️',
+    title: {
+      pt: 'O app agora só mostra o que você consome',
+      en: 'The app now shows only what you actually follow',
+    },
+    items: {
+      pt: [
+        'Em Configurações › Editar categorias dá para desligar o que você não consome. Não assiste anime? Anime some da home, da busca e dos filtros.',
+        'Desligar também deixa a busca mais rápida: a fonte daquela mídia deixa de ser consultada a cada letra digitada.',
+        'Nada é apagado. O que estava guardado numa categoria desligada volta intacto ao religar.',
+        'Na mesma tela dá para arrastar e escolher a ordem das categorias — ela vale na home, na busca e nos filtros.',
+      ],
+      en: [
+        'Under Settings › Edit categories you can turn off what you do not follow. Not into anime? Anime disappears from the home, the search and the filters.',
+        'Turning one off also makes search faster: that source stops being queried on every keystroke.',
+        'Nothing is deleted. Whatever was saved in a category you turned off comes back untouched when you turn it on again.',
+        'On the same screen you can drag to set the order of the categories — it applies to the home, the search and the filters.',
+      ],
+    },
+  },
+  {
     id: '2026-08-08-ficha',
     date: '2026-08-08',
     emoji: '📖',

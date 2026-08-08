@@ -55,6 +55,7 @@ export interface CompletedSummary {
   episodesWatched: number
 }
 
+/** Ordem de exibição quando quem chama não passa a da pessoa. */
 const MEDIA_ORDER: MediaType[] = ['game', 'movie', 'series', 'anime', 'book']
 
 /**
@@ -65,7 +66,10 @@ const MEDIA_ORDER: MediaType[] = ['game', 'movie', 'series', 'anime', 'book']
  * o progresso preenchido conta 0 páginas, de propósito: o número precisa ser
  * dela, não uma estimativa nossa. Inflar isso transformaria o troféu em enfeite.
  */
-export function summarizeCompleted(items: Item[]): CompletedSummary {
+export function summarizeCompleted(
+  items: Item[],
+  order: MediaType[] = MEDIA_ORDER,
+): CompletedSummary {
   const counts = new Map<MediaType, number>()
   let hoursPlayed = 0
   let pagesRead = 0
@@ -83,7 +87,7 @@ export function summarizeCompleted(items: Item[]): CompletedSummary {
 
   return {
     total: items.length,
-    byMedia: MEDIA_ORDER.filter((m) => counts.has(m)).map((mediaType) => ({
+    byMedia: order.filter((m) => counts.has(m)).map((mediaType) => ({
       mediaType,
       count: counts.get(mediaType) as number,
     })),

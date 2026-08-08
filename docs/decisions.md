@@ -399,6 +399,59 @@ verdade é opaca e cobre — que é exatamente o comportamento desejado.
 
 ---
 
+## 12. Categorias ligáveis e ordenáveis
+
+**Decisão:** cada pessoa escolhe **quais mídias existem para ela** e **em que
+ordem**, em Configurações › Editar categorias. A escolha vale no app inteiro.
+
+**Por que ligar/desligar e não só reordenar:** quem não assiste anime paga o
+preço de anime três vezes — uma linha a mais na home, um chip a mais no filtro,
+e uma chamada de API a mais em cada busca. As duas primeiras são ruído; a
+terceira é lentidão medível. Desligar remove as três.
+
+**Desligar NUNCA apaga.** Os itens continuam salvos e voltam intactos ao
+religar. Um toque num interruptor não pode custar histórico.
+
+**Onde pega:** home, chips e agrupamento da busca, providers chamados,
+seletor do "adicionar à mão", rota `/estante/:media` (mídia desligada
+redireciona para a home) e a retrospectiva de Concluídos. **Uma ordem só para
+tudo** — se a home dissesse jogos primeiro e a busca dissesse anime primeiro, o
+app se contradiria para a mesma pessoa lendo as duas telas.
+
+**O filtro mora num lugar só**, o `useItems`. Filtrar tela a tela garantiria
+que um dia uma delas ficaria de fora e a categoria desligada reapareceria num
+canto — que lê como defeito. `useItems` também expõe `allItems`, e a tela de
+categorias é a única que usa: ela precisa mostrar quantos itens há em cada
+categoria, **inclusive nas desligadas**, senão desligar seria uma decisão às
+cegas.
+
+**Duas decisões de modelagem** (em `core/media/preferences.ts`):
+
+1. **Guardamos o que está DESLIGADO**, não o que está ligado — assim uma mídia
+   nova, num app futuro, nasce visível para quem já usa. Com a lista de ligados
+   ela nasceria escondida e ninguém saberia procurar.
+2. **A ordem guarda todas as mídias**, inclusive as desligadas, para religar
+   devolver a categoria ao lugar dela e não ao fim da fila.
+
+**Trava:** pelo menos uma categoria ligada, no núcleo e não só no botão
+desabilitado — zero categorias é uma home vazia, e regra que só existe na
+interface é regra que a próxima interface esquece.
+
+**Reordenar:** a alça é um **botão de verdade**, que recebe foco e responde a
+↑/↓. Quem arrasta e quem usa teclado operam o MESMO controle, em vez de a linha
+ganhar um par de setas visíveis que polui para todo mundo. O arraste é feito à
+mão (Pointer Events, `Reorderable` no design system): uma coluna, poucas
+linhas de mesma altura — o que uma biblioteca traria a mais (listas aninhadas,
+arrastar entre containers, virtualização) não existe aqui e custaria mais bytes
+que o componente inteiro.
+
+**Onde fica guardado:** localStorage, como apelido, idioma e tema. **Custo:**
+não sincroniza entre aparelhos. A alternativa seria uma tabela `profiles` no
+banco para cinco booleanos e uma ordem — quando houver sincronia de
+preferências, ela leva todas juntas.
+
+---
+
 ## Ainda em aberto
 
 - **Identidade visual**: paleta (primitivos em `src/index.css`), ícones reais e

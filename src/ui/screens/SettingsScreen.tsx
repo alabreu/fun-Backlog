@@ -3,6 +3,7 @@ import {
   Desktop,
   Info,
   Moon,
+  SquaresFour,
   Sun,
   UserCircle,
 } from '@phosphor-icons/react'
@@ -15,6 +16,7 @@ import { useThemeStore } from '@core/state/themeStore'
 import { LOCKED_THEME, THEMES, type Theme } from '@core/theme'
 import { Card, NavRow, Screen, ScreenBody, SectionTitle } from '@ui/design'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
+import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
 const THEME_META: Record<Theme, { icon: Icon; labelKey: MessageKey }> = {
@@ -33,6 +35,7 @@ export function SettingsScreen() {
   const { t, locale } = useTranslation()
   const navigate = useNavigate()
 
+  const { enabled } = useItems()
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const nickname = useNicknameStore((s) => s.nickname)
@@ -100,6 +103,19 @@ export function SettingsScreen() {
           label={t('menu.nickname')}
           trailing={vocativeFor(new Date(), locale, nickname, reroll)}
           onClick={() => navigate('/como-me-chamar')}
+        />
+
+        <SectionTitle className="mb-2 mt-8">
+          {t('settings.catalogLabel')}
+        </SectionTitle>
+
+        {/* Vale a linha própria: é a preferência que mais muda o app, porque
+            decide o que existe na home, na busca e nos filtros. */}
+        <NavRow
+          icon={<SquaresFour size={20} aria-hidden />}
+          label={t('categories.title')}
+          trailing={String(enabled.length)}
+          onClick={() => navigate('/categorias')}
         />
 
         <SectionTitle className="mb-2 mt-8">

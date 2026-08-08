@@ -240,7 +240,21 @@ export const en: Record<keyof typeof pt, string> = {
   'settings.themeHint':
     'Following the system matches your device, including the automatic switch at night.',
   'settings.greetingLabel': 'Greeting',
+  'settings.catalogLabel': 'Catalogue',
   'settings.aboutLabel': 'About',
+
+  // Categories: what you want to see, and in which order
+  'categories.title': 'Edit categories',
+  'categories.intro':
+    'Turn off what you do not follow and drag to set the order. It applies to the home, the search and the filters.',
+  'categories.itemCount': '{count} on your shelf',
+  'categories.itemCountEmpty': 'Nothing on your shelf',
+  'categories.hidden': 'Hidden',
+  'categories.handle': 'Reorder {name}',
+  'categories.moved': '{name}, position {position} of {total}',
+  'categories.keyboardHint':
+    'By keyboard: Tab to the handle and use the up and down arrows.',
+  'categories.lastOneHint': 'At least one category has to stay on.',
 
   // Credits for the data sources
   'credits.title': 'Credits',

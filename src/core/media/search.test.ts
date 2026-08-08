@@ -189,6 +189,53 @@ describe('searchAll', () => {
     expect(anime).toHaveBeenCalledOnce()
     expect(books).not.toHaveBeenCalled()
   })
+
+  // O ganho concreto de desligar uma categoria: uma chamada de rede a menos
+  // por letra digitada. Se isto passar a só filtrar o resultado, a busca fica
+  // igualmente lenta e o teste tem que reclamar.
+  it('nem chama o provider de uma mídia desligada', async () => {
+    const anime = vi.fn(async () => [result()])
+    const books = vi.fn(async () => [result({ mediaType: 'book' })])
+    PROVIDERS.push(
+      stubProvider({ id: 'anime', search: anime }),
+      stubProvider({ id: 'books', mediaTypes: ['book'], search: books }),
+    )
+
+    const outcome = await searchAll('bebop', { enabled: ['book'] })
+    expect(anime).not.toHaveBeenCalled()
+    expect(books).toHaveBeenCalledOnce()
+    expect(outcome.groups.map((g) => g.mediaType)).toEqual(['book'])
+  })
+
+  // A TMDB atende filme E série. Com só uma das duas ligada ela continua sendo
+  // chamada — e o que volta da outra é descartado no agrupamento.
+  it('provider compartilhado sobrevive, mas o grupo desligado não aparece', async () => {
+    const tmdb = vi.fn(async () => [
+      result({ mediaType: 'movie', externalId: '1' }),
+      result({ mediaType: 'series', externalId: '2' }),
+    ])
+    PROVIDERS.push(
+      stubProvider({ id: 'tmdb', mediaTypes: ['movie', 'series'], search: tmdb }),
+    )
+
+    const outcome = await searchAll('bebop', { enabled: ['movie'] })
+    expect(tmdb).toHaveBeenCalledOnce()
+    expect(outcome.groups.map((g) => g.mediaType)).toEqual(['movie'])
+  })
+
+  it('a ordem dos grupos é a que a pessoa escolheu', async () => {
+    PROVIDERS.push(
+      stubProvider({ id: 'a', search: async () => [result()] }),
+      stubProvider({
+        id: 'b',
+        mediaTypes: ['book'],
+        search: async () => [result({ mediaType: 'book' })],
+      }),
+    )
+
+    const outcome = await searchAll('bebop', { enabled: ['book', 'anime'] })
+    expect(outcome.groups.map((g) => g.mediaType)).toEqual(['book', 'anime'])
+  })
 })
 
 describe('ficha do AniList', () => {

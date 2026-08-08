@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { LinkSimple } from '@phosphor-icons/react'
 import { filterItems } from '@core/items/filter'
 import { mediaLabelKey, progressUnitFor, statusLabelKey } from '@core/items/status'
-import { MEDIA_TYPES, type Item, type MediaType } from '@core/items/types'
+import type { Item, MediaType } from '@core/items/types'
 import { parseMediaLink } from '@core/media/link'
 import {
   hasProviderFor,
@@ -53,7 +53,7 @@ const EMPTY: SearchOutcome = { groups: [], failed: [], skippedNeedingAuth: [] }
  */
 export function AddScreen() {
   const { t } = useTranslation()
-  const { items, add, remove, signedIn } = useItems()
+  const { items, add, remove, enabled, signedIn } = useItems()
 
   const [query, setQuery] = useState('')
   const [media, setMedia] = useState<MediaType | undefined>()
@@ -131,6 +131,7 @@ export function AddScreen() {
             )
           : searchAll(searchQuery, {
               mediaType: searchMedia,
+              enabled,
               signedIn,
               signal: controller.signal,
             })
@@ -159,7 +160,7 @@ export function AddScreen() {
     }, DEBOUNCE_MS)
 
     return () => clearTimeout(timer)
-  }, [searchQuery, searchMedia, active, link, noSource, signedIn])
+  }, [searchQuery, searchMedia, active, link, noSource, signedIn, enabled])
 
   async function addResult(result: MediaSearchResult) {
     // O total que o provider já sabe (episódios, páginas) entra junto: é o que
@@ -229,7 +230,7 @@ export function AddScreen() {
             >
               {t('catalog.filterAll')}
             </Chip>
-            {MEDIA_TYPES.map((type) => (
+            {enabled.map((type) => (
               <Chip
                 key={type}
                 media={type}

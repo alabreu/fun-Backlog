@@ -237,7 +237,22 @@ export const pt = {
   'settings.themeHint':
     'Seguir o sistema acompanha o ajuste do seu aparelho, inclusive a troca automática à noite.',
   'settings.greetingLabel': 'Saudação',
+  'settings.catalogLabel': 'Catálogo',
   'settings.aboutLabel': 'Sobre',
+
+  // Categorias: o que você quer ver, e em que ordem
+  'categories.title': 'Editar categorias',
+  'categories.intro':
+    'Desligue o que você não consome e arraste para escolher a ordem. Vale na home, na busca e nos filtros.',
+  'categories.itemCount': '{count} na estante',
+  'categories.itemCountEmpty': 'Nada na estante',
+  'categories.hidden': 'Escondida',
+  'categories.handle': 'Reordenar {name}',
+  'categories.moved': '{name}, posição {position} de {total}',
+  'categories.keyboardHint':
+    'Pelo teclado: chegue na alça com Tab e use as setas para cima e para baixo.',
+  'categories.lastOneHint':
+    'Pelo menos uma categoria precisa ficar ligada.',
 
   // Créditos das fontes de dados
   'credits.title': 'Créditos',

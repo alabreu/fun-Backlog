@@ -29,7 +29,7 @@ import { useTranslation } from '@ui/hooks/useTranslation'
  */
 export function CompletedScreen() {
   const { t, locale } = useTranslation()
-  const { items, loading } = useItems()
+  const { items, enabled, loading } = useItems()
 
   const years = useMemo(() => yearsWithCompletions(items), [items])
 
@@ -41,7 +41,10 @@ export function CompletedScreen() {
     chosen === null ? years[0] : chosen === 'all' ? undefined : chosen
 
   const shown = useMemo(() => completedInYear(items, year), [items, year])
-  const summary = useMemo(() => summarizeCompleted(shown), [shown])
+  const summary = useMemo(
+    () => summarizeCompleted(shown, enabled),
+    [shown, enabled],
+  )
 
   const dateFmt = new Intl.DateTimeFormat(locale, {
     day: '2-digit',

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { mediaLabelKey } from '@core/items/status'
-import { MEDIA_TYPES, type MediaType } from '@core/items/types'
+import type { MediaType } from '@core/items/types'
 import { Button, Chip, Field, Input, Sheet } from '@ui/design'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -56,10 +56,12 @@ function ManualForm({
   onClose: () => void
 }) {
   const { t } = useTranslation()
-  const { add } = useItems()
+  const { add, enabled } = useItems()
 
   const [title, setTitle] = useState(initialTitle)
-  const [media, setMedia] = useState<MediaType>(initialMedia ?? 'game')
+  // O padrão é a PRIMEIRA categoria ligada, não 'game' fixo: quem desligou
+  // jogos abriria o painel com uma opção que nem está na lista.
+  const [media, setMedia] = useState<MediaType>(initialMedia ?? enabled[0])
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
@@ -99,7 +101,7 @@ function ManualForm({
           {t('add.manualMediaLabel')}
         </legend>
         <div className="flex flex-wrap gap-2">
-          {MEDIA_TYPES.map((type) => (
+          {enabled.map((type) => (
             <Chip
               key={type}
               media={type}

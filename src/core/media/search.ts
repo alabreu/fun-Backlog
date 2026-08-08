@@ -41,12 +41,21 @@ export interface SearchOptions {
   mediaType?: MediaType
   /** Sem sessão, providers com chave nem são chamados (dariam 401). */
   signedIn?: boolean
+  /**
+   * As mídias que a pessoa mantém ligadas, NA ORDEM dela. Ausente = todas, que
+   * é o padrão e o que os testes usam.
+   *
+   * Não é só filtro de exibição: provider de mídia desligada não é CHAMADO. Uma
+   * busca a menos por letra digitada é o ganho concreto de desligar uma
+   * categoria — buscar "the last" com anime desligado deixa de bater no AniList.
+   */
+  enabled?: MediaType[]
   signal?: AbortSignal
 }
 
-/** Ordem de exibição dos grupos. Fixa de propósito: a posição de cada mídia na
- *  tela não deve dançar entre buscas — a memória muscular importa mais que
- *  ordenar por quantidade de resultados. */
+/** Ordem de exibição dos grupos quando a pessoa não escolheu a dela. A posição
+ *  de cada mídia na tela não deve dançar entre buscas — memória muscular importa
+ *  mais que ordenar por quantidade de resultados. */
 const GROUP_ORDER: MediaType[] = ['game', 'movie', 'series', 'anime', 'book']
 
 /**
@@ -72,12 +81,16 @@ export async function searchAll(
   if (trimmed.length < 2)
     return { groups: [], failed: [], skippedNeedingAuth: [] }
 
-  const { mediaType, signedIn = false, signal } = options
+  const { mediaType, signedIn = false, enabled = GROUP_ORDER, signal } = options
   const failed: string[] = []
   const skippedNeedingAuth: string[] = []
 
   const eligible = PROVIDERS.filter((p) => {
     if (mediaType && !p.mediaTypes.includes(mediaType)) return false
+    // Provider que só serve mídia desligada não é chamado. Um provider que
+    // atende duas mídias (a TMDB faz filme e série) continua valendo enquanto
+    // UMA delas estiver ligada — os resultados da outra caem no agrupamento.
+    if (!p.mediaTypes.some((m) => enabled.includes(m))) return false
     if (p.requiresServer && !signedIn) {
       skippedNeedingAuth.push(p.id)
       return false
@@ -107,10 +120,15 @@ export async function searchAll(
     else byType.set(result.mediaType, [result])
   }
 
-  const groups = GROUP_ORDER.filter((type) => byType.has(type)).map((type) => ({
-    mediaType: type,
-    results: byType.get(type) as MediaSearchResult[],
-  }))
+  // `enabled` manda nas duas coisas: quem aparece e em que ordem. Um resultado
+  // de mídia desligada que veio de carona num provider compartilhado (a série
+  // que a TMDB devolveu para quem só quer filmes) é descartado aqui.
+  const groups = enabled
+    .filter((type) => byType.has(type))
+    .map((type) => ({
+      mediaType: type,
+      results: byType.get(type) as MediaSearchResult[],
+    }))
 
   return { groups, failed, skippedNeedingAuth }
 }

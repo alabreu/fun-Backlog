@@ -22,9 +22,16 @@ const EMPTY: SearchOutcome = { groups: [], failed: [], skippedNeedingAuth: [] }
  */
 export function useExternalSearch(
   query: string,
-  options: { mediaType?: MediaType; signedIn: boolean; enabled?: boolean },
+  options: {
+    mediaType?: MediaType
+    signedIn: boolean
+    /** Categorias ligadas — provider de mídia desligada nem é chamado. */
+    enabledMedia?: MediaType[]
+    /** Liga/desliga a busca inteira (a tela ainda não quer buscar). */
+    enabled?: boolean
+  },
 ): { outcome: SearchOutcome; searching: boolean } {
-  const { mediaType, signedIn, enabled = true } = options
+  const { mediaType, signedIn, enabledMedia, enabled = true } = options
 
   const [outcome, setOutcome] = useState<SearchOutcome>(EMPTY)
   const [searching, setSearching] = useState(false)
@@ -41,7 +48,12 @@ export function useExternalSearch(
       const controller = new AbortController()
       abortRef.current = controller
 
-      searchAll(query, { mediaType, signedIn, signal: controller.signal })
+      searchAll(query, {
+        mediaType,
+        enabled: enabledMedia,
+        signedIn,
+        signal: controller.signal,
+      })
         .then((result) => {
           if (controller.signal.aborted) return
           setOutcome(result)
@@ -53,7 +65,7 @@ export function useExternalSearch(
     }, DEBOUNCE_MS)
 
     return () => clearTimeout(timer)
-  }, [query, mediaType, signedIn, active])
+  }, [query, mediaType, enabledMedia, signedIn, active])
 
   // Sem busca ativa o resultado é vazio, e não o da busca anterior: senão
   // apagar o campo deixaria a lista antiga na tela.

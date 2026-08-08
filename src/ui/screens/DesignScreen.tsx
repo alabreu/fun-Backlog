@@ -14,8 +14,10 @@ import {
   Screen,
   ScreenBody,
   SectionTitle,
+  Reorderable,
   Sheet,
   Textarea,
+  Toggle,
 } from '@ui/design'
 import { MEDIA_TYPES, type MediaType } from '@core/items/types'
 import { useThemeStore } from '@core/state/themeStore'
@@ -72,6 +74,8 @@ export function DesignScreen() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [theme, setTheme] = useState<Theme>('system')
   const [mediaChip, setMediaChip] = useState<MediaType>('game')
+  const [ligado, setLigado] = useState(true)
+  const [ordem, setOrdem] = useState<MediaType[]>([...MEDIA_TYPES])
 
   // A vitrine sobrepõe o tema para dar para conferir os dois lados sem mexer
   // na preferência de ninguém. Ao sair, RESTAURA o que o usuário escolheu em
@@ -283,6 +287,41 @@ export function DesignScreen() {
               bordered — borda mais marcada
             </Card>
           </div>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">Toggle</SectionTitle>
+          <div className="flex items-center gap-4">
+            <Toggle checked={ligado} onChange={setLigado} label="Exemplo" />
+            <Toggle checked onChange={() => {}} label="Travado" disabled />
+            <span className="text-label text-muted">
+              {ligado ? 'ligado' : 'desligado'}
+            </span>
+          </div>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">Reorderable</SectionTitle>
+          <Reorderable
+            items={ordem.map((m) => ({
+              id: m,
+              name: m,
+              content: <span className="text-body font-semibold">{m}</span>,
+            }))}
+            onMove={(from, to) =>
+              setOrdem((atual) => {
+                const proxima = [...atual]
+                const [movido] = proxima.splice(from, 1)
+                proxima.splice(to, 0, movido)
+                return proxima
+              })
+            }
+            handleLabel={(name) => `Reordenar ${name}`}
+            announce={(name, pos, total) => `${name}, ${pos} de ${total}`}
+          />
+          <p className="mt-2 text-label text-muted">
+            Arraste pela alça. Pelo teclado: Tab até a alça e setas ↑/↓.
+          </p>
         </section>
 
         <section>

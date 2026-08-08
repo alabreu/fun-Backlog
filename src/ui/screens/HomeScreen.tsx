@@ -10,7 +10,7 @@ import {
   shelfProgress,
   suggestFromBacklog,
 } from '@core/items/stats'
-import { MEDIA_TYPES, type Item } from '@core/items/types'
+import type { Item } from '@core/items/types'
 import {
   Avatar,
   Badge,
@@ -44,7 +44,7 @@ import { useTranslation } from '@ui/hooks/useTranslation'
 export function HomeScreen() {
   const { t, locale } = useTranslation()
   const navigate = useNavigate()
-  const { items, loading } = useItems()
+  const { items, enabled, loading } = useItems()
   const { user } = useAuth()
   const nickname = useNicknameStore((s) => s.nickname)
   const reroll = useNicknameStore((s) => s.reroll)
@@ -174,7 +174,7 @@ export function HomeScreen() {
 
         <SectionTitle className="mb-2 mt-6">{t('home.shelves')}</SectionTitle>
         <div className="flex flex-col gap-2 pb-20">
-          {MEDIA_TYPES.map((mediaType) => {
+          {enabled.map((mediaType) => {
             const { completed, total } = shelfProgress(items, mediaType)
             return (
               <NavRow
