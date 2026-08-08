@@ -344,83 +344,108 @@ function FactList({ facts }: { facts: MediaFact[] }) {
 
   return (
     <dl className="flex flex-col gap-1.5">
-      {facts.map((fact) => (
-        <div key={fact.labelKey} className="flex gap-2">
-          <dt className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
-            {t(fact.labelKey as MessageKey)}
-          </dt>
-          <dd className="min-w-0 flex-1 text-body">
-            {/* UM `if`, e sobre a CHAVE SEMÂNTICA do fato — não sobre o
+      {facts.map((fact) => {
+        // As duas formas de valor que viram LISTA (flex aninhado), decididas
+        // uma vez porque o alinhamento da linha depende delas.
+        const comIcones = fact.labelKey === 'fact.platforms' && fact.values
+        const comLinks = !comIcones && fact.links?.some(Boolean)
+
+        return (
+          // ALINHAMENTO, e por que ele é condicional (medido no Chromium, com
+          // sonda de linha-base):
+          //
+          //                     texto puro   com ícones   com links
+          //   topo (padrão)        -4px         +1px         +1px
+          //   items-baseline        0px         +9px         +5px
+          //
+          // Rótulo (11px numa linha de 16) e valor (14px numa de 20) empilhados
+          // pelo topo ficam 4px fora de registro: o rótulo flutua acima. O
+          // `items-baseline` zera isso — mas SÓ no texto puro. Valor que é
+          // lista é um flex aninhado, e a linha-base de um flex vem do PRIMEIRO
+          // ITEM dele: o ícone de 18px, cuja base fica 9px abaixo da do texto.
+          // Ali o alinhamento pelo topo já acerta, porque as duas caixas
+          // começam juntas. Daí a condição — não é gosto, é onde cada regra
+          // mede melhor.
+          <div
+            key={fact.labelKey}
+            className={`flex gap-2 ${comIcones || comLinks ? '' : 'items-baseline'}`}
+          >
+            <dt className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
+              {t(fact.labelKey as MessageKey)}
+            </dt>
+            <dd className="min-w-0 flex-1 text-body">
+              {/* UM `if`, e sobre a CHAVE SEMÂNTICA do fato — não sobre o
                 provider. Plataforma é a única lista que ganha desenho, porque é
                 a única em que a forma identifica mais rápido que a palavra.
                 O nome fica escrito do lado: o ícone reforça, nunca substitui. */}
-            {fact.labelKey === 'fact.platforms' && fact.values ? (
-              // SEM cápsula, separado por ponto. O rótulo "PLATAFORMAS" à
-              // esquerda já emoldura a lista — pôr cada item numa pílula era
-              // emoldurar duas vezes. O que separa um item do outro passa a ser
-              // o ponto, do mesmo jeito que "Quem fez" logo abaixo já fazia.
-              //
-              // A COR aqui é da plataforma, não da mídia, e é o único lugar do
-              // app onde ela aparece (ver PLATFORM_TEXT). Ícone e nome pegam a
-              // mesma cor; o ponto separador fica em `muted`, senão ele
-              // pertenceria visualmente ao item da esquerda.
-              <span className="flex flex-wrap items-center gap-y-1">
-                {fact.values.map((value, i) => {
-                  const family = value as PlatformFamily
-                  return (
-                    // O separador vem DEPOIS do item e dentro do mesmo bloco:
-                    // assim "Xbox ·" quebra a linha como uma coisa só. Com o
-                    // ponto antes do item, uma quebra deixava a linha de baixo
-                    // começando com um "·" órfão.
-                    <span key={family} className="inline-flex items-center">
-                      <span
-                        className={`inline-flex items-center gap-1.5 ${PLATFORM_TEXT[family]}`}
-                      >
-                        <PlatformIcon family={family} size={18} />
-                        {FAMILY_LABEL[family]}
+              {comIcones ? (
+                // SEM cápsula, separado por ponto. O rótulo "PLATAFORMAS" à
+                // esquerda já emoldura a lista — pôr cada item numa pílula era
+                // emoldurar duas vezes. O que separa um item do outro passa a ser
+                // o ponto, do mesmo jeito que "Quem fez" logo abaixo já fazia.
+                //
+                // A COR aqui é da plataforma, não da mídia, e é o único lugar do
+                // app onde ela aparece (ver PLATFORM_TEXT). Ícone e nome pegam a
+                // mesma cor; o ponto separador fica em `muted`, senão ele
+                // pertenceria visualmente ao item da esquerda.
+                <span className="flex flex-wrap items-center gap-y-1">
+                  {fact.values.map((value, i) => {
+                    const family = value as PlatformFamily
+                    return (
+                      // O separador vem DEPOIS do item e dentro do mesmo bloco:
+                      // assim "Xbox ·" quebra a linha como uma coisa só. Com o
+                      // ponto antes do item, uma quebra deixava a linha de baixo
+                      // começando com um "·" órfão.
+                      <span key={family} className="inline-flex items-center">
+                        <span
+                          className={`inline-flex items-center gap-1.5 ${PLATFORM_TEXT[family]}`}
+                        >
+                          <PlatformIcon family={family} size={18} />
+                          {FAMILY_LABEL[family]}
+                        </span>
+                        {i < (fact.values?.length ?? 0) - 1 && (
+                          <span aria-hidden className="mx-2 text-muted">
+                            ·
+                          </span>
+                        )}
                       </span>
-                      {i < (fact.values?.length ?? 0) - 1 && (
-                        <span aria-hidden className="mx-2 text-muted">
-                          ·
-                        </span>
-                      )}
-                    </span>
-                  )
-                })}
-              </span>
-            ) : fact.links?.some(Boolean) ? (
-              // Lista COM LINK: cada item vira o caminho para a página da obra
-              // naquele serviço ou loja. Mesma forma da linha de plataformas —
-              // ponto separador depois do item, dentro do mesmo bloco, para o
-              // par "Steam ·" quebrar a linha inteiro.
-              //
-              // Item sem link continua sendo texto: `links` é paralelo a
-              // `values`, e um buraco no meio não pode empurrar os outros.
-              <span className="flex flex-wrap items-center gap-y-1">
-                {(fact.values ?? []).map((value, i) => {
-                  const href = fact.links?.[i]
-                  return (
-                    <span key={value} className="inline-flex items-center">
-                      {href ? (
-                        <ExternalLink href={href}>{value}</ExternalLink>
-                      ) : (
-                        value
-                      )}
-                      {i < (fact.values?.length ?? 0) - 1 && (
-                        <span aria-hidden className="mx-2 text-muted">
-                          ·
-                        </span>
-                      )}
-                    </span>
-                  )
-                })}
-              </span>
-            ) : (
-              fact.value
-            )}
-          </dd>
-        </div>
-      ))}
+                    )
+                  })}
+                </span>
+              ) : comLinks ? (
+                // Lista COM LINK: cada item vira o caminho para a página da obra
+                // naquele serviço ou loja. Mesma forma da linha de plataformas —
+                // ponto separador depois do item, dentro do mesmo bloco, para o
+                // par "Steam ·" quebrar a linha inteiro.
+                //
+                // Item sem link continua sendo texto: `links` é paralelo a
+                // `values`, e um buraco no meio não pode empurrar os outros.
+                <span className="flex flex-wrap items-center gap-y-1">
+                  {(fact.values ?? []).map((value, i) => {
+                    const href = fact.links?.[i]
+                    return (
+                      <span key={value} className="inline-flex items-center">
+                        {href ? (
+                          <ExternalLink href={href}>{value}</ExternalLink>
+                        ) : (
+                          value
+                        )}
+                        {i < (fact.values?.length ?? 0) - 1 && (
+                          <span aria-hidden className="mx-2 text-muted">
+                            ·
+                          </span>
+                        )}
+                      </span>
+                    )
+                  })}
+                </span>
+              ) : (
+                fact.value
+              )}
+            </dd>
+          </div>
+        )
+      })}
     </dl>
   )
 }
