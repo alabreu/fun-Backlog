@@ -2,30 +2,28 @@ import { useMemo, useState } from 'react'
 import { MagnifyingGlass } from '@phosphor-icons/react'
 import { Navigate, useParams } from 'react-router'
 import { filterItems, sortForShelf } from '@core/items/filter'
-import { mediaLabelKey, progressUnitFor, statusLabelKey } from '@core/items/status'
 import {
-  ITEM_STATUSES,
-  MEDIA_TYPES,
-  type Item,
-  type ItemStatus,
-  type MediaType,
-} from '@core/items/types'
+  mediaLabelKey,
+  progressUnitFor,
+  shelfSections,
+  statusLabelKey,
+} from '@core/items/status'
+import { MEDIA_TYPES, type Item, type MediaType } from '@core/items/types'
 import { hasProviderFor } from '@core/media/search'
 import type { MediaSearchResult } from '@core/media/types'
 import {
-  Badge,
-  Chip,
-  ChipRow,
   Cover,
   CoverAction,
   CoverGrid,
   Input,
   Screen,
   ScreenBody,
+  Section,
   SectionTitle,
 } from '@ui/design'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
+import { useCollapsedSections } from '@ui/hooks/useCollapsedSections'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -44,12 +42,25 @@ function isMediaType(value: string | undefined): value is MediaType {
  * ainda perguntava de novo a mídia que a navegação já tinha decidido.
  *
  * Por isso não há filtro de mídia nesta tela: estando dentro de Jogos, tudo o
- * que aparece é jogo. O filtro que sobra é o de STATUS, que fala do seu
- * acervo, não do catálogo.
+ * que aparece é jogo.
  *
- * "Concluídos" não é uma tela à parte: é o filtro de status desta aqui. A
- * retrospectiva por ano — que é cross-mídia por natureza — continua em
- * /concluidos, no menu.
+ * O STATUS DEIXOU DE SER FILTRO E VIROU ESTRUTURA. Os chips mostravam um estado
+ * por vez e escondiam que os outros existiam — saber "quantos eu tenho
+ * pausados" custava um toque e um retorno. As seções mostram a estrutura
+ * inteira de uma vez, com a contagem no título, e quem quiser esconder o
+ * arquivo fecha a seção (e ela continua fechada da próxima vez).
+ *
+ * TODAS AS SEÇÕES APARECEM, inclusive as vazias, e todas nascem abertas. É uma
+ * decisão de produto: com nada escondido, a ORDEM é o que organiza a tela, e
+ * ela muda por mídia (ver `SHELF_SECTIONS`). Uma seção vazia também informa —
+ * "não tenho nada pausado" é uma resposta.
+ *
+ * BUSCAR ABRE TUDO. Um acerto dentro de uma seção fechada seria o pior desfecho
+ * possível: a tela diria "nada encontrado" com a resposta escondida a um toque
+ * de distância.
+ *
+ * "Concluídos" não é uma tela à parte: é uma seção desta aqui. A retrospectiva
+ * por ano — que é cross-mídia por natureza — continua em /concluidos, no menu.
  */
 export function ShelfScreen() {
   const { t } = useTranslation()
@@ -57,7 +68,6 @@ export function ShelfScreen() {
   const { items, error, add, enabled, signedIn } = useItems()
 
   const [selected, setSelected] = useState<SheetSubject | null>(null)
-  const [status, setStatus] = useState<ItemStatus | undefined>()
   const [query, setQuery] = useState('')
 
   // Mídia desligada vira mídia inexistente: quem chega em /estante/anime pelo
@@ -74,12 +84,28 @@ export function ShelfScreen() {
     enabled: Boolean(mediaType),
   })
 
+  const { closed, toggle } = useCollapsedSections(mediaType)
+
   const visible = useMemo(
     () =>
       mediaType
-        ? sortForShelf(filterItems(items, { mediaType, status, query: trimmed }))
+        ? sortForShelf(filterItems(items, { mediaType, query: trimmed }))
         : [],
-    [items, mediaType, status, trimmed],
+    [items, mediaType, trimmed],
+  )
+
+  // Os itens já filtrados, agrupados por status e na ordem de seções da mídia.
+  // A contagem que aparece no título é a DESTE recorte, não a da estante
+  // inteira: buscando "zelda", "Jogando 2" quer dizer "dois acertos aqui".
+  const sections = useMemo(
+    () =>
+      mediaType
+        ? shelfSections(mediaType).map((value) => ({
+            status: value,
+            items: visible.filter((i) => i.status === value),
+          }))
+        : [],
+    [mediaType, visible],
   )
 
   const total = useMemo(
@@ -157,68 +183,53 @@ export function ShelfScreen() {
           />
         </div>
 
-        {total > 0 && (
-          <ChipRow className="mb-3">
-            <Chip selected={!status} onClick={() => setStatus(undefined)}>
-              {t('catalog.filterAll')}
-            </Chip>
-            {ITEM_STATUSES.map((value) => (
-              <Chip
-                key={value}
-                selected={status === value}
-                onClick={() => setStatus(status === value ? undefined : value)}
-                className="whitespace-nowrap"
-              >
-                {t(statusLabelKey(value, mediaType))}
-              </Chip>
-            ))}
-          </ChipRow>
-        )}
-
         {error && (
           <p role="alert" className="mb-3 text-body text-danger">
             {t('catalog.loadError')}
           </p>
         )}
 
-        {visible.length > 0 && (
-          <>
-            <p className="mb-2 text-label text-muted">
-              {t('catalog.count', { count: visible.length, total })}
-            </p>
-            <CoverGrid>
-              {visible.map((item, index) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelected(item)}
-                    className="w-full text-left transition active:scale-95"
-                  >
-                    <div className="relative">
-                      <Cover
-                        src={item.coverUrl}
-                        title={item.title}
-                        media={item.mediaType}
-                        active={item.status === 'active'}
-                        lazy={index > 5}
-                      />
-                      {item.status !== 'backlog' && (
-                        <Badge
-                          tone="onCover"
-                          className="absolute bottom-1.5 left-1.5"
-                        >
-                          {t(statusLabelKey(item.status, item.mediaType))}
-                        </Badge>
-                      )}
-                    </div>
-                    <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
-                      {item.title}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </CoverGrid>
-          </>
+        {total > 0 && (
+          <div className="flex flex-col">
+            {sections.map(({ status: value, items: found }) => (
+              <Section
+                key={value}
+                title={t(statusLabelKey(value, mediaType))}
+                count={found.length}
+                // Com busca em curso, aberto SEMPRE: ver o cabeçalho do arquivo.
+                open={searchingExternal || !closed.includes(value)}
+                onToggle={() => toggle(value)}
+                emptyLabel={t('shelf.sectionEmpty')}
+              >
+                <CoverGrid>
+                  {found.map((item, index) => (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelected(item)}
+                        className="w-full text-left transition active:scale-95"
+                      >
+                        {/* Sem o badge de status sobre a capa: o título da
+                            seção já diz o estado de todas elas, e repetir a
+                            palavra em cada capa era ruído. É o título que
+                            cobre a WCAG 1.4.1 pelo traço colorido. */}
+                        <Cover
+                          src={item.coverUrl}
+                          title={item.title}
+                          media={item.mediaType}
+                          active={item.status === 'active'}
+                          lazy={index > 5}
+                        />
+                        <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
+                          {item.title}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </CoverGrid>
+              </Section>
+            ))}
+          </div>
         )}
 
         {/* Estante vazia e ninguém procurando: o convite. Com busca em curso

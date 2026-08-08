@@ -111,3 +111,40 @@ export function datesForStatus(
     completedAt: status === 'done' ? (current.completedAt ?? now) : undefined,
   }
 }
+
+/**
+ * A ORDEM DAS SEÇÕES da estante, por mídia.
+ *
+ * A estante deixou de ter filtro de status e passou a ter seções fixas, todas
+ * visíveis — inclusive as vazias. Com nada escondido, a ordem é a única coisa
+ * que organiza a tela, e ela não pode ser a mesma para as cinco mídias porque a
+ * pergunta que se faz ao abrir cada estante é diferente.
+ *
+ * A regra é uma só: PRIMEIRO O QUE VOCÊ MAIS PROVAVELMENTE VEIO FAZER.
+ *
+ * - Jogos, séries, animes e livros abrem com o que está EM ANDAMENTO. São
+ *   mídias de sessão longa: você volta para continuar, não para escolher.
+ *
+ * - Filmes abrem com a FILA. "Assistindo" um filme é um estado de duas horas,
+ *   que na prática está quase sempre vazio — pôr uma seção vazia no topo da
+ *   estante mais usada para escolher seria organizar pela exceção.
+ *
+ * Depois disso: pausado (a fila viva de segunda ordem), concluído e abandonado.
+ * Os dois últimos são ARQUIVO — consulta, não decisão — e por isso vão ao fim
+ * em todas as mídias.
+ *
+ * Pausado fica alto de propósito em jogos, séries, animes e livros: é onde mora
+ * o que foi largado no meio, que é candidato a retomar. Em filmes ele desce,
+ * porque filme pausado é raro.
+ */
+export const SHELF_SECTIONS: Record<MediaType, ItemStatus[]> = {
+  game: ['active', 'backlog', 'paused', 'done', 'abandoned'],
+  series: ['active', 'backlog', 'paused', 'done', 'abandoned'],
+  anime: ['active', 'backlog', 'paused', 'done', 'abandoned'],
+  book: ['active', 'backlog', 'paused', 'done', 'abandoned'],
+  movie: ['backlog', 'active', 'paused', 'done', 'abandoned'],
+}
+
+export function shelfSections(mediaType: MediaType): ItemStatus[] {
+  return SHELF_SECTIONS[mediaType]
+}

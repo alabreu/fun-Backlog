@@ -19,6 +19,33 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-08-secoes',
+    date: '2026-08-08',
+    emoji: '🗂️',
+    title: {
+      pt: 'A estante agora tem seções, não filtros',
+      en: 'Shelves now have sections, not filters',
+    },
+    items: {
+      pt: [
+        'Os chips de status viraram seções com título e contagem: dá para ver de uma vez quantos você tem em cada estado, sem tocar em nada.',
+        'Cada seção fecha, e continua fechada da próxima vez — bom para tirar "Zerado" e "Abandonado" da frente.',
+        'A ordem das seções muda por mídia: jogos, séries, animes e livros abrem pelo que está em andamento; filmes abrem pela fila.',
+        'Buscar dentro da estante abre todas as seções e mostra quantos acertos há em cada uma.',
+        'A capa do que está em andamento ganhou um traço na cor da mídia.',
+        'A busca de jogos deixou de perder títulos conhecidos: procurar "zelda" agora traz Majora\u2019s Mask e Tears of the Kingdom.',
+      ],
+      en: [
+        'The status chips became sections with a title and a count: you can see how many you have in each state at a glance, without tapping anything.',
+        'Each section collapses, and stays collapsed next time — handy for pushing "Finished" and "Dropped" out of the way.',
+        'Section order changes per media: games, series, anime and books open with what is in progress; films open with the queue.',
+        'Searching inside a shelf opens every section and shows how many hits each one has.',
+        'Covers of things in progress now carry a stroke in the media colour.',
+        'Game search stopped losing well-known titles: searching "zelda" now brings Majora\u2019s Mask and Tears of the Kingdom.',
+      ],
+    },
+  },
+  {
     id: '2026-08-08-categorias',
     date: '2026-08-08',
     emoji: '🎛️',

@@ -52,7 +52,7 @@ da TMDB, cadastrados como secrets do Supabase.
 | 🟢 | Imports de biblioteca | Steam (`GetOwnedGames`: biblioteca + horas jogadas; sem login — basta perfil público, ver decisão 8), Letterboxd (CSV), AniList (username). É **aqui** que um login de terceiro se paga, e não na IGDB (decisão 7): do outro lado existe uma biblioteca sua. Todos precisam de tela de revisão antes de commitar |
 | 🟢 | Visualização em lista compacta | Briefing feature 1, para quem tem backlog gigante |
 | 🟢 | UI de tags | A coluna existe no schema desde a `0004` e nada na tela usa |
-| 🟢 | Ordenação configurável | Hoje a ordem da estante é fixa (em andamento primeiro, depois por data) |
+| 🟢 | Ordenação configurável | A estante agora é por seções (decisão 13) e a ordem DELAS é fixa por mídia. Falta poder ordenar DENTRO da seção — hoje é por data de entrada, mais novo primeiro |
 | 🟢 | Progresso ao mudar de status | Concluir não preenche o progresso até o total conhecido, nem o contrário. Falta decidir se é automático |
 | 🟢 | `status_detail` sem UI | "Platinado", "em dia": o campo existe no banco e nada o escreve |
 | 🟢 | Google Books como fallback de livros | Open Library tem buracos de cobertura e capa ruim — o briefing já previa |

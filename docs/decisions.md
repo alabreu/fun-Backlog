@@ -471,6 +471,48 @@ preferências, ela leva todas juntas.
 
 ---
 
+## 13. Estante por seções, não por filtro de status
+
+**Decisão (08/08/2026):** os chips de status saíram; a estante virou seções
+colapsáveis, uma por status, com contagem no título.
+
+**Por quê:** o chip mostra UM estado por vez e esconde que os outros existem.
+Saber "quantos eu tenho pausados" custava um toque e um retorno. As seções
+mostram a estrutura inteira de uma vez, e quem quer esconder o arquivo fecha a
+seção — que continua fechada da próxima vez (localStorage, por mídia).
+
+**Todas aparecem, inclusive as vazias, e todas nascem abertas.** Com nada
+escondido, a ORDEM é a única coisa que organiza a tela — e por isso ela muda por
+mídia. Seção vazia também informa: "não tenho nada pausado" é uma resposta.
+
+**A ordem, e o porquê de cada uma** (`SHELF_SECTIONS` em `core/items/status.ts`):
+
+| Mídia | Ordem |
+| --- | --- |
+| Jogos, séries, animes, livros | em andamento → fila → pausado → concluído → abandonado |
+| Filmes | **fila** → em andamento → pausado → concluído → abandonado |
+
+A regra é "primeiro o que você mais provavelmente veio fazer". Jogos, séries,
+animes e livros são mídias de sessão longa: você volta para CONTINUAR. Filme é o
+contrário — "assistindo" é um estado de duas horas, quase sempre vazio, e a
+estante de filmes serve para ESCOLHER. Pôr uma seção vazia no topo dela seria
+organizar pela exceção. Concluído e abandonado são arquivo (consulta, não
+decisão) e vão ao fim em todas.
+
+**Buscar abre tudo.** Um acerto dentro de uma seção fechada seria o pior
+desfecho: a tela pareceria dizer "nada encontrado" com a resposta a um toque de
+distância. Buscando, a contagem do título vira contagem de ACERTOS por seção.
+
+**O badge de status sobre a capa saiu junto:** dentro da seção "Jogando", dizer
+"Jogando" em cada capa era repetir a mesma palavra N vezes. É o título da seção
+que agora cobre a WCAG 1.4.1 para o traço colorido das capas em andamento.
+
+**O que custa:** os chips diziam a contagem de todos os estados sem rolar. Agora
+é preciso rolar para ver a contagem das seções de baixo. Troca aceita: ler cinco
+números de uma vez é menos frequente que procurar dentro de um deles.
+
+---
+
 ## Ainda em aberto
 
 - **Identidade visual**: paleta (primitivos em `src/index.css`), ícones reais e

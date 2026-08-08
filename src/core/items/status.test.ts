@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { datesForStatus, progressUnitFor, statusLabelKey } from './status'
-import { MEDIA_TYPES } from './types'
+import {
+  datesForStatus,
+  progressUnitFor,
+  shelfSections,
+  statusLabelKey,
+} from './status'
+import { ITEM_STATUSES, MEDIA_TYPES } from './types'
 
 describe('statusLabelKey', () => {
   it('varia o rótulo por mídia só onde a palavra muda', () => {
@@ -75,3 +80,32 @@ describe('datesForStatus', () => {
     )
   })
 })
+
+describe('SHELF_SECTIONS', () => {
+  it('toda mídia lista os cinco estados, sem sobrar nem faltar', () => {
+    for (const media of MEDIA_TYPES) {
+      const secoes = shelfSections(media)
+      expect([...secoes].sort()).toEqual([...ITEM_STATUSES].sort())
+    }
+  })
+
+  // Arquivo é consulta, não decisão: nunca disputa o topo com a fila viva.
+  it('concluído e abandonado são sempre os dois últimos', () => {
+    for (const media of MEDIA_TYPES) {
+      expect(shelfSections(media).slice(-2)).toEqual(['done', 'abandoned'])
+    }
+  })
+
+  it('mídia de sessão longa abre com o que está em andamento', () => {
+    for (const media of ['game', 'series', 'anime', 'book'] as const) {
+      expect(shelfSections(media)[0]).toBe('active')
+    }
+  })
+
+  // "Assistindo" um filme é um estado de duas horas: no topo, seria uma seção
+  // vazia abrindo a estante que mais serve para ESCOLHER.
+  it('filmes abrem com a fila', () => {
+    expect(shelfSections('movie')[0]).toBe('backlog')
+  })
+})
+
