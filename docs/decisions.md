@@ -233,10 +233,21 @@ próprio perfil.
 
 **Decidido em:** 07/08/2026.
 
-Cinco cores, uma por mídia — violeta (jogos), âmbar (filmes), azul (séries),
-turquesa (animes), verde (livros) — como camada de **escaneabilidade**. Cor é
-processada antes da atenção consciente; texto não. Cinco linhas de estante
+Cinco cores, uma por mídia — magenta (jogos), âmbar (filmes), índigo (séries),
+ciano (animes), verde-limão (livros) — como camada de **escaneabilidade**. Cor
+é processada antes da atenção consciente; texto não. Cinco linhas de estante
 idênticas, distinguidas só pela palavra, obrigam a ler cada uma.
+
+**Os matizes ficam a 68° um do outro, e isso é conta, não gosto.** A primeira
+versão escolhia as cores no olho e três vizinhas caíam a 30-42° — perto demais
+para separar num ponto de 8px, que foi exatamente a reclamação. A segunda saiu
+de uma busca que fixa o matiz nos cinco pontos equidistantes, mira uma
+luminosidade VIVA e só se afasta dela o necessário para passar os mínimos
+WCAG. O vão maior (88°) cai de propósito sobre a faixa proibida: rosa (351°, o
+accent) e vermelho (0°, o danger).
+
+Efeito colateral bom: livros deixou de compartilhar o verde com `success`, um
+acoplamento que estava anotado como pendência.
 
 **Três regras que não podem ser quebradas:**
 
