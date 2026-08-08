@@ -1,14 +1,44 @@
 import type { ReactNode } from 'react'
+import type { MediaType } from '@core/items/types'
+import { MEDIA_GRADIENT } from './media'
 
 /**
  * Casca de tela: coluna de altura cheia com um corpo rolável. Existe porque as
  * seis sub-telas repetiam a mesma tripa de flex/overflow, e errar `min-h-0` num
  * app novo quebra o scroll de um jeito difícil de diagnosticar.
+ *
+ * `media` pinta um degradê da cor daquela mídia no topo. É atmosfera, não
+ * informação: dentro da estante de Jogos, a tela inteira "é" de jogos antes de
+ * a pessoa ler o título. O degradê NÃO rola junto com o conteúdo — ele emoldura
+ * a primeira dobra e é só isso que precisa fazer; acompanhar a rolagem o
+ * transformaria num elemento que se move, e movimento chama atenção que este
+ * efeito não quer.
  */
-export function Screen({ children }: { children: ReactNode }) {
+export function Screen({
+  children,
+  media,
+}: {
+  children: ReactNode
+  media?: MediaType
+}) {
   // `relative`: é este retângulo que ancora o `Fab`. Com `fixed`, o botão
   // grudaria na borda da janela e apareceria longe da coluna no desktop.
-  return <div className="relative flex h-full flex-col">{children}</div>
+  //
+  // `isolate` + `-z-10` no degradê: dentro de um contexto de empilhamento
+  // próprio, o filho negativo fica ACIMA do fundo da tela e ABAIXO de todo o
+  // conteúdo em fluxo. Sem o `isolate`, o `-z-10` escaparia para trás do fundo
+  // da página e o degradê simplesmente não apareceria.
+  return (
+    <div className="relative isolate flex h-full flex-col">
+      {media && (
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b to-transparent ${MEDIA_GRADIENT[media]}`}
+        />
+      )}
+      {children}
+    </div>
+  )
 }
 
 export interface ScreenBodyProps {

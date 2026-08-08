@@ -57,6 +57,25 @@ export const MEDIA_TINT: Record<MediaType, string> = {
   book: 'bg-media-book/15',
 }
 
+/**
+ * O começo do degradê do topo da estante — a "atmosfera" da tela.
+ *
+ * Segundo caso em que a cor aparece sem rótulo colado, e vale pelo mesmo
+ * raciocínio do tint: aqui ela não INFORMA nada que o título "Jogos" logo em
+ * cima já não diga. É ambiente. Quem não distingue as cores lê o título e não
+ * perde absolutamente nada — que é o teste que a regra 1 exige.
+ *
+ * 12% é o teto do "sutil": medido na tela, 18% já competia com as capas da
+ * primeira fileira — que é justamente o que o degradê deveria emoldurar.
+ */
+export const MEDIA_GRADIENT: Record<MediaType, string> = {
+  game: 'from-media-game/12',
+  movie: 'from-media-movie/12',
+  series: 'from-media-series/12',
+  anime: 'from-media-anime/12',
+  book: 'from-media-book/12',
+}
+
 /** A inicial desenhada sobre o tint. */
 export const MEDIA_INITIAL: Record<MediaType, string> = {
   game: 'text-media-game/70',

@@ -133,7 +133,7 @@ export function ShelfScreen() {
   const noSource = !hasProviderFor(mediaType, signedIn)
 
   return (
-    <Screen>
+    <Screen media={mediaType}>
       <ScreenHeader title={t(mediaLabelKey(mediaType))} />
 
       <ScreenBody as="main">
