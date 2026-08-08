@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { MagnifyingGlass } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
-import { getUnreadCount } from '@core/changelog'
 import {
   openingFor,
   splitOpening,
@@ -56,7 +55,6 @@ export function HomeScreen() {
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [selected, setSelected] = useState<Item | null>(null)
-  const [unread] = useState(() => getUnreadCount())
 
   // Um instante só por montagem: saudação e sugestão do dia têm que ser
   // estáveis enquanto a tela está aberta, senão mudariam a cada re-render.
@@ -114,27 +112,17 @@ export function HomeScreen() {
           >
             <MagnifyingGlass size={20} weight="bold" />
           </IconButton>
-          {/* A bolinha de não lido fica FORA do botão, num invólucro próprio.
-              O botão precisa de `overflow-hidden` para a foto ser recortada
-              pelo raio dele — e esse mesmo recorte decepava a bolinha, que por
-              construção passa da borda. Irmã do botão, ela sobra inteira. */}
-          <span className="relative">
-            <IconButton
-              aria-label={
-                unread > 0 ? t('home.menuButtonUnread') : t('home.menuButton')
-              }
-              onClick={() => setMenuOpen(true)}
-              className="overflow-hidden"
-            >
-              <Avatar src={user?.avatarUrl} />
-            </IconButton>
-            {unread > 0 && (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-control bg-accent ring-2 ring-bg"
-              />
-            )}
-          </span>
+          {/* Sem sinal de não lido aqui: ele vive no item "Novidades" DENTRO
+              do menu, que é onde a pessoa vai resolvê-lo. Um ponto no avatar
+              anunciava algo que ela só entenderia depois de abrir o menu e
+              procurar. `overflow-hidden` recorta a foto no raio do botão. */}
+          <IconButton
+            aria-label={t('home.menuButton')}
+            onClick={() => setMenuOpen(true)}
+            className="overflow-hidden"
+          >
+            <Avatar src={user?.avatarUrl} />
+          </IconButton>
         </div>
       </header>
 

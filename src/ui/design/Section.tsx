@@ -18,6 +18,13 @@ import type { ReactNode } from 'react'
  * caixa alta miúda em cinza — aquilo era um RÓTULO de seção, e isto aqui é um
  * título de verdade, com conteúdo próprio embaixo e um controle do lado.
  *
+ * SEÇÃO VAZIA FICA APAGADA — o título troca de `ink` para `muted`, e a linha
+ * inteira passa a ser cinza. É a mesma coisa que 63% de opacidade do `ink`
+ * (medido), mas por token: pôr `opacity-60` no cabeçalho apagaria TAMBÉM o
+ * contador e a seta, que já são `muted`, e o contador cairia para 3.35:1 —
+ * abaixo do mínimo AA. Aqui cada cor continua sendo uma que o
+ * `check-contrast` verifica.
+ *
  * A seta gira em vez de trocar de ícone: é o mesmo objeto mudando de estado, e
  * a rotação diz isso sem pedir uma segunda leitura. Ela respeita
  * `prefers-reduced-motion` pela transição global do projeto.
@@ -67,7 +74,11 @@ export function Section({
         onClick={onToggle}
         className="flex w-full items-center gap-3 py-2.5 text-left"
       >
-        <span className="min-w-0 flex-1 truncate text-title font-bold tracking-tight text-ink">
+        <span
+          className={`min-w-0 flex-1 truncate text-title font-bold tracking-tight ${
+            count > 0 ? 'text-ink' : 'text-muted'
+          }`}
+        >
           {title}
         </span>
         {/* `tabular-nums` para o contador não empurrar a seta ao trocar de

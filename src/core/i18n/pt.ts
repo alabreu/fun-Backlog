@@ -8,7 +8,6 @@ export const pt = {
 
   // Home
   'home.menuButton': 'Menu',
-  'home.menuButtonUnread': 'Menu — há novidades não lidas',
   'home.suggestionsBody': 'Da sua fila, para você começar hoje.',
   'home.shelves': 'Suas estantes',
   'home.searchFab': 'Buscar ou adicionar',
