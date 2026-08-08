@@ -118,6 +118,30 @@ export const OPENINGS: Record<Locale, Record<OpeningKind, string[]>> = {
 const NAME_SLOT = '{name}'
 
 /**
+ * O VOCATIVO ESTÁ DESLIGADO por decisão do usuário (08/08/2026), para testar a
+ * home só com a frase. Uma constante, e não a remoção do código: a mecânica
+ * inteira — rotação diária, apelido escolhido à mão, sorteio do dia — continua
+ * de pé e testada, então religar é trocar `false` por `true` aqui.
+ *
+ * Desligado, ele some de TODA a interface: a frase da home perde o nome, e a
+ * linha "Como me chamar" some de Configurações. Meia funcionalidade escondida
+ * é pior que nenhuma — um ajuste que não muda nada visível parece quebrado.
+ */
+export const SHOW_VOCATIVE = false
+
+/**
+ * Tira o vocativo da frase, junto com a pontuação que o introduzia:
+ * "Onde paramos, {name}?" vira "Onde paramos?".
+ *
+ * A vírgula tem que ir junto. Sem isso sobraria "Onde paramos,?", que não é
+ * uma frase — e é o tipo de erro que só aparece na tela, nunca no teste de quem
+ * escreveu a string.
+ */
+export function stripVocative(phrase: string): string {
+  return phrase.replace(/[,;:\s]*\{name\}/, '').trim()
+}
+
+/**
  * A abertura do dia, para um estado. Mesma cadência do vocativo — uma por dia,
  * determinística — porque uma frase que troca a cada render parece defeito.
  */

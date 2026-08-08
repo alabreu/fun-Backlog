@@ -5,6 +5,8 @@ import {
   NICKNAME_MAX,
   openingFor,
   OPENINGS,
+  SHOW_VOCATIVE,
+  stripVocative,
   rerollVocative,
   sanitizeNickname,
   splitOpening,
@@ -180,5 +182,34 @@ describe('aberturas da home', () => {
 
   it('frase sem marcador ainda renderiza inteira', () => {
     expect(splitOpening('Ol\u00e1')).toEqual({ before: 'Ol\u00e1', after: '' })
+  })
+})
+
+describe('stripVocative', () => {
+  it('leva a v\u00edrgula junto — "Onde paramos,?" n\u00e3o \u00e9 frase', () => {
+    expect(stripVocative('Onde paramos, {name}?')).toBe('Onde paramos?')
+    expect(stripVocative('Where were we, {name}?')).toBe('Where were we?')
+  })
+
+  it('toda frase de toda l\u00edngua sobrevive sem o vocativo', () => {
+    for (const locale of LOCALES) {
+      for (const lista of Object.values(OPENINGS[locale])) {
+        for (const frase of lista) {
+          const sem = stripVocative(frase)
+          expect(sem).not.toContain('{name}')
+          // Nada de v\u00edrgula ou espa\u00e7o pendurado antes da pontua\u00e7\u00e3o final.
+          expect(sem).not.toMatch(/[,;:\s]\?$/)
+          expect(sem.length).toBeGreaterThan(0)
+        }
+      }
+    }
+  })
+
+  it('frase sem o marcador fica intacta', () => {
+    expect(stripVocative('Bora?')).toBe('Bora?')
+  })
+
+  it('a chave existe e \u00e9 booleana', () => {
+    expect(typeof SHOW_VOCATIVE).toBe('boolean')
   })
 })
