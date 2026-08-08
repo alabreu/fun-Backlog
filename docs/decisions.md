@@ -173,6 +173,15 @@ por CDN em vários tamanhos, em `language=pt-BR` (título, sinopse e, quando
 existe, o pôster nacional) e em não ter gargalo prático — o limite antigo de 40
 req/10s foi desligado em 2019 e hoje o teto ronda 50 req/s por IP.
 
+**Diferença de comportamento entre as duas que aparece na tela:** o `search` da
+IGDB exige **palavras inteiras** — "the last of u" não acha "The Last of Us", e
+"starcr" não acha "StarCraft". A TMDB casa parcial. Numa busca que roda a cada
+tecla, isso fazia filme e série aparecerem enquanto jogo não, o que parecia
+defeito nosso. A function tem uma rede de segurança: quando o `search` volta
+vazio, ela repete com `where name ~ *"…"*` (substring). É fallback e não o
+caminho principal, porque o `search` também casa nomes alternativos e ordena
+por relevância.
+
 **O que custa:** é comunitária, então título obscuro ou regional pode vir com
 ficha magra. E a licença é **gratuita só para uso não comercial, com atribuição
 obrigatória** na UI ("this product uses the TMDB API but is not endorsed or

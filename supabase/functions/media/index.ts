@@ -144,16 +144,14 @@ function escapeApicalypse(query: string): string {
   return query.replace(/["\\;\r\n]/g, ' ').trim()
 }
 
-async function searchIgdb(query: string): Promise<unknown> {
-  const safe = escapeApicalypse(query)
-  if (safe.length < CONFIG.minQuery) return []
+// Campos escolhidos por serem estáveis há anos na v4. Filtrar por
+// `category`/`game_type` tiraria DLC e bundles dos resultados, mas a IGDB vem
+// renomeando esse campo — um `where` numa coluna que sumiu derruba a busca
+// INTEIRA, e resultado sujo é melhor que resultado nenhum.
+const IGDB_FIELDS = 'fields name,first_release_date,cover.image_id,platforms.abbreviation;'
 
-  // Campos escolhidos por serem estáveis há anos na v4. Filtrar por
-  // `category`/`game_type` tiraria DLC e bundles dos resultados, mas a IGDB vem
-  // renomeando esse campo — um `where` numa coluna que sumiu derruba a busca
-  // INTEIRA, e resultado sujo é melhor que resultado nenhum.
-  const body = `search "${safe}"; fields name,first_release_date,cover.image_id,platforms.abbreviation; limit ${CONFIG.limit};`
-
+/** Manda uma query APICalypse, renovando o token uma vez se levar 401. */
+async function askIgdb(body: string): Promise<unknown> {
   const run = async (token: string) =>
     await fetch(IGDB_URL, {
       method: 'POST',
@@ -173,6 +171,41 @@ async function searchIgdb(query: string): Promise<unknown> {
 
   if (!response.ok) throw new UpstreamError(response.status)
   return await response.json()
+}
+
+async function searchIgdb(query: string): Promise<unknown> {
+  const safe = escapeApicalypse(query)
+  if (safe.length < CONFIG.minQuery) return []
+
+  const found = await askIgdb(
+    `search "${safe}"; ${IGDB_FIELDS} limit ${CONFIG.limit};`,
+  )
+  if (Array.isArray(found) && found.length > 0) return found
+
+  // REDE DE SEGURANÇA para palavra incompleta.
+  //
+  // O `search` da IGDB exige PALAVRAS INTEIRAS: "the last of u" não acha "The
+  // Last of Us", e "starcr" não acha "StarCraft". Como a tela busca enquanto a
+  // pessoa digita, isso significa que o resultado só aparece na última letra —
+  // e some se ela parar no meio. A TMDB casa parcial, então filmes e séries
+  // apareciam e jogos não, o que parecia defeito nosso.
+  //
+  // `name ~ *"…"*` é substring, sem acento nem relevância, e por isso é
+  // FALLBACK e não o caminho principal: o `search` também casa nomes
+  // alternativos e ordena por relevância, coisas que este aqui não faz.
+  //
+  // `total_rating_count` ordena por quantidade de avaliações — o mais próximo
+  // de "conhecido" que a IGDB oferece — senão viria em ordem de id, com os
+  // jogos mais antigos primeiro.
+  try {
+    return await askIgdb(
+      `where name ~ *"${safe}"*; ${IGDB_FIELDS} sort total_rating_count desc; limit ${CONFIG.limit};`,
+    )
+  } catch {
+    // Falhou o fallback: devolve o vazio do `search`, que é o comportamento
+    // de antes. Uma rede de segurança não pode derrubar o que ela protege.
+    return found
+  }
 }
 
 // ---------------------------------------------------------------------------
