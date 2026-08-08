@@ -1,65 +1,31 @@
 import type { Locale } from '@core/i18n'
 
 /**
- * A saudação da home: "Boa noite, Comandante".
+ * O vocativo da home — "Onde paramos, Capitã?".
  *
- * Duas decisões de produto moram aqui.
+ * ELE É SÓ O QUE A PESSOA ESCREVEU. Sem nada escrito, não há vocativo: a home
+ * mostra "Onde paramos?" e ponto.
  *
- * 1. O VOCATIVO NÃO FLEXIONA EM GÊNERO. A alternativa seria perguntar o gênero
- *    no cadastro — mais uma fricção na entrada, mais um dado sensível guardado
- *    para nada, e uma lista de opções que nunca contempla todo mundo. Trocar
- *    isso por um vocativo mais bonito é um péssimo negócio. As palavras abaixo
- *    servem a qualquer pessoa.
+ * Houve uma versão com lista de sugestões neutras, rotação diária e um botão de
+ * sortear. Saiu por decisão do usuário (08/08/2026): o app inventava um apelido
+ * para quem nunca pediu um, e apelido dado por software é a piada que fica sem
+ * graça no terceiro dia. Escrever o próprio é uma escolha; receber um não é.
+ * O código está no git para quem quiser reler.
  *
- * 2. AS LISTAS SÃO INDEPENDENTES POR IDIOMA, e não traduções uma da outra.
- *    "Captain" é neutro em inglês; "Capitão" não é em português. Cada idioma
- *    escolhe as palavras que funcionam nele — por isso isto é dado de core e
- *    não uma chave da tabela de i18n (que só guarda string, não lista).
- *
- * Função pura de (data, idioma, apelido): dá para testar sem DOM e sem relógio.
+ * Funções puras: dá para testar sem DOM e sem relógio.
  */
-export const VOCATIVES: Record<Locale, string[]> = {
-  pt: [
-    'Comandante',
-    'Protagonista',
-    'Lenda',
-    'Fera',
-    'Craque',
-    'Chefe',
-    'Maratonista',
-    'Viajante',
-    'Nômade',
-    'Sobrevivente',
-    'Player 1',
-    'Boss',
-  ],
-  en: [
-    'Captain',
-    'Champion',
-    'Legend',
-    'Protagonist',
-    'Wanderer',
-    'Survivor',
-    'Player One',
-    'Boss',
-    'Ace',
-    'Explorer',
-    'Marathoner',
-    'Chief',
-  ],
-}
 
 /**
- * Teto do apelido escolhido à mão. A saudação é uma linha só, ao lado de "Boa
- * noite," — um nome de sessenta caracteres não estoura o layout (ele quebra),
- * mas rouba a tela inteira de quem só queria ver o que está jogando.
+ * Teto do apelido. A frase é uma linha só — um nome de sessenta caracteres não
+ * estoura o layout (ele quebra), mas rouba a tela inteira de quem só queria ver
+ * o que está jogando.
  */
 export const NICKNAME_MAX = 24
 
 /**
  * Limpa o apelido digitado. Devolve `null` quando não sobra nada — e é esse
- * `null` que significa "volte a rotacionar", tanto no campo vazio quanto no
- * campo com três espaços.
+ * `null` que significa "sem vocativo", tanto no campo vazio quanto no campo
+ * com três espaços.
  */
 export function sanitizeNickname(value: string | null | undefined): string | null {
   if (!value) return null
@@ -118,20 +84,9 @@ export const OPENINGS: Record<Locale, Record<OpeningKind, string[]>> = {
 const NAME_SLOT = '{name}'
 
 /**
- * O VOCATIVO ESTÁ DESLIGADO por decisão do usuário (08/08/2026), para testar a
- * home só com a frase. Uma constante, e não a remoção do código: a mecânica
- * inteira — rotação diária, apelido escolhido à mão, sorteio do dia — continua
- * de pé e testada, então religar é trocar `false` por `true` aqui.
- *
- * Desligado, ele some de TODA a interface: a frase da home perde o nome, e a
- * linha "Como me chamar" some de Configurações. Meia funcionalidade escondida
- * é pior que nenhuma — um ajuste que não muda nada visível parece quebrado.
- */
-export const SHOW_VOCATIVE = false
-
-/**
  * Tira o vocativo da frase, junto com a pontuação que o introduzia:
- * "Onde paramos, {name}?" vira "Onde paramos?".
+ * "Onde paramos, {name}?" vira "Onde paramos?". É o caminho de quem não
+ * escreveu apelido nenhum — a maioria.
  *
  * A vírgula tem que ir junto. Sem isso sobraria "Onde paramos,?", que não é
  * uma frase — e é o tipo de erro que só aparece na tela, nunca no teste de quem
@@ -182,59 +137,11 @@ export function dayNumber(date: Date): number {
 }
 
 /**
- * Sorteio válido por UM dia. Guardar o dia junto do vocativo é o que faz o
- * botão de sortear não virar uma terceira forma de escolher apelido fixo:
- * amanhã o `day` não confere mais e a rotação volta sozinha, sem ninguém
- * precisar limpar nada.
+ * O vocativo, ou `null` quando não há. `null` e não string vazia: quem chama
+ * precisa DECIDIR entre duas frases diferentes ("Onde paramos, Capitã?" e
+ * "Onde paramos?"), e string vazia deixaria a decisão escorregar para um
+ * `if (!x)` acidental que renderiza a vírgula solta.
  */
-export interface DailyReroll {
-  /** `dayNumber` do dia em que o sorteio foi feito. */
-  day: number
-  vocative: string
-}
-
-/**
- * O vocativo do dia. Determinístico a partir da data: estável enquanto a
- * pessoa usa o app hoje, diferente amanhã. Sortear a cada abertura faria
- * parecer defeito em vez de ritual.
- *
- * Precedência: apelido escolhido à mão > sorteio de hoje > rotação. Quem quis
- * ser Capitã ou Xerife decidiu, e o app obedece; quem só não gostou da palavra
- * de hoje sorteia outra sem sair do modo automático.
- */
-export function vocativeFor(
-  date: Date,
-  locale: Locale,
-  custom?: string | null,
-  reroll?: DailyReroll | null,
-): string {
-  const chosen = custom?.trim()
-  if (chosen) return chosen
-
-  if (reroll?.vocative && reroll.day === dayNumber(date)) return reroll.vocative
-
-  const list = VOCATIVES[locale] ?? VOCATIVES.pt
-  // Módulo sobre um contador crescente: percorre a lista inteira antes de
-  // repetir, em vez de sortear e às vezes cair no mesmo de ontem.
-  return list[((dayNumber(date) % list.length) + list.length) % list.length]
-}
-
-/**
- * Sorteia um vocativo diferente do que está na tela — sortear e cair no mesmo
- * faria o botão parecer quebrado. `random` é injetável para o teste poder
- * fixar o resultado.
- */
-export function rerollVocative(
-  date: Date,
-  locale: Locale,
-  current: string,
-  random: () => number = Math.random,
-): DailyReroll {
-  const list = VOCATIVES[locale] ?? VOCATIVES.pt
-  const options = list.filter((word) => word !== current)
-  // Lista de um elemento só (ou o improvável de tudo ser igual): devolve o que
-  // há, em vez de sortear em array vazio e retornar undefined.
-  const pool = options.length > 0 ? options : list
-  const index = Math.min(Math.floor(random() * pool.length), pool.length - 1)
-  return { day: dayNumber(date), vocative: pool[index] }
+export function vocativeFor(custom?: string | null): string | null {
+  return sanitizeNickname(custom)
 }

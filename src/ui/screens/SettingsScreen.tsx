@@ -9,7 +9,7 @@ import {
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { useNavigate } from 'react-router'
-import { SHOW_VOCATIVE, vocativeFor } from '@core/greeting'
+import { vocativeFor } from '@core/greeting'
 import type { MessageKey } from '@core/i18n'
 import { useNicknameStore } from '@core/state/nicknameStore'
 import { useThemeStore } from '@core/state/themeStore'
@@ -32,14 +32,13 @@ const THEME_META: Record<Theme, { icon: Icon; labelKey: MessageKey }> = {
  * usa, e ganho nenhum.
  */
 export function SettingsScreen() {
-  const { t, locale } = useTranslation()
+  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const { enabled } = useItems()
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const nickname = useNicknameStore((s) => s.nickname)
-  const reroll = useNicknameStore((s) => s.reroll)
 
   return (
     <Screen>
@@ -93,28 +92,21 @@ export function SettingsScreen() {
           </>
         )}
 
-        {/* Some inteira com o vocativo desligado (ver SHOW_VOCATIVE): uma
-            seção "Saudação" cujo único item não muda nada na tela seria a
-            interface oferecendo um ajuste que não ajusta. */}
-        {SHOW_VOCATIVE && (
-          <>
-            <SectionTitle className={`mb-2 ${LOCKED_THEME ? '' : 'mt-8'}`}>
-              {t('settings.greetingLabel')}
-            </SectionTitle>
+        <SectionTitle className={`mb-2 ${LOCKED_THEME ? '' : 'mt-8'}`}>
+          {t('settings.greetingLabel')}
+        </SectionTitle>
 
-            {/* NavRow já traz superfície e anel próprios — fora de Card. */}
-            <NavRow
-              icon={<UserCircle size={20} aria-hidden />}
-              label={t('menu.nickname')}
-              trailing={vocativeFor(new Date(), locale, nickname, reroll)}
-              onClick={() => navigate('/como-me-chamar')}
-            />
-          </>
-        )}
+        {/* NavRow já traz superfície e anel próprios — não vai dentro de Card.
+            Sem apelido escrito o trailing diz "Nenhum", e não fica em branco:
+            branco parece campo que não carregou. */}
+        <NavRow
+          icon={<UserCircle size={20} aria-hidden />}
+          label={t('menu.nickname')}
+          trailing={vocativeFor(nickname) ?? t('settings.nicknameNone')}
+          onClick={() => navigate('/como-me-chamar')}
+        />
 
-        <SectionTitle
-          className={`mb-2 ${LOCKED_THEME && !SHOW_VOCATIVE ? '' : 'mt-8'}`}
-        >
+        <SectionTitle className="mb-2 mt-8">
           {t('settings.catalogLabel')}
         </SectionTitle>
 

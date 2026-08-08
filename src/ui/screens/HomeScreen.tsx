@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router'
 import { getUnreadCount } from '@core/changelog'
 import {
   openingFor,
-  SHOW_VOCATIVE,
   splitOpening,
   stripVocative,
   vocativeFor,
@@ -54,7 +53,6 @@ export function HomeScreen() {
   const { items, enabled, loading } = useItems()
   const { user } = useAuth()
   const nickname = useNicknameStore((s) => s.nickname)
-  const reroll = useNicknameStore((s) => s.reroll)
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [selected, setSelected] = useState<Item | null>(null)
@@ -85,24 +83,22 @@ export function HomeScreen() {
     emptyShelf ? 'start' : active.length > 0 ? 'resume' : 'pick',
   )
   const opening = splitOpening(phrase)
+  const vocative = vocativeFor(nickname)
 
   return (
     <Screen>
       <header className="flex items-start justify-between gap-2 px-gutter pb-4 pt-6">
         <div className="min-w-0">
-          {/* Com vocativo, a quebra é FIXA: frase numa linha, nome na
-              seguinte. O nome ganha o peso de uma linha inteira em vez de cair
-              onde a sobra de espaço deixar, e a altura do cabeçalho para de
-              mudar conforme o vocativo do dia é "Fera" ou "Sobrevivente".
-              Sem vocativo não há o que quebrar — a frase é uma linha só. */}
+          {/* Com apelido escrito, a quebra é FIXA: frase numa linha, nome na
+              seguinte, para o nome ganhar o peso de uma linha inteira em vez de
+              cair onde a sobra de espaço deixar. Sem apelido não há o que
+              quebrar — a frase é uma linha só. */}
           <h1 className="text-display font-extrabold tracking-tight text-balance">
-            {SHOW_VOCATIVE ? (
+            {vocative ? (
               <>
                 <span className="block">{opening.before}</span>
                 <span className="block">
-                  <span className="text-accent">
-                    {vocativeFor(now, locale, nickname, reroll)}
-                  </span>
+                  <span className="text-accent">{vocative}</span>
                   {opening.after}
                 </span>
               </>

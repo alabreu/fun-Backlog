@@ -223,15 +223,11 @@ export const en: Record<keyof typeof pt, string> = {
   // What to call me (the greeting vocative)
   'nickname.title': 'What should we call you',
   'nickname.subtitle':
-    "That's how the home screen will greet you. Pick one from the list or write your own.",
+    "That's how the home screen will greet you. Leave it blank to use none.",
   'nickname.previewLabel': 'Preview',
-  'nickname.rotating': 'Surprise me',
-  'nickname.rotatingHint': 'A different one every day',
-  'nickname.listLabel': 'Suggestions',
-  'nickname.customLabel': 'Or write your own',
+  'nickname.customLabel': 'What to call you',
   'nickname.customPlaceholder': 'Captain, Sheriff, Master…',
   'nickname.customHint': 'Up to {max} characters.',
-  'nickname.reroll': 'Draw another one for today',
 
   // Settings
   'settings.title': 'Settings',
@@ -242,6 +238,7 @@ export const en: Record<keyof typeof pt, string> = {
   'settings.themeHint':
     'Following the system matches your device, including the automatic switch at night.',
   'settings.greetingLabel': 'Greeting',
+  'settings.nicknameNone': 'None',
   'settings.catalogLabel': 'Catalogue',
   'settings.aboutLabel': 'About',
 

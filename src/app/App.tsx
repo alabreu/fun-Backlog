@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useRef } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { trackSessionStart } from '@core/analytics'
 import { storageKey } from '@core/config'
-import type { DailyReroll } from '@core/greeting'
 import { DEFAULT_LOCALE, normalizeLocale } from '@core/i18n'
 import { useLocaleStore } from '@core/state/localeStore'
 import { useMediaStore } from '@core/state/mediaStore'
@@ -35,7 +34,6 @@ import { ShelfScreen } from '@ui/screens/ShelfScreen'
 const LOCALE_STORAGE_KEY = storageKey('locale')
 const THEME_STORAGE_KEY = storageKey('theme')
 const NICKNAME_STORAGE_KEY = storageKey('nickname')
-const REROLL_STORAGE_KEY = storageKey('nickname-reroll')
 const MEDIA_STORAGE_KEY = storageKey('media-preferences')
 
 /** localStorage falha de verdade: modo privado, cota cheia, política do
@@ -55,20 +53,6 @@ function writeStored(key: string, value: string | null): void {
     else localStorage.setItem(key, value)
   } catch {
     // Ignora falhas de storage.
-  }
-}
-
-function readReroll(): DailyReroll | null {
-  const raw = readStored(REROLL_STORAGE_KEY)
-  if (!raw) return null
-  try {
-    const parsed = JSON.parse(raw) as Partial<DailyReroll>
-    return typeof parsed?.day === 'number' &&
-      typeof parsed?.vocative === 'string'
-      ? { day: parsed.day, vocative: parsed.vocative }
-      : null
-  } catch {
-    return null
   }
 }
 
@@ -93,8 +77,6 @@ export function App() {
   const setTheme = useThemeStore((s) => s.setTheme)
   const nickname = useNicknameStore((s) => s.nickname)
   const setNickname = useNicknameStore((s) => s.setNickname)
-  const reroll = useNicknameStore((s) => s.reroll)
-  const setReroll = useNicknameStore((s) => s.setReroll)
   const mediaPreferences = useMediaStore((s) => s.preferences)
   const setMediaPreferences = useMediaStore((s) => s.setPreferences)
 
@@ -122,7 +104,6 @@ export function App() {
         DEFAULT_THEME,
     )
     setNickname(readStored(NICKNAME_STORAGE_KEY))
-    setReroll(readReroll())
     setMediaPreferences(parsePreferences(readStored(MEDIA_STORAGE_KEY)))
     mediaSeededRef.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,9 +140,6 @@ export function App() {
     writeStored(NICKNAME_STORAGE_KEY, nickname)
   }, [nickname])
 
-  useEffect(() => {
-    writeStored(REROLL_STORAGE_KEY, reroll ? JSON.stringify(reroll) : null)
-  }, [reroll])
 
   useEffect(() => {
     if (!mediaSeededRef.current) return

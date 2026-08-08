@@ -220,15 +220,11 @@ export const pt = {
   // Como quer ser chamado (vocativo da saudação)
   'nickname.title': 'Como quer ser chamado',
   'nickname.subtitle':
-    'É assim que a home vai te cumprimentar. Escolha um da lista ou escreva o seu.',
+    'É assim que a home vai te cumprimentar. Deixe em branco para não usar nenhum.',
   'nickname.previewLabel': 'Prévia',
-  'nickname.rotating': 'Surpreenda-me',
-  'nickname.rotatingHint': 'Um vocativo diferente a cada dia',
-  'nickname.listLabel': 'Sugestões',
-  'nickname.customLabel': 'Ou escreva o seu',
+  'nickname.customLabel': 'Como quer ser chamado',
   'nickname.customPlaceholder': 'Capitã, Xerife, Mestre…',
   'nickname.customHint': 'Até {max} caracteres.',
-  'nickname.reroll': 'Sortear outro para hoje',
 
   // Configurações
   'settings.title': 'Configurações',
@@ -239,6 +235,7 @@ export const pt = {
   'settings.themeHint':
     'Seguir o sistema acompanha o ajuste do seu aparelho, inclusive a troca automática à noite.',
   'settings.greetingLabel': 'Saudação',
+  'settings.nicknameNone': 'Nenhum',
   'settings.catalogLabel': 'Catálogo',
   'settings.aboutLabel': 'Sobre',
 
