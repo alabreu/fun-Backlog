@@ -21,8 +21,22 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 declare const Deno: { env: { get(key: string): string | undefined } }
 
 const CONFIG = {
-  /** Quantos resultados pedir. Espelha o SEARCH_LIMIT de core/media/types.ts. */
-  limit: 12,
+  /** Quantos resultados DEVOLVER. Espelha o SEARCH_LIMIT de core/media/types.ts. */
+  limit: 20,
+  /**
+   * Quantos PEDIR à IGDB antes de ordenar por popularidade.
+   *
+   * Buscar "zelda" devolve mais de cem entradas — remasters, ports, DLCs,
+   * versões regionais — e o `search` da IGDB ordena por semelhança de string,
+   * não por relevância para gente. Nessa ordem, "Zelda's Adventure" ganha de
+   * "The Legend of Zelda: Tears of the Kingdom", que tem o nome mais longo.
+   * Cortar em 20 direto do `search` era o que fazia sumir Majora's Mask e TOTK.
+   *
+   * Pedindo 50 e reordenando por quantidade de avaliações, os títulos que as
+   * pessoas de fato procuram sobem. O custo é payload, não requisição: continua
+   * sendo UMA chamada, e a IGDB limita requisições, não bytes.
+   */
+  igdbPool: 50,
   /** Uma busca menor que isso não é busca, é tecla solta. Espelha o cliente. */
   minQuery: 2,
   /** Teto de tamanho: título de obra não passa disso, e o resto é abuso. */
@@ -148,7 +162,10 @@ function escapeApicalypse(query: string): string {
 // `category`/`game_type` tiraria DLC e bundles dos resultados, mas a IGDB vem
 // renomeando esse campo — um `where` numa coluna que sumiu derruba a busca
 // INTEIRA, e resultado sujo é melhor que resultado nenhum.
-const IGDB_FIELDS = 'fields name,first_release_date,cover.image_id,platforms.abbreviation;'
+// `total_rating_count` não aparece na tela: é só o critério de ordenação.
+const IGDB_FIELDS =
+  'fields name,first_release_date,cover.image_id,platforms.abbreviation,' +
+  'total_rating_count;'
 
 // A ficha pede bem mais campos que a busca — e só a ficha paga por eles, uma
 // obra por vez. Pedir isto na LISTA multiplicaria o payload por doze.
@@ -181,14 +198,32 @@ async function askIgdb(body: string): Promise<unknown> {
   return await response.json()
 }
 
+/**
+ * Ordena por "conhecido" e corta no limite de exibição.
+ *
+ * `total_rating_count` é o mais próximo de popularidade que a IGDB oferece.
+ * Quem não tem avaliação nenhuma vai para o fim em vez de sumir: um jogo
+ * obscuro que casa exatamente com o que a pessoa digitou ainda é resposta.
+ */
+function byPopularity(rows: unknown): unknown {
+  if (!Array.isArray(rows)) return rows
+  return [...rows]
+    .sort(
+      (a, b) =>
+        ((b as { total_rating_count?: number })?.total_rating_count ?? 0) -
+        ((a as { total_rating_count?: number })?.total_rating_count ?? 0),
+    )
+    .slice(0, CONFIG.limit)
+}
+
 async function searchIgdb(query: string): Promise<unknown> {
   const safe = escapeApicalypse(query)
   if (safe.length < CONFIG.minQuery) return []
 
   const found = await askIgdb(
-    `search "${safe}"; ${IGDB_FIELDS} limit ${CONFIG.limit};`,
+    `search "${safe}"; ${IGDB_FIELDS} limit ${CONFIG.igdbPool};`,
   )
-  if (Array.isArray(found) && found.length > 0) return found
+  if (Array.isArray(found) && found.length > 0) return byPopularity(found)
 
   // REDE DE SEGURANÇA para palavra incompleta.
   //

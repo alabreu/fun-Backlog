@@ -13,6 +13,7 @@ import {
   tmdbProvider,
 } from './tmdb'
 import { callMediaFunction } from './server'
+import { SEARCH_LIMIT } from './types'
 
 /** Os dois providers com chave falam com a Edge Function `media`; o teste
  *  substitui essa ponte para exercitar o mapeamento sem tocar na rede. */
@@ -151,7 +152,7 @@ describe('mapeamento da TMDB', () => {
   it('o provider corta em SEARCH_LIMIT e descarta pessoas', async () => {
     called.mockResolvedValue({
       results: [
-        ...Array.from({ length: 20 }, (_, i) => ({
+        ...Array.from({ length: SEARCH_LIMIT + 8 }, (_, i) => ({
           id: i,
           media_type: 'movie' as const,
           title: `Filme ${i}`,
@@ -161,7 +162,7 @@ describe('mapeamento da TMDB', () => {
     })
 
     const results = await tmdbProvider.search('filme')
-    expect(results).toHaveLength(12)
+    expect(results).toHaveLength(SEARCH_LIMIT)
     expect(results.every((r) => r.mediaType === 'movie')).toBe(true)
   })
 })

@@ -102,6 +102,10 @@ export interface MediaProvider {
   ): Promise<MediaDetail>
 }
 
-/** Quantos resultados pedir por provider — a lista é para escolher, não para
- *  navegar; mais que isso vira scroll infinito de decisão. */
-export const SEARCH_LIMIT = 12
+/**
+ * Quantos resultados pedir por provider. A lista é para ESCOLHER, não para
+ * navegar — mas 12 era pouco: buscar "zelda" em jogos deixava de fora Majora's
+ * Mask e Tears of the Kingdom, porque uma franquia grande passa de doze
+ * entradas antes mesmo de chegar nos títulos que a pessoa procura.
+ */
+export const SEARCH_LIMIT = 20
