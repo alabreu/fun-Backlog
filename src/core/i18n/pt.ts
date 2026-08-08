@@ -130,6 +130,7 @@ export const pt = {
   'item.adding': 'Adicionando…',
   'item.readMore': 'Ler mais',
   'item.readLess': 'Ler menos',
+  'item.inTheaters': 'Em cartaz',
   'item.synopsis': 'Sinopse',
   'item.people': 'Quem fez',
   'item.detailLoading': 'Carregando a ficha…',

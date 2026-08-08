@@ -132,6 +132,7 @@ export const en: Record<keyof typeof pt, string> = {
   'item.adding': 'Adding…',
   'item.readMore': 'Read more',
   'item.readLess': 'Read less',
+  'item.inTheaters': 'In cinemas',
   'item.synopsis': 'Synopsis',
   'item.people': 'Made by',
   'item.detailLoading': 'Loading the details…',

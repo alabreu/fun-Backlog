@@ -187,6 +187,14 @@ function Detail({
             {detail?.score !== undefined && (
               <Badge>{`${detail.score}/100`}</Badge>
             )}
+            {/* Badge e não fato: "em cartaz" é um estado do filme AGORA, do
+                mesmo naipe do ano e da nota — e é uma informação com prazo de
+                validade, que perde o sentido enterrada embaixo da sinopse.
+                `accent` porque é a única coisa nesta linha que pede uma
+                decisão: sair de casa hoje, ou esperar chegar no streaming. */}
+            {detail?.inTheaters && (
+              <Badge tone="accent">{t('item.inTheaters')}</Badge>
+            )}
             {matched?.completedAt && (
               <Badge tone="accent">
                 {t('item.completedAt', { date: formatDate(matched.completedAt) })}

@@ -19,6 +19,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-08-em-cartaz',
+    date: '2026-08-08',
+    emoji: '🎟️',
+    title: {
+      pt: 'Filme em cartaz agora avisa que está em cartaz',
+      en: 'Films still in cinemas now say so',
+    },
+    items: {
+      pt: [
+        'A ficha de um filme mostra "Em cartaz" quando ele ainda está em sala no seu país — dá para decidir entre sair hoje ou esperar o streaming.',
+        'A conta é feita com as datas de estreia do seu país: já estreou no cinema, ainda não saiu em digital.',
+      ],
+      en: [
+        'A film now shows "In cinemas" while it is still on screens in your country — enough to decide between going out tonight and waiting for streaming.',
+        'It is worked out from your country\u2019s release dates: already in cinemas, not yet released at home.',
+      ],
+    },
+  },
+  {
     id: '2026-08-08-links',
     date: '2026-08-08',
     emoji: '🔗',

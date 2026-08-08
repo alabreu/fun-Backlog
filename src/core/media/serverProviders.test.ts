@@ -7,6 +7,7 @@ import {
 } from './igdb'
 import {
   findByImdbId,
+  isInTheaters,
   mapTmdbDetail,
   mapTmdbResult,
   tmdbPosterUrl,
@@ -164,6 +165,129 @@ describe('mapeamento da TMDB', () => {
     const results = await tmdbProvider.search('filme')
     expect(results).toHaveLength(SEARCH_LIMIT)
     expect(results.every((r) => r.mediaType === 'movie')).toBe(true)
+  })
+})
+
+describe('em cartaz', () => {
+  const DIA = 24 * 60 * 60 * 1000
+  const HOJE = Date.parse('2026-08-08T12:00:00Z')
+
+  function filme(
+    dates: { type: number; release_date: string }[],
+    country = 'BR',
+  ) {
+    return {
+      id: 1,
+      title: 'X',
+      release_dates: {
+        results: [{ iso_3166_1: country, release_date: '', release_dates: dates }],
+      },
+    }
+  }
+
+  it('estreou h\u00e1 pouco e ainda n\u00e3o saiu em casa', () => {
+    expect(
+      isInTheaters(
+        filme([{ type: 3, release_date: '2026-07-30T00:00:00.000Z' }]),
+        'BR',
+        HOJE,
+      ),
+    ).toBe(true)
+  })
+
+  it('a data digital fecha a temporada, mesmo dentro da janela', () => {
+    expect(
+      isInTheaters(
+        filme([
+          { type: 3, release_date: '2026-07-01T00:00:00.000Z' },
+          { type: 4, release_date: '2026-08-01T00:00:00.000Z' },
+        ]),
+        'BR',
+        HOJE,
+      ),
+    ).toBe(false)
+  })
+
+  it('data digital ainda no futuro n\u00e3o tira o filme do cinema', () => {
+    expect(
+      isInTheaters(
+        filme([
+          { type: 3, release_date: '2026-07-01T00:00:00.000Z' },
+          { type: 4, release_date: '2026-09-01T00:00:00.000Z' },
+        ]),
+        'BR',
+        HOJE,
+      ),
+    ).toBe(true)
+  })
+
+  // O caso que a janela existe para pegar: cl\u00e1ssico sem data digital na TMDB.
+  // Sem ela, "Pulp Fiction" apareceria em cartaz para sempre.
+  it('filme antigo sem data digital N\u00c3O fica em cartaz para sempre', () => {
+    expect(
+      isInTheaters(
+        filme([{ type: 3, release_date: '1994-10-14T00:00:00.000Z' }]),
+        'BR',
+        HOJE,
+      ),
+    ).toBe(false)
+  })
+
+  it('pr\u00e9-estreia de festival n\u00e3o conta como cinema', () => {
+    expect(
+      isInTheaters(
+        filme([{ type: 1, release_date: '2026-08-01T00:00:00.000Z' }]),
+        'BR',
+        HOJE,
+      ),
+    ).toBe(false)
+  })
+
+  it('estreia futura ainda n\u00e3o \u00e9 "em cartaz"', () => {
+    expect(
+      isInTheaters(
+        filme([{ type: 3, release_date: '2026-08-20T00:00:00.000Z' }]),
+        'BR',
+        HOJE,
+      ),
+    ).toBe(false)
+  })
+
+  // Responder com a temporada americana para quem mora no Brasil seria
+  // inventar: sem o pa\u00eds na resposta, a pergunta fica sem resposta.
+  it('sem o pa\u00eds na resposta, n\u00e3o afirma nada', () => {
+    expect(
+      isInTheaters(
+        filme([{ type: 3, release_date: '2026-08-01T00:00:00.000Z' }], 'US'),
+        'BR',
+        HOJE,
+      ),
+    ).toBeUndefined()
+  })
+
+  // Aqui as datas s\u00e3o relativas ao rel\u00f3gio de verdade: `mapTmdbDetail` n\u00e3o
+  // recebe `now`, e um teste ancorado numa data fixa passaria a mentir sozinho.
+  it('a ficha s\u00f3 carrega o campo quando \u00e9 verdade', () => {
+    const dias = (n: number) => new Date(Date.now() + n * DIA).toISOString()
+
+    const emCartaz = mapTmdbDetail(
+      filme([{ type: 3, release_date: dias(-10) }]),
+      'movie',
+      'BR',
+    )
+    expect(emCartaz?.inTheaters).toBe(true)
+
+    // `undefined` e n\u00e3o `false`: a tela n\u00e3o mostra nada nos dois casos, e um
+    // campo que ningu\u00e9m l\u00ea n\u00e3o precisa existir na ficha.
+    const jaSaiu = mapTmdbDetail(
+      filme([
+        { type: 3, release_date: dias(-40) },
+        { type: 4, release_date: dias(-5) },
+      ]),
+      'movie',
+      'BR',
+    )
+    expect(jaSaiu?.inTheaters).toBeUndefined()
   })
 })
 

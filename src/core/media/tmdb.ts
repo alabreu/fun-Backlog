@@ -92,6 +92,12 @@ interface TmdbDetailBody extends TmdbResult {
     cast?: { name?: string }[]
     crew?: { name?: string; job?: string }[]
   }
+  release_dates?: {
+    results?: {
+      iso_3166_1?: string
+      release_dates?: { type?: number; release_date?: string }[]
+    }[]
+  }
   'watch/providers'?: {
     results?: Record<
       string,
@@ -102,6 +108,58 @@ interface TmdbDetailBody extends TmdbResult {
       }
     >
   }
+}
+
+/**
+ * "EM CARTAZ" — o filme ainda está no cinema, no país da pessoa.
+ *
+ * A TMDB não tem esse campo: ela tem DATAS, uma lista por país, cada uma com um
+ * tipo. A conta é a definição de "em cartaz" escrita em código — já estreou nos
+ * cinemas, ainda não saiu em casa.
+ *
+ * Os números são a enumeração de tipo de lançamento da TMDB:
+ * 1 pré-estreia, 2 cinema limitado, 3 cinema, 4 digital, 5 físico, 6 TV.
+ * A pré-estreia (1) fica de fora de propósito: uma sessão de festival não é o
+ * filme estar em cartaz.
+ *
+ * A JANELA é a parte que não vem da API e precisa de julgamento. Sem ela, um
+ * filme de 1994 cuja data digital a TMDB nunca registrou apareceria "em cartaz"
+ * para sempre — e um dado errado com cara de certeza é pior que dado nenhum.
+ * 120 dias cobre com folga a temporada de um blockbuster, que raramente passa
+ * de doze semanas em sala.
+ *
+ * SEM o país na resposta, devolve `undefined` em vez de tentar outro país:
+ * "está em cartaz" é uma afirmação sobre ONDE a pessoa mora, e responder com a
+ * temporada americana seria inventar.
+ */
+const IN_THEATERS_WINDOW_MS = 120 * 24 * 60 * 60 * 1000
+
+export function isInTheaters(
+  body: TmdbDetailBody,
+  region: string,
+  now: number = Date.now(),
+): boolean | undefined {
+  const country = body.release_dates?.results?.find(
+    (r) => r?.iso_3166_1 === region,
+  )
+  if (!country) return undefined
+
+  const earliest = (types: number[]): number | undefined => {
+    const times = (country.release_dates ?? [])
+      .filter((d) => d?.type !== undefined && types.includes(d.type))
+      .map((d) => Date.parse(d?.release_date ?? ''))
+      .filter((t) => !Number.isNaN(t))
+    return times.length > 0 ? Math.min(...times) : undefined
+  }
+
+  const cinema = earliest([2, 3])
+  if (cinema === undefined || cinema > now) return false
+  if (now - cinema > IN_THEATERS_WINDOW_MS) return false
+
+  // Saiu em casa (digital, físico ou TV) e essa data já passou: acabou a
+  // exclusividade de sala, mesmo que ainda haja uma sessão em algum lugar.
+  const home = earliest([4, 5, 6])
+  return home === undefined || home > now
 }
 
 /** "2h 46min" / "46min" — minutos crus não dizem nada num relance. */
@@ -173,6 +231,9 @@ export function mapTmdbDetail(
 
   return {
     ...base,
+    // Só quando é `true`: um `false` explícito não muda nada na tela e faria a
+    // ficha carregar um campo que ninguém lê.
+    inTheaters: isInTheaters(body, region) || undefined,
     synopsis: body.overview || undefined,
     genres: (body.genres ?? [])
       .map((g) => g?.name)

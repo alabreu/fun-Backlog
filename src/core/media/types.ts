@@ -98,6 +98,15 @@ export interface MediaDetail {
   score?: number
   /** Total de episódios/páginas, para preencher o progresso ao adicionar. */
   total?: number
+  /**
+   * O filme ainda está no cinema, NO PAÍS da pessoa.
+   *
+   * Campo próprio e não um `fact` porque não é um par rótulo/valor: é um estado
+   * momentâneo da obra, do mesmo naipe do ano e da nota, e é assim que a tela o
+   * mostra. Só existe quando é verdade — ausente significa "não" ou "não sei",
+   * e a tela trata os dois igual: não mostra nada.
+   */
+  inTheaters?: boolean
 }
 
 /**
