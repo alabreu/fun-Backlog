@@ -511,9 +511,14 @@ e retomar uma é mais provável que escolher da fila do zero. A fila é o passo
 seguinte, para quando nenhuma das duas serve. Concluído e abandonado são arquivo
 (consulta, não decisão) e vão ao fim em todas.
 
-**Buscar abre tudo.** Um acerto dentro de uma seção fechada seria o pior
-desfecho: a tela pareceria dizer "nada encontrado" com a resposta a um toque de
-distância. Buscando, a contagem do título vira contagem de ACERTOS por seção.
+**Buscar abre tudo, e esconde o que não casa.** Um acerto dentro de uma seção
+fechada seria o pior desfecho: a tela pareceria dizer "nada encontrado" com a
+resposta a um toque de distância. Buscando, a contagem do título vira contagem
+de ACERTOS por seção — e seção sem acerto nenhum SOME. Seção vazia informa
+quando é a estante em repouso ("não tenho nada pausado"); numa busca ela é
+ruído, porque a pergunta mudou de "como está minha estante" para "onde está o
+que eu procuro", e quatro "Nada aqui" empurram para baixo os dois resultados
+que interessam.
 
 **O badge de status sobre a capa saiu junto:** dentro da seção "Jogando", dizer
 "Jogando" em cada capa era repetir a mesma palavra N vezes.

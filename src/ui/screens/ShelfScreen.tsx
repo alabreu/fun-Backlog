@@ -98,15 +98,23 @@ export function ShelfScreen() {
   // Os itens já filtrados, agrupados por status e na ordem de seções da mídia.
   // A contagem que aparece no título é a DESTE recorte, não a da estante
   // inteira: buscando "zelda", "Jogando 2" quer dizer "dois acertos aqui".
+  //
+  // BUSCANDO, SEÇÃO SEM ACERTO SOME. Seção vazia informa quando é a estante em
+  // repouso ("não tenho nada pausado"), mas numa busca ela vira ruído: quatro
+  // "Nada aqui" empurrando para baixo os dois resultados que interessam. A
+  // pergunta mudou de "como está minha estante" para "onde está o que eu
+  // procuro", e a resposta certa é só o que casa.
   const sections = useMemo(
     () =>
       mediaType
-        ? shelfSections(mediaType).map((value) => ({
-            status: value,
-            items: visible.filter((i) => i.status === value),
-          }))
+        ? shelfSections(mediaType)
+            .map((value) => ({
+              status: value,
+              items: visible.filter((i) => i.status === value),
+            }))
+            .filter(({ items: found }) => !trimmed || found.length > 0)
         : [],
-    [mediaType, visible],
+    [mediaType, visible, trimmed],
   )
 
   const total = useMemo(
