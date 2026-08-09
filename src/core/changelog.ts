@@ -19,6 +19,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-franquia',
+    date: '2026-08-09',
+    emoji: '🗂️',
+    title: {
+      pt: 'Buscar uma franquia agora devolve a franquia',
+      en: 'Searching a franchise now returns the franchise',
+    },
+    items: {
+      pt: [
+        'Buscar "zelda" trazia a série picada e sem Breath of the Wild nem Tears of the Kingdom. Agora os títulos famosos sempre entram e a franquia aparece junta, em ordem de lançamento.',
+        'O agrupamento vale para toda mídia: uma trilogia de livros ou as partes de um anime também ficam vizinhas na lista.',
+      ],
+      en: [
+        'Searching "zelda" returned the series scattered, missing Breath of the Wild and Tears of the Kingdom. The famous titles always make it in now, and the franchise shows up together, in release order.',
+        'Grouping works for every media: a book trilogy or the parts of an anime sit together in the list too.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-toast-status',
     date: '2026-08-09',
     emoji: '✅',

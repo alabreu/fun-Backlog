@@ -273,60 +273,14 @@ function mergeById(lotes: unknown[]): unknown[] {
 /**
  * DIAGNÓSTICO da busca de jogos.
  *
- * Existe porque a mesma falha ("procurar zelda não traz Breath of the Wild")
- * sobreviveu a três correções feitas às cegas: sem ver a resposta da IGDB, cada
- * hipótese sobre a causa era um palpite caro. Isto registra o suficiente para
- * distinguir as hipóteses entre si, e nada além.
- *
- * NÃO registra o texto buscado nem nada do usuário — só qual caminho a função
- * tomou, quantas linhas cada consulta devolveu, os primeiros títulos e se os
- * campos de que a ordenação depende vieram.
+ * O suficiente para separar hipóteses sem abrir a resposta inteira: contagem e
+ * status de erro por consulta. NÃO registra o texto buscado nem nada do
+ * usuário. (A sonda que devolvia isto na resposta HTTP foi removida quando o
+ * caso do "zelda" fechou — o defeito era pedir `collection.name` em vez de
+ * `franchises.name`.)
  */
-let ultimoDiag: Record<string, unknown>[] = []
-
-/** O diagnóstico da última resposta de cada busca, para acompanhar o cache. */
-const diagCache = new Map<string, Record<string, unknown>[]>()
-
 function diag(dados: Record<string, unknown>): void {
   console.log(JSON.stringify({ diag: 'igdb-search', ...dados }))
-  // ACUMULA para devolver na resposta: o acesso a logs do agente entrega só as
-  // requisições, não a saída de console, e o celular não tem DevTools. Sai
-  // junto com esta sonda assim que a causa estiver identificada.
-  ultimoDiag.push(dados)
-}
-
-/**
- * O que a IGDB devolveu, resumido: os três primeiros nomes e se os campos de
- * que a ordenação depende vieram.
- *
- * Os NOMES são o que separa as duas metades do problema. Se "Breath of the
- * Wild" está aqui e não está na tela, o defeito é nosso, depois da resposta —
- * mapeamento, corte ou ordenação no cliente. Se não está nem aqui, o defeito é
- * a consulta. São hipóteses opostas com a mesma tela, e três títulos decidem
- * entre elas.
- */
-function amostra(linhas: unknown): Record<string, unknown> {
-  const lista = Array.isArray(linhas) ? linhas : []
-  const l = lista[0] as
-    | {
-        total_rating_count?: number
-        franchise?: unknown
-        franchises?: unknown
-        collection?: unknown
-      }
-    | undefined
-  return {
-    temRating: l?.total_rating_count !== undefined,
-    temFranquia:
-      l?.franchises !== undefined ||
-      l?.franchise !== undefined ||
-      l?.collection !== undefined,
-    // Cortados em 18 caracteres: cabem três numa linha de celular, e o começo
-    // do título já é suficiente para reconhecê-lo.
-    top: lista
-      .slice(0, 3)
-      .map((g) => String((g as { name?: string })?.name ?? '?').slice(0, 18)),
-  }
 }
 
 /** Roda uma consulta e devolve o erro em vez de lançar: com duas em paralelo,
@@ -379,21 +333,12 @@ async function buscaIgdb(safe: string, fields: string): Promise<unknown> {
 
   const juntos = mergeById([relevancia.linhas, popularidade.linhas])
 
-  // AS DUAS consultas separadas, e o resultado final. Se `pop` traz Breath of
-  // the Wild e `fim` não, o problema é a junção; se `pop` já não traz, é a
-  // consulta. Uma só amostra não distinguiria as duas.
   diag({
     campo: IGDB_COLLECTION_FIELDS[colecaoEscolhida] || '(nenhum)',
     erros: [relevancia.erro, popularidade.erro],
-    rel: {
-      n: Array.isArray(relevancia.linhas) ? relevancia.linhas.length : -1,
-      ...amostra(relevancia.linhas),
-    },
-    pop: {
-      n: Array.isArray(popularidade.linhas) ? popularidade.linhas.length : -1,
-      ...amostra(popularidade.linhas),
-    },
-    fim: { n: juntos.length, ...amostra(juntos) },
+    rel: Array.isArray(relevancia.linhas) ? relevancia.linhas.length : -1,
+    pop: Array.isArray(popularidade.linhas) ? popularidade.linhas.length : -1,
+    fim: juntos.length,
   })
 
   return juntos
@@ -402,7 +347,6 @@ async function buscaIgdb(safe: string, fields: string): Promise<unknown> {
 async function searchIgdb(query: string): Promise<unknown> {
   const safe = escapeApicalypse(query)
   if (safe.length < CONFIG.minQuery) return []
-  ultimoDiag = []
 
   // Desce a lista de candidatos a campo de franquia enquanto a IGDB recusar o
   // nome. Só o 400 faz descer: 429 e 503 são a fonte ocupada ou fora do ar, e
@@ -581,14 +525,7 @@ Deno.serve(async (req: Request) => {
       ? `${source}:imdb:${imdbId}`
       : `${source}:q:${query.toLowerCase()}`
   const cached = cacheGet(key)
-  if (cached !== undefined)
-    return json(200, {
-      results: cached,
-      // O diagnóstico acompanha o cache. Sem isto, repetir a mesma busca dentro
-      // de 60s devolveria a resposta sem a sonda — e "sumiu" seria lido como
-      // "consertou". SONDA TEMPORÁRIA, sai com o resto.
-      ...(diagCache.has(key) ? { diag: diagCache.get(key) } : {}),
-    })
+  if (cached !== undefined) return json(200, { results: cached })
 
   try {
     const results = detailId
@@ -602,11 +539,7 @@ Deno.serve(async (req: Request) => {
           : await searchTmdb(query)
 
     cacheSet(key, results)
-    // SONDA TEMPORÁRIA (ver `diag`). Só na busca de jogos, e só enquanto o
-    // caso do "zelda" não estiver fechado.
-    const temDiag = source === 'igdb' && ultimoDiag.length > 0
-    if (temDiag) diagCache.set(key, ultimoDiag)
-    return json(200, { results, ...(temDiag ? { diag: ultimoDiag } : {}) })
+    return json(200, { results })
   } catch (error) {
     if (error instanceof UpstreamError) {
       const mapped = mapUpstream(error.status)
