@@ -146,12 +146,24 @@
   --color-on-accent: var(--palette-white); /* texto SOBRE accent */
   --color-success: var(--palette-green-700); /* confirmações */
   --color-danger: var(--palette-red-700); /* erros */
-  /* Superfície deliberadamente invertida (toast) e véu do sheet: escuros nos
-     DOIS temas. Por isso NÃO derivam de `ink`/`bg`, que invertem — um toast
-     que inverte junto com o tema deixa de se destacar. */
+  /* SUPERFÍCIE INVERTIDA (o toast). Ela é escura no tema CLARO e clara no
+     ESCURO — é isso que o nome promete, e é o que o tema escuro repõe abaixo.
+     Já foi escura nos dois, e ali ela não funcionava: `gray-950` (#1c1c1e)
+     sobre o fundo #131316 dá 1,09:1, ou seja, o toast e a página eram a mesma
+     cor. Escurecer não era saída — preto puro dá 1,13:1, porque a página já é
+     quase preta e não sobra espaço para baixo. O espaço está todo para cima.
+     O par `inverse`/`bg` virou check em `check-contrast.mjs` para que a próxima
+     paleta não repita isso em silêncio. */
   --color-inverse: var(--palette-gray-950);
   --color-on-inverse: var(--palette-sand-50);
+
+  /* VÉU sobre conteúdo: o fundo do sheet, do visualizador de imagem e a tarja
+     de badge/ação SOBRE UMA CAPA. Escuro nos DOIS temas, e é isso que o
+     distingue do `inverse`: aqui o que está atrás é a arte da obra, que pode
+     ser de qualquer cor — o véu precisa escurecer sempre, não acompanhar o
+     tema. `on-scrim` é claro nos dois temas pelo mesmo motivo. */
   --color-scrim: var(--palette-gray-950);
+  --color-on-scrim: var(--palette-sand-50);
 
   /* --- Cor por mídia ---
      Serve para ESCANEAR: nas linhas das estantes, nos chips de filtro e nos
@@ -299,6 +311,9 @@
        de escurecê-la — a razão real de o que está atrás continuar tão
        presente. No tema claro o `gray-950` segue certo: lá ele escurece. */
     --color-scrim: var(--palette-black-1000);
+    /* Ver o bloco `[data-theme='dark']` — mesma inversão. */
+    --color-inverse: var(--palette-sand-50);
+    --color-on-inverse: var(--palette-gray-950);
     --color-media-game: var(--palette-indigo-400);
     --color-media-movie: var(--palette-cyan-400);
     --color-media-series: var(--palette-magenta-400);
@@ -338,6 +353,10 @@
   --color-success: var(--palette-green-400);
   --color-danger: var(--palette-red-400);
   --color-scrim: var(--palette-black-1000);
+  /* INVERTIDO DE VERDADE no escuro: claro sobre a página escura, 17,16:1
+     contra os 1,09:1 de antes. Ver o comentário na camada semântica. */
+  --color-inverse: var(--palette-sand-50);
+  --color-on-inverse: var(--palette-gray-950);
   --color-media-game: var(--palette-indigo-400);
   --color-media-movie: var(--palette-cyan-400);
   --color-media-series: var(--palette-magenta-400);

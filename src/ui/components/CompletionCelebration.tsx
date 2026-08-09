@@ -82,10 +82,13 @@ export function CompletionCelebration() {
       </div>
 
       <div className="relative animate-rise text-center">
-        <p className="text-display font-extrabold text-on-inverse">
+        {/* `on-scrim` e não `on-inverse`: o fundo aqui é o véu (`scrim`), que é
+            escuro nos dois temas. `on-inverse` inverte com o tema e ficaria
+            escuro sobre escuro. */}
+        <p className="text-display font-extrabold text-on-scrim">
           {t(statusLabelKey('done', item.mediaType))}!
         </p>
-        <p className="mt-1 text-body text-on-inverse/80">{item.title}</p>
+        <p className="mt-1 text-body text-on-scrim/80">{item.title}</p>
       </div>
 
       <Button

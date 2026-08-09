@@ -47,22 +47,29 @@ export function Toast({
         {action && (
           // ds-ok: fora do `Button` porque o toast pede um alvo menor que o
           // tamanho `sm` e um disabled mais sutil. Usa os mesmos tokens.
+          //
+          // O par é `on-inverse`/`inverse` e não `primary`/`on-primary`: a
+          // barra é a superfície invertida, então o botão precisa inverter de
+          // novo para aparecer. Com `primary` ele ficaria claro sobre claro no
+          // tema escuro.
           <button
             type="button"
             onClick={action.onClick}
             disabled={action.disabled}
-            className="flex shrink-0 items-center gap-1.5 rounded-control bg-primary px-3.5 py-1.5 text-body font-semibold text-on-primary transition active:scale-95 disabled:opacity-80 disabled:active:scale-100"
+            className="flex shrink-0 items-center gap-1.5 rounded-control bg-on-inverse px-3.5 py-1.5 text-body font-semibold text-inverse transition active:scale-95 disabled:opacity-80 disabled:active:scale-100"
           >
             {action.label}
           </button>
         )}
 
+        {/* O X usava `neutral-400`, cinza fixo: 2,3:1 sobre a barra clara do
+            tema escuro. `on-inverse` acompanha a superfície nos dois temas. */}
         {onDismiss && (
           <button
             type="button"
             aria-label={dismissLabel}
             onClick={onDismiss}
-            className="flex shrink-0 text-neutral-400 transition active:scale-90"
+            className="flex shrink-0 text-on-inverse opacity-60 transition active:scale-90"
           >
             <X size={18} />
           </button>

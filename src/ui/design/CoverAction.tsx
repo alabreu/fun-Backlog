@@ -56,7 +56,7 @@ export function CoverAction({
           className={`flex h-7 w-7 items-center justify-center rounded-control backdrop-blur-sm transition active:scale-90 ${
             added
               ? 'bg-accent text-on-accent'
-              : 'bg-inverse/85 text-on-inverse ring-1 ring-on-inverse/25'
+              : 'bg-scrim/85 text-on-scrim ring-1 ring-on-scrim/25'
           }`}
         >
           {added ? (

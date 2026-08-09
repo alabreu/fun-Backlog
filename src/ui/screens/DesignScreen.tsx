@@ -27,6 +27,7 @@ import {
   SeasonSlider,
   Sheet,
   Textarea,
+  Toast,
   Toggle,
 } from '@ui/design'
 import { MEDIA_TYPES, type MediaType } from '@core/items/types'
@@ -61,9 +62,10 @@ const TOKENS_COLOR = [
   { name: 'on-accent', use: 'texto sobre accent', swatch: 'bg-on-accent' },
   { name: 'success', use: 'confirmações', swatch: 'bg-success' },
   { name: 'danger', use: 'erros', swatch: 'bg-danger' },
-  { name: 'inverse', use: 'toast (escuro nos 2 temas)', swatch: 'bg-inverse' },
+  { name: 'inverse', use: 'toast (inverte com o tema)', swatch: 'bg-inverse' },
   { name: 'on-inverse', use: 'texto do toast', swatch: 'bg-on-inverse' },
-  { name: 'scrim', use: 'véu do sheet', swatch: 'bg-scrim' },
+  { name: 'scrim', use: 'véu / tarja (escuro nos 2)', swatch: 'bg-scrim' },
+  { name: 'on-scrim', use: 'texto sobre o véu', swatch: 'bg-on-scrim' },
 ] as const
 
 const TOKENS_RADIUS = [
@@ -145,6 +147,7 @@ export function DesignScreen() {
   const [chip, setChip] = useState('a')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [toastOpen, setToastOpen] = useState(false)
   const [theme, setTheme] = useState<Theme>('system')
   const [mediaChip, setMediaChip] = useState<MediaType>('game')
   const [ligado, setLigado] = useState(true)
@@ -644,7 +647,33 @@ export function DesignScreen() {
             ao fechar.
           </p>
         </section>
+
+        <section>
+          <SectionTitle className="mb-2">Toast</SectionTitle>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setToastOpen((v) => !v)}
+          >
+            {toastOpen ? 'Esconder toast' : 'Mostrar toast'}
+          </Button>
+          <p className="mt-2 text-label text-muted">
+            Superfície `inverse`: escura no tema claro, clara no escuro. É o único
+            lugar do app que inverte de propósito — por isso ela aparece contra a
+            página nos dois temas.
+          </p>
+        </section>
       </ScreenBody>
+
+      {toastOpen && (
+        <Toast
+          action={{ label: 'Desfazer', onClick: () => setToastOpen(false) }}
+          onDismiss={() => setToastOpen(false)}
+          dismissLabel="Fechar"
+        >
+          Adicionado à estante
+        </Toast>
+      )}
 
       <Sheet
         open={sheetOpen}

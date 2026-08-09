@@ -8,8 +8,8 @@ import { MEDIA_BG } from './media'
  * de tela prometer uma ação que não existe.
  *
  * `tone="onCover"` é o caso do grid: legível sobre arte de qualquer cor, por
- * isso usa a superfície invertida (escura nos dois temas) em vez de derivar de
- * `bg`, que inverteria junto com o tema e sumiria sobre capas claras.
+ * isso usa o `scrim` (escuro nos dois temas) em vez de derivar de `bg` ou de
+ * `inverse`, que invertem junto com o tema e sumiriam sobre capas claras.
  *
  * `media` pinta o badge com a cor daquela mídia e ganha do `tone` — é o badge
  * de "Jogos"/"Filmes", que existe para ser reconhecido de relance. O texto
@@ -20,7 +20,7 @@ export type BadgeTone = 'neutral' | 'accent' | 'onCover'
 const TONES: Record<BadgeTone, string> = {
   neutral: 'bg-ink/5 text-muted ring-1 ring-ink/10',
   accent: 'bg-accent text-on-accent',
-  onCover: 'bg-inverse/85 text-on-inverse backdrop-blur-sm',
+  onCover: 'bg-scrim/85 text-on-scrim backdrop-blur-sm',
 }
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {

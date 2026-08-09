@@ -119,9 +119,7 @@ export function SeasonSlider({
             left: `clamp(${BALAO_META_PX}px, ${posicao.left}, calc(100% - ${BALAO_META_PX}px))`,
           }}
         >
-          {/* `primary`, a cor do próprio polegar — o balão pertence a ele.
-              NÃO `inverse`: aquele token é escuro nos dois temas (é a cor do
-              toast) e desaparecia sobre o card escuro deste painel. */}
+          {/* `primary`, a cor do próprio polegar — o balão pertence a ele. */}
           <span className="block whitespace-nowrap rounded-control bg-primary px-2.5 py-1 text-body font-bold tabular-nums text-on-primary">
             {format(shown)}
           </span>

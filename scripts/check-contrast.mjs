@@ -43,6 +43,14 @@ const PAIRS = [
   ['favorite', 'surface', 3, 'coração de favorita no sheet'],
   ['favorite', 'bg', 3, 'coração de favorita no fundo'],
   ['on-inverse', 'inverse', 4.5, 'texto do toast (superfície invertida)'],
+  // A SUPERFÍCIE do toast contra a página. Este par entrou depois de o toast
+  // ficar invisível no tema escuro: `inverse` era escuro nos dois temas e dava
+  // 1,09:1 contra o fundo #131316 — barra e página eram a mesma cor, e nada
+  // aqui reclamava. É objeto gráfico (1.4.11), então o mínimo é 3.
+  ['inverse', 'bg', 3, 'superfície do toast contra a página'],
+  // O véu (sheet, visualizador de imagem, tarja sobre a capa) é escuro nos DOIS
+  // temas — não inverte, porque atrás dele há arte de qualquer cor.
+  ['on-scrim', 'scrim', 4.5, 'texto sobre o véu'],
   // Cor por mídia: cada uma aparece de DOIS jeitos, e os dois têm mínimo
   // diferente. Como texto (cabeçalho de grupo na busca) precisa de 4.5; como
   // superfície preenchida (chip selecionado, badge, barra da linha) precisa de
@@ -82,7 +90,8 @@ const PAIRS = [
   ['genre-7', 'surface', 4.5, 'gênero 7 como texto no sheet'],
   // O botão dentro do toast NÃO é verificado contra a superfície do toast: pela
   // 1.4.11, componente identificado pelo próprio rótulo de alto contraste não
-  // exige contraste de borda — e o rótulo já é conferido em `on-primary`.
+  // exige contraste de borda — e o par que ele usa (`inverse` sobre
+  // `on-inverse`) já é conferido acima, só com os papéis trocados.
   // Deliberadamente NÃO verificamos `surface` contra `bg`: a separação do card
   // vem do `ring-1 ring-ink/10`, não da luminância (no tema claro esse par fica
   // em 1.08:1 e a UI é perfeitamente legível). Um check sem critério real só
