@@ -90,10 +90,11 @@ describe('SHELF_SECTIONS', () => {
     }
   })
 
-  // Arquivo é consulta, não decisão: nunca disputa o topo com a fila viva.
-  it('concluído e abandonado são sempre os dois últimos', () => {
+  // Pausado é quase-arquivo (decisão do usuário, 09/08/2026): a seção vive
+  // vazia, e no meio da estante só empurrava o que importa para baixo.
+  it('pausado é o penúltimo e abandonado fecha, em toda mídia', () => {
     for (const media of MEDIA_TYPES) {
-      expect(shelfSections(media).slice(-2)).toEqual(['done', 'abandoned'])
+      expect(shelfSections(media).slice(-2)).toEqual(['paused', 'abandoned'])
     }
   })
 
@@ -109,12 +110,12 @@ describe('SHELF_SECTIONS', () => {
     expect(shelfSections('movie')[0]).toBe('backlog')
   })
 
-  // Em andamento e pausado falam da mesma coisa — o que você já começou — e
-  // retomar é mais provável que escolher da fila do zero.
-  it('pausado vem logo depois do que está em andamento, em toda mídia', () => {
+  // Concluído continua visível antes do quase-arquivo: consulta-se "o que eu
+  // já zerei" com mais frequência do que se retoma um pausado.
+  it('concluído vem antes de pausado, em toda mídia', () => {
     for (const media of MEDIA_TYPES) {
       const secoes = shelfSections(media)
-      expect(secoes[secoes.indexOf('active') + 1]).toBe('paused')
+      expect(secoes.indexOf('done')).toBeLessThan(secoes.indexOf('paused'))
     }
   })
 })
