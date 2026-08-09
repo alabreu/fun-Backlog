@@ -16,6 +16,11 @@ import { Heart, Star } from '@phosphor-icons/react'
  *
  * Alvos de 44px (WCAG 2.5.5). Numa fileira de seis, alvo pequeno erra de casa —
  * e errar aqui grava a nota errada.
+ *
+ * APAGAR É TOCAR NA ESTRELA DA NOTA ATUAL. Não há mais botão "Limpar" ao lado
+ * do rótulo (decisão do usuário, 09/08/2026): o gesto sozinho responde, e a
+ * linha ficou com uma coisa a menos. O que sustenta essa escolha é o
+ * `labels.clear` — sem ele o gesto seria invisível para leitor de tela.
  */
 export interface RatingRowProps {
   /** 1 a 5, ou ausente para "sem nota". */
@@ -27,6 +32,16 @@ export interface RatingRowProps {
   labels: {
     /** Recebe a posição da estrela, ex.: "Dar nota 3". */
     star: (value: number) => string
+    /**
+     * O que a estrela da nota ATUAL faz: apagar.
+     *
+     * Não é enfeite de acessibilidade — é a única forma de saber que a saída
+     * existe quando não há botão "Limpar" na tela. Sem isto, quem navega por
+     * leitor de tela ouve "nota 4, ativado" e não tem como descobrir que tocar
+     * ali de novo remove; a nota vira um dado impossível de apagar, que é
+     * exatamente o problema que o botão veio resolver um dia.
+     */
+    clear: string
     /** O rótulo ESCRITO do botão de favorito ("Favorito"). */
     favorite: string
     /** O que o toque vai fazer, para o leitor de tela ("Marcar como
@@ -59,13 +74,17 @@ export function RatingRow({
               <button
                 key={star}
                 type="button"
-                aria-label={labels.star(star)}
+                // A estrela da nota atual anuncia "apagar", não "dar nota 4".
+                // Ela é a ÚNICA saída desde que o botão "Limpar" saiu da tela
+                // (decisão do usuário, 09/08/2026), e uma saída que não se
+                // anuncia não existe para quem não enxerga a fileira.
+                aria-label={value === star ? labels.clear : labels.star(star)}
                 aria-pressed={value === star}
-                // Tocar na nota atual limpa. O gesto continua existindo porque
-                // é rápido para quem o conhece — mas ele NÃO é a resposta a
-                // "como eu apago isto": é invisível, e quem tenta zerar
-                // baixando de 5 para 1 nunca chega ao zero. O botão "Limpar"
-                // ao lado do rótulo é a resposta; isto aqui é o atalho.
+                // TOCAR NA NOTA ATUAL LIMPA — e agora este gesto é a única
+                // forma de apagar. Fica registrado o risco que ele carrega:
+                // ele é invisível, e a tentativa natural de zerar (descer de 5
+                // para 1) nunca chega ao zero, ela só troca a nota. Se
+                // "não consigo tirar a nota" voltar a aparecer, é aqui.
                 onClick={() => onChange(value === star ? undefined : star)}
                 className="p-2.5 transition active:scale-90"
               >

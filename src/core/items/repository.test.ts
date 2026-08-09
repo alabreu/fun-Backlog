@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { storageKey } from '@core/config'
-import { localItemsRepository } from './repository'
+import { localItemsRepository, toRow } from './repository'
 import type { NewItem } from './types'
 
 // localStorage não existe no ambiente node do vitest — stub em memória.
@@ -79,5 +79,40 @@ describe('repositório local (modo convidado)', () => {
   it('trata storage corrompido como catálogo vazio, sem explodir', async () => {
     store.set(storageKey('items'), '{isso não é json}')
     expect(await localItemsRepository.list()).toEqual([])
+  })
+})
+
+describe('toRow', () => {
+  // O BUG QUE ESTE BLOCO EXISTE PARA IMPEDIR: apagar a nota mandava um UPDATE
+  // vazio. `{ rating: undefined }` é "limpe" e `{}` é "não mexa", e a versão
+  // anterior (`patch.rating !== undefined`) lia os dois como a segunda coisa —
+  // então na conta a nota era impossível de tirar, e voltava sozinha ao
+  // recarregar. No modo convidado nunca deu: ali o update é um spread.
+  it('chave presente com vazio vira NULL — é assim que se apaga', () => {
+    expect(toRow({ rating: undefined })).toEqual({ rating: null })
+    expect(toRow({ notes: undefined })).toEqual({ notes: null })
+    expect(toRow({ progress: undefined })).toEqual({ progress: null })
+    expect(toRow({ completedAt: undefined })).toEqual({ completed_at: null })
+  })
+
+  it('chave ausente não entra no UPDATE', () => {
+    expect(toRow({ status: 'done' })).toEqual({ status: 'done' })
+  })
+
+  // `favorite` e `tags` nasceram em migrações posteriores: mandá-las num banco
+  // que ainda não as tem derruba o update INTEIRO, levando junto a mudança que
+  // a pessoa queria salvar.
+  it('não inventa coluna que o patch não mencionou', () => {
+    const row = toRow({ rating: 5 })
+    expect('favorite' in row).toBe(false)
+    expect('tags' in row).toBe(false)
+    expect('added_at' in row).toBe(false)
+  })
+
+  it('traduz o nome do campo para a coluna', () => {
+    expect(toRow({ coverUrl: 'https://x/y.jpg', startedAt: '2026-01-01' })).toEqual({
+      cover_url: 'https://x/y.jpg',
+      started_at: '2026-01-01',
+    })
   })
 })

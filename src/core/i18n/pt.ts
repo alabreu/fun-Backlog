@@ -125,7 +125,6 @@ export const pt = {
   'item.finishedPrompt': 'Você chegou ao fim.',
   'item.finishedConfirm': 'Marcar como concluída',
   'item.ratingLabel': 'Nota',
-  'item.clearRating': 'Limpar',
   'item.favorite': 'Favorito',
   'item.favoriteAdd': 'Marcar como favorita',
   'item.favoriteRemove': 'Desmarcar como favorita',

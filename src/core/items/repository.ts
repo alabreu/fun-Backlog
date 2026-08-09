@@ -143,30 +143,48 @@ function fromRow(row: ItemRow): Item {
 
 /** Só os campos presentes viram coluna — `undefined` no patch significa
  *  "não mexa", e `null` no banco significa "apague". */
-function toRow(patch: ItemPatch & Partial<NewItem>): Record<string, unknown> {
+/**
+ * O patch do app vira a linha do Postgres.
+ *
+ * A REGRA É `in`, NÃO `!== undefined`, e a diferença é a que fazia "tirar a
+ * nota" não funcionar na conta. Apagar um campo é `update(id, { rating:
+ * undefined })` — a chave ESTÁ no objeto, o valor é que é vazio. Testando por
+ * `!== undefined`, esse patch era indistinguível de "não falei de nota": a
+ * coluna ficava de fora do UPDATE, o Postgres devolvia a linha intacta, e a
+ * nota reaparecia. Na conta a nota era impossível de apagar; no modo convidado
+ * (que faz spread e não passa por aqui) sempre funcionou.
+ *
+ * `in` separa as duas coisas: chave ausente é "não mexa", chave presente com
+ * vazio é "limpe". Vale para nota, notas, progresso e as datas — todos tinham
+ * o mesmo defeito esperando alguém tentar apagá-los.
+ *
+ * O `?? null` continua sendo necessário: `undefined` some no JSON, e a coluna
+ * precisa receber NULL escrito.
+ */
+export function toRow(
+  patch: ItemPatch & Partial<NewItem>,
+): Record<string, unknown> {
   const row: Record<string, unknown> = {}
-  if (patch.mediaType !== undefined) row.media_type = patch.mediaType
-  if (patch.title !== undefined) row.title = patch.title
-  if (patch.coverUrl !== undefined) row.cover_url = patch.coverUrl ?? null
-  if (patch.externalIds !== undefined) row.external_ids = patch.externalIds
-  if (patch.status !== undefined) row.status = patch.status
-  if (patch.statusDetail !== undefined)
-    row.status_detail = patch.statusDetail ?? null
-  if (patch.progress !== undefined) row.progress = patch.progress ?? null
-  if (patch.rating !== undefined) row.rating = patch.rating ?? null
+  if ('mediaType' in patch) row.media_type = patch.mediaType
+  if ('title' in patch) row.title = patch.title
+  if ('coverUrl' in patch) row.cover_url = patch.coverUrl ?? null
+  if ('externalIds' in patch) row.external_ids = patch.externalIds
+  if ('status' in patch) row.status = patch.status
+  if ('statusDetail' in patch) row.status_detail = patch.statusDetail ?? null
+  if ('progress' in patch) row.progress = patch.progress ?? null
+  if ('rating' in patch) row.rating = patch.rating ?? null
   // Só entra na linha quando o patch FALA dele. Não é micro-otimização: a
   // coluna nasce na migração 0005, e um update que sempre mandasse
   // `favorite` falharia inteiro num banco que ainda não a tem — levando
   // junto a mudança de status ou de progresso que a pessoa queria salvar.
-  if (patch.favorite !== undefined) row.favorite = patch.favorite ?? false
-  if (patch.notes !== undefined) row.notes = patch.notes ?? null
-  if (patch.tags !== undefined) row.tags = patch.tags
+  if ('favorite' in patch) row.favorite = patch.favorite ?? false
+  if ('notes' in patch) row.notes = patch.notes ?? null
+  if ('tags' in patch) row.tags = patch.tags
   // Só na criação (a migração convidado→conta manda a data original); num
   // update comum `addedAt` nunca vem, e a coluna fica com o default do banco.
-  if (patch.addedAt !== undefined) row.added_at = patch.addedAt
-  if (patch.startedAt !== undefined) row.started_at = patch.startedAt ?? null
-  if (patch.completedAt !== undefined)
-    row.completed_at = patch.completedAt ?? null
+  if ('addedAt' in patch) row.added_at = patch.addedAt
+  if ('startedAt' in patch) row.started_at = patch.startedAt ?? null
+  if ('completedAt' in patch) row.completed_at = patch.completedAt ?? null
   return row
 }
 

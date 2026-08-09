@@ -446,6 +446,7 @@ export function DesignScreen() {
             onFavoriteChange={setFavorita}
             labels={{
               star: (v) => `Nota ${v}`,
+              clear: 'Tirar a nota',
               favorite: 'Favorito',
               favoriteAction: 'Marcar como favorita',
             }}
@@ -465,6 +466,7 @@ export function DesignScreen() {
               onFavoriteChange={setFavorita}
               labels={{
               star: (v) => `Nota ${v}`,
+              clear: 'Tirar a nota',
               favorite: 'Favorito',
               favoriteAction: 'Marcar como favorita',
             }}

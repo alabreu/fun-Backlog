@@ -19,6 +19,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-tirar-nota',
+    date: '2026-08-09',
+    emoji: '⭐',
+    title: {
+      pt: 'Tirar a nota agora funciona de verdade',
+      en: 'Clearing a rating actually works now',
+    },
+    items: {
+      pt: [
+        'Tocar na estrela da nota que já está dada apaga a nota. O botão "Limpar" saiu da tela — a estrela sozinha responde.',
+        'E o mais importante: para quem está com conta, apagar a nota não estava sendo salvo. A nota voltava sozinha ao recarregar o app. Consertado.',
+      ],
+      en: [
+        'Tapping the star of the rating you already gave clears it. The "Clear" button is gone — the star alone answers.',
+        'More importantly: for signed-in accounts, clearing a rating was never being saved. It came back on reload. Fixed.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-capa-cheia',
     date: '2026-08-09',
     emoji: '🖼️',
