@@ -19,6 +19,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-add-status',
+    date: '2026-08-09',
+    emoji: '➕',
+    title: {
+      pt: 'O + agora pergunta como a obra entra',
+      en: 'The + now asks how the title comes in',
+    },
+    items: {
+      pt: [
+        'Tocar no + de uma capa abre um painel com os cinco estados — a obra já entra como "jogando" ou "zerado" sem passar pela fila nem abrir a ficha.',
+        'Quem entra como "zerado" já ganha a data de conclusão, e aparece na retrospectiva do ano.',
+      ],
+      en: [
+        'Tapping a cover’s + opens a panel with the five states — the title comes in as "playing" or "beaten" without passing through the queue or opening the details.',
+        'Coming in as "beaten" stamps the completion date, so it counts in the year in review.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-franquia',
     date: '2026-08-09',
     emoji: '🗂️',

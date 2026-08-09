@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LinkSimple } from '@phosphor-icons/react'
 import { filterItems } from '@core/items/filter'
-import { mediaLabelKey, progressUnitFor, statusLabelKey } from '@core/items/status'
-import type { Item, MediaType } from '@core/items/types'
+import {
+  datesForStatus,
+  mediaLabelKey,
+  progressUnitFor,
+  statusLabelKey,
+} from '@core/items/status'
+import type { Item, ItemStatus, MediaType } from '@core/items/types'
 import { parseMediaLink } from '@core/media/link'
 import {
   hasProviderFor,
@@ -12,6 +17,7 @@ import {
 import { findByImdbId } from '@core/media/tmdb'
 import type { MediaSearchResult } from '@core/media/types'
 import { useRegionStore } from '@core/state/regionStore'
+import { AddStatusSheet } from '@ui/components/AddStatusSheet'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import {
   Badge,
@@ -68,6 +74,8 @@ export function AddScreen() {
   const [flash, setFlash] = useFlash()
   const [manualOpen, setManualOpen] = useState(false)
   const [selected, setSelected] = useState<SheetSubject | null>(null)
+  // A obra cujo + foi tocado, esperando a pessoa dizer COMO ela entra.
+  const [pendingAdd, setPendingAdd] = useState<MediaSearchResult | null>(null)
 
   const abortRef = useRef<AbortController | null>(null)
 
@@ -169,23 +177,30 @@ export function AddScreen() {
     return () => clearTimeout(timer)
   }, [searchQuery, searchMedia, active, link, noSource, signedIn, enabled, region])
 
-  async function addResult(result: MediaSearchResult) {
-    // O total que o provider já sabe (episódios, páginas) entra junto: é o que
-    // permite mostrar "episódio 3 de 26" no detalhe sem uma segunda ida à API.
+  // Chamado pelo painel de status: o + pergunta ANTES, então a obra já nasce
+  // no estado escolhido, com as datas que o estado implica (`datesForStatus`).
+  // O total que o provider já sabe (episódios, páginas) entra junto: é o que
+  // permite mostrar "episódio 3 de 26" no detalhe sem uma segunda ida à API.
+  async function addResult(result: MediaSearchResult, status: ItemStatus) {
+    setPendingAdd(null)
     const unit = progressUnitFor(result.mediaType)
     try {
-      const item = await add({
+      await add({
         mediaType: result.mediaType,
         title: result.title,
         coverUrl: result.coverUrl,
         externalIds: { [result.provider]: result.externalId },
+        status,
+        ...datesForStatus(status, {}, new Date().toISOString()),
         progress:
           unit && result.total
             ? { unit, current: 0, total: result.total }
             : undefined,
       })
-      // O item vai junto: é ele que dá ao toast o botão de abrir a obra.
-      setFlash({ message: t('add.added', { title: result.title }), item })
+      // Aqui o sucesso AINDA fala: nesta tela a obra não aparece em seção
+      // nenhuma — o resultado só ganha o check na capa, e um check pequeno num
+      // grid cheio é fácil de não ver.
+      setFlash({ message: t('add.added', { title: result.title }) })
     } catch {
       setFlash({ message: t('add.addFailed') })
     }
@@ -379,7 +394,7 @@ export function AddScreen() {
                             onClick={() =>
                               mine
                                 ? void removeResult(mine)
-                                : void addResult(result)
+                                : setPendingAdd(result)
                             }
                           />
                         </div>
@@ -417,24 +432,13 @@ export function AddScreen() {
       {/* Item da estante é reidratado do store a cada render, para o sheet
           refletir uma edição feita nele mesmo. Resultado de busca não tem o
           que reidratar — ele é o dado da fonte, e não muda. */}
-      {flash && (
-        <Toast
-          // O botão só existe quando há obra: erro de rede não tem o que abrir.
-          action={
-            flash.item
-              ? {
-                  label: t('item.changeStatus'),
-                  onClick: () => {
-                    if (flash.item) setSelected(flash.item)
-                    setFlash(null)
-                  },
-                }
-              : undefined
-          }
-        >
-          {flash.message}
-        </Toast>
-      )}
+      {flash && <Toast>{flash.message}</Toast>}
+
+      <AddStatusSheet
+        result={pendingAdd}
+        onClose={() => setPendingAdd(null)}
+        onPick={(result, status) => void addResult(result, status)}
+      />
 
       <ItemSheet
         subject={

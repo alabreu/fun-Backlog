@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Item } from '@core/items/types'
 
 /**
  * A confirmação passageira de "acabei de fazer isso".
@@ -9,21 +8,17 @@ import type { Item } from '@core/items/types'
  * temporizador: sem limpar o anterior, adicionar duas obras seguidas faz o
  * primeiro relógio apagar a segunda mensagem no meio.
  *
- * `item` viaja junto quando existe: é ele que dá ao toast o botão de abrir o
- * painel da obra recém-adicionada. Mensagem de erro vem sem item, e o toast
- * simplesmente não mostra ação.
+ * (Já carregou a obra adicionada, quando o toast tinha um botão de abri-la —
+ * o painel de status no `+` tornou o botão obsoleto e o campo saiu junto.)
  */
 export interface Flash {
   message: string
-  /** A obra que acabou de entrar, quando a mensagem for sobre uma. */
-  item?: Item
 }
 
 /**
  * SEIS SEGUNDOS. Curto o bastante para não virar mobília e longo o bastante
- * para ler o título e decidir — e a ação que ele oferece (abrir a obra)
- * continua a um toque na capa depois que ele some, então nada se perde com o
- * tempo esgotando (ver o comentário do `Toast` sobre WCAG 2.2.1).
+ * para ler a mensagem — que é só informativa: nenhuma ação vive no toast, então
+ * nada se perde com o tempo esgotando (ver o `Toast` sobre WCAG 2.2.1).
  */
 export const FLASH_MS = 6000
 

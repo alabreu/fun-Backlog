@@ -3,12 +3,18 @@ import { MagnifyingGlass } from '@phosphor-icons/react'
 import { Navigate, useParams } from 'react-router'
 import { filterItems, sortForShelf } from '@core/items/filter'
 import {
+  datesForStatus,
   mediaLabelKey,
   progressUnitFor,
   shelfSections,
   statusLabelKey,
 } from '@core/items/status'
-import { MEDIA_TYPES, type Item, type MediaType } from '@core/items/types'
+import {
+  MEDIA_TYPES,
+  type Item,
+  type ItemStatus,
+  type MediaType,
+} from '@core/items/types'
 import { hasProviderFor } from '@core/media/search'
 import type { MediaSearchResult } from '@core/media/types'
 import {
@@ -22,6 +28,7 @@ import {
   SectionTitle,
   Toast,
 } from '@ui/design'
+import { AddStatusSheet } from '@ui/components/AddStatusSheet'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useSectionState } from '@ui/hooks/useSectionState'
@@ -71,6 +78,8 @@ export function ShelfScreen() {
   const { items, error, add, enabled, signedIn } = useItems()
 
   const [selected, setSelected] = useState<SheetSubject | null>(null)
+  // A obra cujo + foi tocado, esperando a pessoa dizer COMO ela entra.
+  const [pendingAdd, setPendingAdd] = useState<MediaSearchResult | null>(null)
   const [query, setQuery] = useState('')
 
   // Mídia desligada vira mídia inexistente: quem chega em /estante/anime pelo
@@ -155,22 +164,26 @@ export function ShelfScreen() {
   // renderizar uma estante de mídia que não existe.
   if (!mediaType) return <Navigate to="/" replace />
 
-  async function addResult(result: MediaSearchResult) {
+  // Chamado pelo painel de status: o + pergunta ANTES, então a obra já nasce
+  // no estado escolhido, com as datas que o estado implica (`datesForStatus` —
+  // zerado ganha as duas, jogando ganha o início). Sem toast de sucesso: o
+  // painel fechando e a obra aparecendo na seção certa É a confirmação.
+  async function addResult(result: MediaSearchResult, status: ItemStatus) {
+    setPendingAdd(null)
     const unit = progressUnitFor(result.mediaType)
     try {
-      const item = await add({
+      await add({
         mediaType: result.mediaType,
         title: result.title,
         coverUrl: result.coverUrl,
         externalIds: { [result.provider]: result.externalId },
+        status,
+        ...datesForStatus(status, {}, new Date().toISOString()),
         progress:
           unit && result.total
             ? { unit, current: 0, total: result.total }
             : undefined,
       })
-      // A estante NÃO dava retorno nenhum ao adicionar pela capa: a obra
-      // aparecia numa seção acima, talvez fora da tela, e era só isso.
-      setFlash({ message: t('add.added', { title: result.title }), item })
     } catch {
       setFlash({ message: t('add.addFailed') })
     }
@@ -322,7 +335,7 @@ export function ShelfScreen() {
                       <CoverAction
                         added={false}
                         label={t('catalog.add')}
-                        onClick={() => void addResult(result)}
+                        onClick={() => setPendingAdd(result)}
                       />
                     </div>
                   </li>
@@ -333,23 +346,15 @@ export function ShelfScreen() {
         )}
       </ScreenBody>
 
-      {flash && (
-        <Toast
-          action={
-            flash.item
-              ? {
-                  label: t('item.changeStatus'),
-                  onClick: () => {
-                    if (flash.item) setSelected(flash.item)
-                    setFlash(null)
-                  },
-                }
-              : undefined
-          }
-        >
-          {flash.message}
-        </Toast>
-      )}
+      {/* Só ERRO chega aqui: o sucesso se mostra sozinho, com a obra
+          aparecendo na seção que a pessoa acabou de escolher. */}
+      {flash && <Toast>{flash.message}</Toast>}
+
+      <AddStatusSheet
+        result={pendingAdd}
+        onClose={() => setPendingAdd(null)}
+        onPick={(result, status) => void addResult(result, status)}
+      />
 
       <ItemSheet subject={openSubject} onClose={() => setSelected(null)} />
     </Screen>

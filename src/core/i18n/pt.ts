@@ -84,6 +84,7 @@ export const pt = {
   'add.manualTitlePlaceholder': 'Nome do jogo, filme, livro…',
   'add.manualMediaLabel': 'Mídia',
   'add.manualSubmit': 'Adicionar à estante',
+  'add.pickStatus': 'Adicionar como',
 
   // Concluídos (a estante de troféus)
   'completed.title': 'Concluídos',
@@ -123,7 +124,6 @@ export const pt = {
   'item.progressPlusOneLabel': 'Marcar mais um episódio',
   'item.finishedPrompt': 'Você chegou ao fim.',
   'item.finishedConfirm': 'Marcar como concluída',
-  'item.changeStatus': 'Mudar status',
   'item.ratingLabel': 'Nota',
   'item.clearRating': 'Limpar',
   'item.favoriteAdd': 'Marcar como favorita',
