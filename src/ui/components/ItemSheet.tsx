@@ -402,31 +402,37 @@ function SourceFacts({
 
       {/* Os gêneros ficam ENTRE os dados de identificação e a sinopse: eles são
           a resposta rápida a "que tipo de coisa é esta?", que é a mesma
-          pergunta da sinopse, só que em três palavras. Quem se satisfaz com
-          "Shooter · RPG · Aventura" não precisa ler o parágrafo; quem não se
-          satisfaz já está com o olho no lugar certo para continuar. No fim da
-          ficha eles eram enfeite, lidos depois de a decisão já ter sido tomada. */}
-      {/* Gêneros também sem cápsula, separados por ponto — mesma forma de
-          "Plataformas" acima e de "Quem fez" abaixo. Sobrou UM tipo de pílula
-          no painel inteiro: os chips de status. Forma passou a significar
-          "isto se toca", que é a única distinção que valia a pena manter. */}
+          pergunta da sinopse, só que em três palavras. No fim da ficha eles
+          eram enfeite, lidos depois de a decisão já ter sido tomada. */}
+      {/* COM rótulo, na mesma grade das outras linhas. A versão sem rótulo
+          funcionava em jogo, onde três fatos acima davam contexto — mas numa
+          série, com um fato só, a linha colorida colava em "Onde assistir" e
+          lia como um fato que PERDEU o rótulo. A cor por gênero fica; é ela
+          que impede a linha de virar só mais um par rótulo/valor cinza. */}
       {genres.length > 0 && (
-        // Cada gênero na SUA cor, com o ponto separador em `muted` — se o
-        // ponto herdasse a cor, ele pertenceria visualmente ao gênero da
-        // esquerda. Igual à linha das plataformas, o separador vem depois do
-        // item e dentro do mesmo bloco, para "Aventura ·" quebrar inteiro.
-        <p className="flex flex-wrap items-center text-body">
-          {genres.map((genre, i) => (
-            <span key={genre} className="inline-flex items-center">
-              <span className={GENRE_TEXT[genreColors[i]]}>{genre}</span>
-              {i < genres.length - 1 && (
-                <span aria-hidden className="mx-2 text-muted">
-                  ·
-                </span>
-              )}
-            </span>
-          ))}
-        </p>
+        // `items-baseline` pela mesma medição do FactList: valor de texto puro
+        // (os gêneros não têm ícone) alinha pela linha-base, não pelo topo.
+        <div className="flex items-baseline gap-2">
+          <span className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
+            {t('fact.genres')}
+          </span>
+          {/* Cada gênero na SUA cor, com o ponto separador em `muted` — se o
+              ponto herdasse a cor, ele pertenceria visualmente ao gênero da
+              esquerda. O separador vem depois do item e dentro do mesmo
+              bloco, para "Aventura ·" quebrar inteiro. */}
+          <p className="flex min-w-0 flex-1 flex-wrap items-center text-body">
+            {genres.map((genre, i) => (
+              <span key={genre} className="inline-flex items-center">
+                <span className={GENRE_TEXT[genreColors[i]]}>{genre}</span>
+                {i < genres.length - 1 && (
+                  <span aria-hidden className="mx-2 text-muted">
+                    ·
+                  </span>
+                )}
+              </span>
+            ))}
+          </p>
+        </div>
       )}
 
       {detail.synopsis && (

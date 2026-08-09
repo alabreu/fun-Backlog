@@ -4,9 +4,11 @@ import { trackSessionStart } from '@core/analytics'
 import { storageKey } from '@core/config'
 import { DEFAULT_LOCALE, normalizeLocale } from '@core/i18n'
 import {
+  currentTimeZone,
   normalizeRegion,
   regionForLocale,
   regionFromLanguageTag,
+  regionFromTimeZone,
 } from '@core/region'
 import { useLocaleStore } from '@core/state/localeStore'
 import { useRegionStore } from '@core/state/regionStore'
@@ -42,6 +44,9 @@ const THEME_STORAGE_KEY = storageKey('theme')
 const NICKNAME_STORAGE_KEY = storageKey('nickname')
 const MEDIA_STORAGE_KEY = storageKey('media-preferences')
 const REGION_STORAGE_KEY = storageKey('region')
+/** 'user' quando a pessoa escolheu na tela; ausente/'guess' quando o app
+ *  deduziu. É o que autoriza o boot a refazer um chute (ver regionStore). */
+const REGION_SOURCE_STORAGE_KEY = storageKey('region-source')
 
 /** localStorage falha de verdade: modo privado, cota cheia, política do
  *  navegador. Preferência é um "seria bom", nunca um motivo para a tela não
@@ -81,7 +86,8 @@ export function App() {
   const { locale } = useTranslation()
   const setLocale = useLocaleStore((s) => s.setLocale)
   const region = useRegionStore((s) => s.region)
-  const setRegion = useRegionStore((s) => s.setRegion)
+  const regionChosen = useRegionStore((s) => s.chosen)
+  const seedRegion = useRegionStore((s) => s.seedRegion)
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const nickname = useNicknameStore((s) => s.nickname)
@@ -106,13 +112,32 @@ export function App() {
       normalizeLocale(navigator.language) ??
       DEFAULT_LOCALE
     setLocale(startingLocale)
-    // País: escolha salva > o que o navegador declara (`pt-BR` diz "BR") > o
-    // país que combina com o idioma. Só o último é chute nosso.
-    setRegion(
-      normalizeRegion(readStored(REGION_STORAGE_KEY)) ??
-        regionFromLanguageTag(navigator.language) ??
-        regionForLocale(startingLocale),
-    )
+    // País. ESCOLHA salva vence tudo; CHUTE salvo não vence nada — ele é
+    // refeito a cada boot, do melhor sinal para o pior:
+    //
+    //   fuso horário  onde a pessoa ESTÁ ("America/Sao_Paulo" → BR). Um iPhone
+    //                 em inglês declara `en-GB` morando no Brasil — o idioma
+    //                 já nos enganou; o relógio não engana.
+    //   tag de idioma o país que vier no `navigator.language` (`pt-BR` → BR).
+    //   chute salvo   o que o boot anterior deduziu, se os sinais sumirem.
+    //   idioma→país   pt → BR, en → US. O último recurso.
+    //
+    // Refazer o chute é o que corrige sozinho quem ganhou o país errado e
+    // acompanha quem se muda — sem a marca de escolha, o erro de ontem viraria
+    // "preferência" para sempre.
+    const storedRegion = normalizeRegion(readStored(REGION_STORAGE_KEY))
+    const storedChosen =
+      storedRegion !== null &&
+      readStored(REGION_SOURCE_STORAGE_KEY) === 'user'
+    if (storedChosen) seedRegion(storedRegion, true)
+    else
+      seedRegion(
+        regionFromTimeZone(currentTimeZone()) ??
+          regionFromLanguageTag(navigator.language) ??
+          storedRegion ??
+          regionForLocale(startingLocale),
+        false,
+      )
     // Com tema travado a escolha salva é ignorada de propósito: quem tinha
     // "claro" gravado antes não fica preso num tema que o app não oferece mais.
     setTheme(
@@ -146,13 +171,15 @@ export function App() {
     writeStored(LOCALE_STORAGE_KEY, locale)
   }, [locale])
 
-  // Persiste o país, com a mesma trava das mídias: no primeiro commit o estado
-  // ainda é o padrão, e gravar 'BR' por cima de um 'PT' salvo faria a leitura
-  // seguinte do StrictMode ler o padrão recém-gravado — a escolha se perderia.
+  // Persiste o país E a proveniência, com a mesma trava das mídias: no
+  // primeiro commit o estado ainda é o padrão, e gravar 'BR' por cima de um
+  // 'PT' salvo faria a leitura seguinte do StrictMode ler o padrão
+  // recém-gravado — a escolha se perderia.
   useEffect(() => {
     if (!regionSeededRef.current) return
     writeStored(REGION_STORAGE_KEY, region)
-  }, [region])
+    writeStored(REGION_SOURCE_STORAGE_KEY, regionChosen ? 'user' : 'guess')
+  }, [region, regionChosen])
 
   // Aplica + persiste o tema. Travado, não há o que persistir.
   useEffect(() => {

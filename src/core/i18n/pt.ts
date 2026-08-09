@@ -156,6 +156,7 @@ export const pt = {
   'fact.players': 'Jogadores',
   'fact.buy': 'Onde comprar',
   'fact.episodeLength': 'Por episódio',
+  'fact.genres': 'Gêneros',
 
   // Menu (sheet do botão no topo direito)
   'menu.feedback': 'Enviar feedback',

@@ -4,6 +4,7 @@ import {
   normalizeRegion,
   regionForLocale,
   regionFromLanguageTag,
+  regionFromTimeZone,
   regionName,
   REGIONS,
   sortedRegions,
@@ -43,6 +44,30 @@ describe('regionFromLanguageTag', () => {
 
   it('país fora da lista não vira escolha', () => {
     expect(regionFromLanguageTag('en-ZZ')).toBeNull()
+  })
+})
+
+describe('regionFromTimeZone', () => {
+  // O caso que motivou a função: iPhone em inglês declara `en-GB` no idioma,
+  // mas o relógio diz São Paulo. O fuso tem que vencer — e vence porque vem
+  // ANTES na ordem de chutes do boot.
+  it('deduz o país de onde a pessoa está, não do idioma', () => {
+    expect(regionFromTimeZone('America/Sao_Paulo')).toBe('BR')
+    expect(regionFromTimeZone('America/Manaus')).toBe('BR')
+    expect(regionFromTimeZone('Europe/London')).toBe('GB')
+    expect(regionFromTimeZone('Europe/Lisbon')).toBe('PT')
+  })
+
+  it('fusos compostos casam por prefixo', () => {
+    expect(regionFromTimeZone('America/Argentina/Cordoba')).toBe('AR')
+    expect(regionFromTimeZone('Australia/Sydney')).toBe('AU')
+    expect(regionFromTimeZone('America/Indiana/Indianapolis')).toBe('US')
+  })
+
+  it('fuso desconhecido devolve null, para a decisão passar adiante', () => {
+    expect(regionFromTimeZone('Antarctica/McMurdo')).toBeNull()
+    expect(regionFromTimeZone(undefined)).toBeNull()
+    expect(regionFromTimeZone('')).toBeNull()
   })
 })
 

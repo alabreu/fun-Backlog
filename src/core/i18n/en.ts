@@ -158,6 +158,7 @@ export const en: Record<keyof typeof pt, string> = {
   'fact.players': 'Players',
   'fact.buy': 'Where to buy',
   'fact.episodeLength': 'Per episode',
+  'fact.genres': 'Genres',
 
   // Menu
   'menu.feedback': 'Send feedback',
