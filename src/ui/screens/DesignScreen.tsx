@@ -24,11 +24,13 @@ import {
   ScreenBody,
   SectionTitle,
   Reorderable,
+  SeasonSlider,
   Sheet,
   Textarea,
   Toggle,
 } from '@ui/design'
 import { MEDIA_TYPES, type MediaType } from '@core/items/types'
+import { locate, seasonProgress, type SeasonInfo } from '@core/items/seasons'
 import { genreColorIndexes } from '@core/media/genres'
 import { FAMILY_LABEL, PLATFORM_FAMILIES } from '@core/media/platforms'
 import { useThemeStore } from '@core/state/themeStore'
@@ -107,6 +109,38 @@ const GENEROS = [
 
 const CORES_GENERO = genreColorIndexes(GENEROS)
 
+/** Três séries reais, escolhidas pelo TAMANHO: é ele que decide se o slider
+ *  único aguenta. 42, 62 e 201 episódios dão 8,3px, 5,6px e 1,7px por passo
+ *  numa trilha de 342px. */
+const SERIES: { nome: string; seasons: SeasonInfo[] }[] = [
+  {
+    nome: 'Stranger Things · 42 ep',
+    seasons: [
+      { number: 1, episodes: 8 }, { number: 2, episodes: 9 },
+      { number: 3, episodes: 8 }, { number: 4, episodes: 9 },
+      { number: 5, episodes: 8 },
+    ],
+  },
+  {
+    nome: 'Breaking Bad · 62 ep',
+    seasons: [
+      { number: 1, episodes: 7 }, { number: 2, episodes: 13 },
+      { number: 3, episodes: 13 }, { number: 4, episodes: 13 },
+      { number: 5, episodes: 16 },
+    ],
+  },
+  {
+    nome: 'The Office · 201 ep',
+    seasons: [
+      { number: 1, episodes: 6 }, { number: 2, episodes: 22 },
+      { number: 3, episodes: 25 }, { number: 4, episodes: 19 },
+      { number: 5, episodes: 28 }, { number: 6, episodes: 26 },
+      { number: 7, episodes: 26 }, { number: 8, episodes: 24 },
+      { number: 9, episodes: 25 },
+    ],
+  },
+]
+
 export function DesignScreen() {
   const [chip, setChip] = useState('a')
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -117,6 +151,8 @@ export function DesignScreen() {
   const [nota, setNota] = useState<number | undefined>(3)
   const [favorita, setFavorita] = useState(true)
   const [ordem, setOrdem] = useState<MediaType[]>([...MEDIA_TYPES])
+  // Protótipo do progresso por slider: um valor por série de exemplo.
+  const [vistos, setVistos] = useState<number[]>([12, 34, 100])
 
   // A vitrine sobrepõe o tema para dar para conferir os dois lados sem mexer
   // na preferência de ninguém. Ao sair, RESTAURA o que o usuário escolheu em
@@ -456,6 +492,73 @@ export function DesignScreen() {
             283px e passou a 7px. Pulsa, e a pulsação para sozinha em{' '}
             <code>prefers-reduced-motion</code>.
           </p>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">
+            SeasonSlider — protótipo, escolher uma forma
+          </SectionTitle>
+          <p className="mb-4 text-body text-muted">
+            Substituiria campo + "+1" + chips de temporada. Arraste e veja o
+            rótulo: é ele que se mira, não o pixel. Toque num marco (T2, T3…)
+            para fechar aquela temporada.
+          </p>
+
+          {SERIES.map((serie, i) => {
+            const total = serie.seasons.reduce((n, s) => n + s.episodes, 0)
+            const progresso = seasonProgress(vistos[i], serie.seasons)
+            const posicao = locate(vistos[i], serie.seasons)
+            const formata = (v: number) => {
+              const p = locate(v, serie.seasons)
+              return p ? `T${p.season} E${p.episode}` : `${v} episódios`
+            }
+            return (
+              <div key={serie.nome} className="mb-6">
+                <p className="mb-2 text-label uppercase tracking-wide text-muted">
+                  {serie.nome} · {(342 / (total - 1)).toFixed(1)}px por episódio
+                </p>
+                <Card className="mb-2">
+                  <p className="mb-1 text-label text-muted">A · slider único</p>
+                  <SeasonSlider
+                    mode="single"
+                    value={vistos[i]}
+                    total={total}
+                    seasons={progresso}
+                    ariaLabel="Progresso"
+                    format={formata}
+                    seasonLabel={(n: number) => `T${n}`}
+                    onCommit={(v: number) =>
+                      setVistos((atual) =>
+                        atual.map((x, j) => (j === i ? v : x)),
+                      )
+                    }
+                  />
+                </Card>
+                <Card>
+                  <p className="mb-1 text-label text-muted">
+                    B · um por temporada ({serie.seasons.length} linhas)
+                  </p>
+                  <SeasonSlider
+                    mode="stacked"
+                    value={vistos[i]}
+                    total={total}
+                    seasons={progresso}
+                    ariaLabel="Progresso"
+                    format={formata}
+                    seasonLabel={(n: number) => `T${n}`}
+                    onCommit={(v: number) =>
+                      setVistos((atual) =>
+                        atual.map((x, j) => (j === i ? v : x)),
+                      )
+                    }
+                  />
+                </Card>
+                <p className="mt-1 text-label text-muted">
+                  posição: {posicao ? `T${posicao.season} E${posicao.episode}` : '—'}
+                </p>
+              </div>
+            )
+          })}
         </section>
 
         <section>
