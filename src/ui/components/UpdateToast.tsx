@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { CircleNotch, Sparkle, X } from '@phosphor-icons/react'
+import { CircleNotch, Sparkle } from '@phosphor-icons/react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { Toast } from '@ui/design'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
 const UPDATE_CHECK_INTERVAL = 60 * 60 * 1000 // 1h
@@ -48,40 +49,28 @@ export function UpdateToast() {
   if (!needRefresh) return null
 
   return (
-    // role=status: leitores de tela anunciam a chegada do toast sem roubar o foco.
-    <div
-      role="status"
-      className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-gutter"
+    <Toast
+      action={{
+        label: (
+          <>
+            {updating && (
+              <CircleNotch size={15} weight="bold" className="animate-spin" />
+            )}
+            {updating ? t('update.updating') : t('update.action')}
+          </>
+        ),
+        onClick: applyUpdate,
+        disabled: updating,
+      }}
+      // Some o X enquanto atualiza: fechar no meio da troca de service worker
+      // deixaria a página numa versão que já não é nem a velha nem a nova.
+      onDismiss={updating ? undefined : () => setNeedRefresh(false)}
+      dismissLabel={t('update.dismiss')}
     >
-      <div className="flex items-center gap-3 rounded-card bg-inverse px-4 py-3 text-on-inverse shadow-xl">
-        <span className="flex items-center gap-1.5 text-body">
-          <Sparkle size={16} weight="fill" className="text-amber-300" />
-          {t('update.available')}
-        </span>
-        {/* ds-ok: fora do Button porque o toast pede um alvo menor que o
-            tamanho `sm` e um disabled mais sutil. Usa os mesmos tokens. */}
-        <button
-          type="button"
-          onClick={applyUpdate}
-          disabled={updating}
-          className="flex items-center gap-1.5 rounded-control bg-primary px-3.5 py-1.5 text-body font-semibold text-on-primary transition active:scale-95 disabled:opacity-80 disabled:active:scale-100"
-        >
-          {updating && (
-            <CircleNotch size={15} weight="bold" className="animate-spin" />
-          )}
-          {updating ? t('update.updating') : t('update.action')}
-        </button>
-        {!updating && (
-          <button
-            type="button"
-            aria-label={t('update.dismiss')}
-            onClick={() => setNeedRefresh(false)}
-            className="flex text-neutral-400 transition active:scale-90"
-          >
-            <X size={18} />
-          </button>
-        )}
-      </div>
-    </div>
+      <span className="flex items-center gap-1.5">
+        <Sparkle size={16} weight="fill" className="text-amber-300" />
+        {t('update.available')}
+      </span>
+    </Toast>
   )
 }

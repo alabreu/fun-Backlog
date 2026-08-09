@@ -125,6 +125,7 @@ export const en: Record<keyof typeof pt, string> = {
   'item.progressPlusOneLabel': 'Mark one more episode',
   'item.finishedPrompt': 'You have reached the end.',
   'item.finishedConfirm': 'Mark as finished',
+  'item.changeStatus': 'Change status',
   'item.ratingLabel': 'Rating',
   'item.clearRating': 'Clear',
   'item.favoriteAdd': 'Mark as favourite',

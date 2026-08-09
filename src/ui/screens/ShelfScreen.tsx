@@ -20,11 +20,13 @@ import {
   ScreenBody,
   Section,
   SectionTitle,
+  Toast,
 } from '@ui/design'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useSectionState } from '@ui/hooks/useSectionState'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
+import { useFlash } from '@ui/hooks/useFlash'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
@@ -86,6 +88,7 @@ export function ShelfScreen() {
   })
 
   const { isOpen, toggle } = useSectionState(mediaType)
+  const [flash, setFlash] = useFlash()
 
   const visible = useMemo(
     () =>
@@ -154,16 +157,23 @@ export function ShelfScreen() {
 
   async function addResult(result: MediaSearchResult) {
     const unit = progressUnitFor(result.mediaType)
-    await add({
-      mediaType: result.mediaType,
-      title: result.title,
-      coverUrl: result.coverUrl,
-      externalIds: { [result.provider]: result.externalId },
-      progress:
-        unit && result.total
-          ? { unit, current: 0, total: result.total }
-          : undefined,
-    })
+    try {
+      const item = await add({
+        mediaType: result.mediaType,
+        title: result.title,
+        coverUrl: result.coverUrl,
+        externalIds: { [result.provider]: result.externalId },
+        progress:
+          unit && result.total
+            ? { unit, current: 0, total: result.total }
+            : undefined,
+      })
+      // A estante NÃO dava retorno nenhum ao adicionar pela capa: a obra
+      // aparecia numa seção acima, talvez fora da tela, e era só isso.
+      setFlash({ message: t('add.added', { title: result.title }), item })
+    } catch {
+      setFlash({ message: t('add.addFailed') })
+    }
   }
 
   const noSource = !hasProviderFor(mediaType, signedIn)
@@ -322,6 +332,24 @@ export function ShelfScreen() {
           </section>
         )}
       </ScreenBody>
+
+      {flash && (
+        <Toast
+          action={
+            flash.item
+              ? {
+                  label: t('item.changeStatus'),
+                  onClick: () => {
+                    if (flash.item) setSelected(flash.item)
+                    setFlash(null)
+                  },
+                }
+              : undefined
+          }
+        >
+          {flash.message}
+        </Toast>
+      )}
 
       <ItemSheet subject={openSubject} onClose={() => setSelected(null)} />
     </Screen>

@@ -27,10 +27,12 @@ import {
   Screen,
   ScreenBody,
   SectionTitle,
+  Toast,
 } from '@ui/design'
 import { ManualAddSheet } from '@ui/components/ManualAddSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useItems } from '@ui/hooks/useItems'
+import { useFlash } from '@ui/hooks/useFlash'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
 /** Espera entre a última tecla e a busca. Curto o bastante para parecer
@@ -63,7 +65,7 @@ export function AddScreen() {
   const [media, setMedia] = useState<MediaType | undefined>()
   const [outcome, setOutcome] = useState<SearchOutcome>(EMPTY)
   const [searching, setSearching] = useState(false)
-  const [flash, setFlash] = useState<string | null>(null)
+  const [flash, setFlash] = useFlash()
   const [manualOpen, setManualOpen] = useState(false)
   const [selected, setSelected] = useState<SheetSubject | null>(null)
 
@@ -172,7 +174,7 @@ export function AddScreen() {
     // permite mostrar "episódio 3 de 26" no detalhe sem uma segunda ida à API.
     const unit = progressUnitFor(result.mediaType)
     try {
-      await add({
+      const item = await add({
         mediaType: result.mediaType,
         title: result.title,
         coverUrl: result.coverUrl,
@@ -182,18 +184,19 @@ export function AddScreen() {
             ? { unit, current: 0, total: result.total }
             : undefined,
       })
-      setFlash(t('add.added', { title: result.title }))
+      // O item vai junto: é ele que dá ao toast o botão de abrir a obra.
+      setFlash({ message: t('add.added', { title: result.title }), item })
     } catch {
-      setFlash(t('add.addFailed'))
+      setFlash({ message: t('add.addFailed') })
     }
   }
 
   async function removeResult(item: Item) {
     try {
       await remove(item.id)
-      setFlash(t('item.removed'))
+      setFlash({ message: t('item.removed') })
     } catch {
-      setFlash(t('item.saveFailed'))
+      setFlash({ message: t('item.saveFailed') })
     }
   }
 
@@ -248,16 +251,6 @@ export function AddScreen() {
             ))}
           </ChipRow>
         )}
-
-        {/* Região viva: quem usa leitor de tela ouve o resultado da adição sem
-            precisar caçar a mudança na lista. */}
-        <p
-          role="status"
-          aria-live="polite"
-          className="mt-2 text-body text-success"
-        >
-          {flash}
-        </p>
 
         {noSource ? (
           <p className="mt-6 text-body text-muted">
@@ -424,6 +417,25 @@ export function AddScreen() {
       {/* Item da estante é reidratado do store a cada render, para o sheet
           refletir uma edição feita nele mesmo. Resultado de busca não tem o
           que reidratar — ele é o dado da fonte, e não muda. */}
+      {flash && (
+        <Toast
+          // O botão só existe quando há obra: erro de rede não tem o que abrir.
+          action={
+            flash.item
+              ? {
+                  label: t('item.changeStatus'),
+                  onClick: () => {
+                    if (flash.item) setSelected(flash.item)
+                    setFlash(null)
+                  },
+                }
+              : undefined
+          }
+        >
+          {flash.message}
+        </Toast>
+      )}
+
       <ItemSheet
         subject={
           selected && 'id' in selected

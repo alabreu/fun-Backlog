@@ -19,6 +19,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-toast-status',
+    date: '2026-08-09',
+    emoji: '✅',
+    title: {
+      pt: 'Adicionou pela capa? Dá para mudar o status na hora',
+      en: 'Added from a cover? You can change the status right there',
+    },
+    items: {
+      pt: [
+        'Adicionar pela capa sempre põe a obra na fila. Agora aparece uma barra embaixo confirmando, com um botão que abre a obra direto no seletor de status.',
+        'Na estante, adicionar pela capa não dava retorno nenhum — a obra ia para uma seção acima, às vezes fora da tela. Agora confirma igual à busca.',
+      ],
+      en: [
+        'Adding from a cover always puts the title in the queue. A bar now confirms it at the bottom, with a button that opens the title straight at the status picker.',
+        'On a shelf, adding from a cover gave no feedback at all — the title landed in a section above, sometimes off screen. It confirms like search does now.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-skeletons',
     date: '2026-08-09',
     emoji: '🩻',
