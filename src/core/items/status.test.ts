@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   canRate,
   datesForStatus,
+  hasRuler,
   progressUnitFor,
   progressForStatus,
   shelfSections,
@@ -225,5 +226,30 @@ describe('progressForStatus', () => {
 
   it('sem total, nada a dizer', () => {
     expect(progressForStatus('done', undefined)).toBeNull()
+  })
+})
+
+describe('hasRuler', () => {
+  it('série, anime e livro com total conhecido têm régua', () => {
+    expect(hasRuler('series', 62)).toBe(true)
+    expect(hasRuler('anime', 26)).toBe(true)
+    expect(hasRuler('book', 320)).toBe(true)
+  })
+
+  // Hora não é caminho percorrido (decisão 16): um jogo de partida não tem
+  // ponta, e uma régua ali teria um fim inventado.
+  it('jogo não tem, mesmo com um número em mãos', () => {
+    expect(hasRuler('game', 40)).toBe(false)
+  })
+
+  it('filme não tem: ou assistiu, ou não', () => {
+    expect(hasRuler('movie', 1)).toBe(false)
+  })
+
+  // O caso que abre o buraco: sem ponta, "concluída" fica inalcançável — por
+  // isso a fileira de status precisa VOLTAR aqui.
+  it('sem total não há régua, e aí a fileira volta', () => {
+    expect(hasRuler('series', undefined)).toBe(false)
+    expect(hasRuler('book', 0)).toBe(false)
   })
 })

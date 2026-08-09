@@ -125,6 +125,7 @@ export const pt = {
   'item.progress.hour': 'Horas',
   'item.progressOf': 'de {total}',
   'item.seasonEpisode': 'T{season} E{episode}',
+  'item.typeExact': 'Digitar a posição exata',
   'item.seasonShort': 'T{season}',
   'item.finishedPrompt': 'Você chegou ao fim.',
   'item.newSeasonPrompt': 'Saiu coisa nova: agora são {total}.',

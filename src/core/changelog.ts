@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-regua-e-status',
+    date: '2026-08-09',
+    emoji: '🎚️',
+    title: {
+      pt: 'A régua virou o status',
+      en: 'The ruler became the status',
+    },
+    items: {
+      pt: [
+        'Em séries, animes e livros a fileira de status saiu: a posição na régua já diz se a obra está na fila, em andamento ou terminada. Sobraram os dois botões que nenhuma posição revela — pausado e abandonado.',
+        'O balão do slider agora é o campo: toque nele e digite o episódio exato. É o caminho para séries longas, onde arrastar não dá a precisão de um episódio.',
+        'Filme, jogo e qualquer obra sem total conhecido continuam com a fileira de sempre.',
+      ],
+      en: [
+        'For series, anime and books the status row is gone: where you are on the ruler already says whether it is queued, in progress or finished. What is left are the two buttons no position reveals — paused and dropped.',
+        'The slider bubble is now the field: tap it and type the exact episode. That is the path for long series, where dragging cannot land on a single episode.',
+        'Films, games and anything without a known total keep the row they always had.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-ajustes-midia',
     date: '2026-08-09',
     emoji: '🎬',

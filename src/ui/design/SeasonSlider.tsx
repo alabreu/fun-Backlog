@@ -1,12 +1,22 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
+import { PencilSimple } from '@phosphor-icons/react'
 import type { SeasonProgress } from '@core/items/seasons'
 import { tick } from '@ui/haptics'
-import { SLIDER_THUMB_PX, thinLabels, thumbOffset } from './sliderGeometry'
+import {
+  clampTyped,
+  SLIDER_THUMB_PX,
+  thinLabels,
+  thumbOffset,
+} from './sliderGeometry'
 
-/** Metade da largura do balão mais largo ("T12 E28" ≈ 76px). É o quanto ele
- *  precisa recuar da borda para não vazar da trilha. */
-const BALAO_META_PX = 40
+/**
+ * Metade da largura do balão MAIS LARGO. Medido, não estimado: "Episódio 0" com
+ * o lápis dá 123px a 16px — e o pior caso é justamente esse, porque o texto
+ * longo ("Episódio N", sem temporada) só aparece no zero, que é também a ponta
+ * esquerda. Com 50 aqui o balão vazava 12px para fora da margem da tela.
+ */
+const BALAO_META_PX = 62
 
 /** Distância mínima entre dois RÓTULOS de temporada, em fração da trilha.
  *  11% de 334px ≈ 37px, que é a largura de "T10" com o alvo em volta. */
@@ -38,6 +48,18 @@ const ESPACO_MINIMO = 0.11
  * fazia numa segunda fileira de botões. Aqui a mesma ação está presa ao lugar
  * onde ela acontece.
  *
+ * O BALÃO É TOCÁVEL, e é ele o campo numérico (decisão 17). Havia um `Input`
+ * separado ao lado da régua; três controles para um número só, e o de baixo
+ * dizendo a mesma coisa que o de cima. A precisão continua existindo — ela só
+ * mudou de endereço para onde o número já estava. O lápis dentro do balão é o
+ * único sinal de que ali se toca: sem ele o gesto não existe para quem não
+ * tenta. Só GRAVA se algo for digitado — sair com o campo vazio desiste, senão
+ * um toque acidental viraria "não vi nada disso".
+ *
+ * O balão sobe para 16px por causa do iOS, não por estética: o Safari dá zoom
+ * na página ao focar um campo menor que isso, e um campo que muda de tamanho
+ * ao ser tocado empurraria a trilha para longe do dedo. Ver `--text-input`.
+ *
  * SÓ GRAVA AO SOLTAR. Arrastar dispara `change` a cada pixel; gravar em cada um
  * seria uma escrita por pixel percorrido. O valor em curso é local, e o
  * `onCommit` sai no fim do gesto — dedo, teclado ou perda de foco.
@@ -59,6 +81,8 @@ export interface SeasonSliderProps {
   format: (value: number) => string
   /** Rótulo curto de uma temporada, para o marco ("T3"). */
   seasonLabel: (season: number) => string
+  /** Nome acessível do balão, que é o campo de entrada exata. */
+  typeLabel: string
 }
 
 export function SeasonSlider({
@@ -69,9 +93,14 @@ export function SeasonSlider({
   ariaLabel,
   format,
   seasonLabel,
+  typeLabel,
 }: SeasonSliderProps) {
   const [dragging, setDragging] = useState<number | null>(null)
+  const [digitando, setDigitando] = useState<string | null>(null)
   const shown = dragging ?? value
+  const focarAoAbrir = useCallback((el: HTMLInputElement | null) => {
+    el?.focus()
+  }, [])
 
   // O último fim de temporada COINCIDE com o fim da série: um ponto ali seria
   // um ponto em cima da ponta da trilha, sem nada para marcar.
@@ -99,6 +128,15 @@ export function SeasonSlider({
     setDragging(null)
   }
 
+  /** Fecha a digitação. Grava só o que veio escrito — ver `clampTyped`. */
+  function comprometerDigitado() {
+    const escrito = digitando
+    setDigitando(null)
+    if (escrito === null) return
+    const preso = clampTyped(escrito, total)
+    if (preso !== null && preso !== value) onCommit(preso)
+  }
+
   const posicao = { left: thumbOffset(shown, total) }
 
   return (
@@ -120,9 +158,56 @@ export function SeasonSlider({
           }}
         >
           {/* `primary`, a cor do próprio polegar — o balão pertence a ele. */}
-          <span className="block whitespace-nowrap rounded-control bg-primary px-2.5 py-1 text-body font-bold tabular-nums text-on-primary">
-            {format(shown)}
-          </span>
+          {digitando === null ? (
+            <button
+              type="button"
+              aria-label={typeLabel}
+              onClick={() => setDigitando('')}
+              className="flex items-center gap-1 whitespace-nowrap rounded-control bg-primary px-2.5 py-1 text-input font-bold tabular-nums text-on-primary transition active:scale-95"
+            >
+              {format(shown)}
+              <PencilSimple size={12} weight="bold" aria-hidden />
+            </button>
+          ) : (
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={total}
+              // Começa VAZIO com o valor atual de fantasma: no celular o
+              // teclado abre em cima de um campo já selecionado, e digitar o
+              // primeiro dígito é o gesto — não apagar o que estava lá.
+              value={digitando}
+              placeholder={String(value)}
+              aria-label={typeLabel}
+              // FOCO PELO REF, e não `autoFocus`. O lint proíbe o atributo, e
+              // com razão: ele rouba o foco de quem acabou de abrir a tela.
+              // Aqui é o oposto — o campo só existe porque o dedo já tocou nele
+              // um instante atrás, e não focar significaria pedir um segundo
+              // toque para abrir o teclado. Ref estável para não refocar a cada
+              // tecla digitada.
+              ref={focarAoAbrir}
+              onChange={(e) => setDigitando(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  comprometerDigitado()
+                }
+                // O Escape PARA AQUI. Sem isto ele sobe até o listener do
+                // `Sheet` e fecha o painel inteiro — sair de um campo não pode
+                // custar a tela.
+                if (e.key === 'Escape') {
+                  e.stopPropagation()
+                  setDigitando(null)
+                }
+              }}
+              onBlur={comprometerDigitado}
+              // Largura pelo número de dígitos do total: "19" e "201" pedem
+              // campos diferentes, e um campo fixo ou aperta ou sobra.
+              style={{ width: `${String(total).length + 2}ch` }}
+              className="block rounded-control bg-primary px-2.5 py-1 text-center text-input font-bold tabular-nums text-on-primary placeholder:text-on-primary/50"
+            />
+          )}
         </div>
         <span
           aria-hidden

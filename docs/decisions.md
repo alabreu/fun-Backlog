@@ -689,6 +689,69 @@ saiu do lugar do progresso, virou **"Horas jogadas"** e desceu para depois da
 nota, antes das anotações — informação de acervo, não de andamento. Jogo não tem
 régua e nunca teve; agora também não finge ter.
 
+## 17. Onde há régua, ela É o status
+
+**09/08/2026.** A fileira de chips de status **desaparece** para série, anime e
+livro com total conhecido, e o bloco de progresso ocupa o lugar dela — no topo
+do painel, onde ela estava.
+
+O problema era contagem: o painel de uma série tinha **três controles para um
+dado só**. A fileira de status, um campo numérico e o slider, e nenhum dos três
+sabia dos outros. A decisão 15 já dizia que a posição na régua determina o
+estado; o que faltou ali foi tirar da tela a pergunta que tinha virado
+redundante.
+
+### O que a fileira levava junto
+
+Ela não era só status, e por isso apagá-la deixou três órfãos:
+
+1. **Pausado e abandonado** viraram *toggles* abaixo da régua. São **toggles e
+   não interruptores**: os dois se excluem, e dois interruptores lado a lado que
+   se desligam sozinhos mentiriam sobre o que fazem. Desligar não escolhe um
+   estado — devolve o que a posição já dizia.
+2. **Remover** fica no fim da mesma fileira, em vermelho, como já estava. Virou
+   componente (`RemoveChip`) porque agora **dois** painéis o mostram, e duas
+   cópias de uma pergunta irreversível é uma a mais do que se consegue manter
+   igual.
+3. **O nome do estado** virou um selo ao lado do título "Progresso". Era o chip
+   aceso que dizia em que estante a obra vai cair; sem ele a régua decidiria em
+   silêncio.
+
+### Sem régua, nada muda
+
+Filme não tem unidade de progresso. Jogo conta horas, e hora não é caminho
+percorrido (decisão 16). E sem total conhecido — livro digitado à mão, série que
+a fonte não conhece — não existe ponta, então "concluída" ficaria inalcançável.
+Nos três casos a fileira continua sendo o único jeito de dizer "terminei".
+
+A pergunta vive em `hasRuler()`, no core e não na tela, porque **dois** painéis
+dependem dela — o da obra e o do `+`. Se discordassem, a mesma série apareceria
+com régua num e com fileira no outro.
+
+O custo aceito é o painel ter **duas formas**. Vale: quem tem série não vê
+fileira, quem tem jogo não vê régua, e ninguém vê as duas.
+
+### O campo numérico virou o balão
+
+O terceiro controle não foi apagado, mudou de endereço: o balão flutuante do
+slider é tocável e abre um campo. É o caminho de The Office, onde cada episódio
+tem 1,7px de trilha e ninguém mira nisso. O lápis dentro do balão é o único
+sinal de que ali se toca — o custo escolhido de propósito, porque a alternativa
+era um campo permanente repetindo o número que o balão já mostra.
+
+Dois detalhes que não são estética: o balão subiu para **16px** porque o Safari
+do iOS dá zoom na página ao focar campo menor que isso (`--text-input`), e o
+Escape dentro do campo **para ali** — sem isso ele subia até o listener do
+`Sheet` e fechava o painel inteiro.
+
+### O que fica torto por um tempo
+
+Item gravado como "assistindo" com progresso zero — estado que existia antes
+desta decisão — mostra o selo "Assistindo" com a régua no começo. O selo diz a
+verdade sobre o que está no banco, e o primeiro toque na régua reconcilia os
+dois. Não vale uma migração de dados para consertar o que o primeiro uso
+conserta.
+
 ---
 
 ## Ainda em aberto

@@ -47,6 +47,26 @@ export function thinLabels<T>(
   return mantidos
 }
 
+/**
+ * O QUE UM NÚMERO DIGITADO VIRA.
+ *
+ * O slider não precisa disto — arrastar já é preso pelo `min`/`max` do próprio
+ * `input[type=range]`. Quem precisa é o balão, que agora aceita digitação: ali
+ * cabe "999" numa série de 19 episódios, "-3", "12.7" e o campo vazio.
+ *
+ * Devolve `null` para o que não é número, e é o chamador que decide o que fazer
+ * com isso — aqui, "campo vazio ao sair" significa desistir, não gravar zero.
+ * Gravar zero seria transformar um toque acidental no balão em "não vi nada
+ * disso", apagando o progresso de quem só queria olhar.
+ */
+export function clampTyped(raw: string, max: number): number | null {
+  const texto = raw.trim()
+  if (texto === '') return null
+  const n = Number(texto)
+  if (!Number.isFinite(n)) return null
+  return Math.min(Math.max(Math.round(n), 0), max)
+}
+
 export function thumbOffset(
   value: number,
   max: number,

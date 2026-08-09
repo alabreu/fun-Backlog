@@ -151,6 +151,37 @@ export function statusFromProgress(
 }
 
 /**
+ * ESTA OBRA TEM RÉGUA? É a pergunta que decide o painel inteiro (decisão 17).
+ *
+ * Onde há régua, ela SUBSTITUI a fileira de status: a posição diz o estado, e
+ * sobram como botões só as duas coisas que nenhuma posição revela — pausado e
+ * abandonado. Onde não há, a fileira continua sendo o único jeito de dizer
+ * "terminei".
+ *
+ * Três casos caem fora, e por motivos diferentes:
+ *
+ * 1. FILME não tem unidade de progresso. Ou você assistiu, ou não.
+ * 2. JOGO conta HORAS, e hora não é caminho percorrido (decisão 16): Dota e CS
+ *    não têm fim, e mesmo num jogo que tem, "40 horas" não diz o quanto falta.
+ *    Uma régua ali teria uma ponta inventada.
+ * 3. SEM TOTAL não existe ponta. Livro adicionado à mão, série que a fonte não
+ *    conhece: a régua não teria fim, e o estado "concluída" ficaria inalcançável
+ *    — que é exatamente o buraco que esta função existe para não abrir.
+ *
+ * Vive em core, e não na tela, porque DOIS painéis dependem dela — o da obra e
+ * o do "+". Se eles discordassem, a mesma série apareceria com régua num e com
+ * fileira no outro.
+ */
+export function hasRuler(
+  mediaType: MediaType,
+  total: number | undefined,
+): boolean {
+  const unit = progressUnitFor(mediaType)
+  if (!unit || unit === 'hour') return false
+  return Boolean(total && total > 0)
+}
+
+/**
  * O CAMINHO INVERSO: que progresso um status escolhido à mão implica.
  *
  * Sem isto os dois controles se contradiriam — tocar em "Concluída" deixaria a

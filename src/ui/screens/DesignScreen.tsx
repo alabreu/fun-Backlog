@@ -505,6 +505,12 @@ export function DesignScreen() {
             abaixo de cada um fecha aquela temporada. Vibra ao CRUZAR uma
             temporada — no iOS não vibra, o Safari não tem a API.
           </p>
+          <p className="mb-3 text-label text-muted">
+            O balão é o campo numérico: toque nele (o lápis é o sinal) e digite
+            a posição exata. É o caminho de The Office, onde cada episódio tem
+            1,7px e ninguém mira nisso. Enter grava, Escape desiste, sair vazio
+            não mexe em nada.
+          </p>
 
           {SERIES.map((serie, i) => {
             const total = serie.seasons.reduce((n, s) => n + s.episodes, 0)
@@ -525,6 +531,7 @@ export function DesignScreen() {
                     ariaLabel="Progresso"
                     format={formata}
                     seasonLabel={(n: number) => `T${n}`}
+                    typeLabel="Digitar a posição exata"
                     onCommit={(v: number) =>
                       setVistos((atual) =>
                         atual.map((x, j) => (j === i ? v : x)),

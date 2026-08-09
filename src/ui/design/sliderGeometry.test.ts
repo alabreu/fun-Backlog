@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { thinLabels, thumbOffset } from './sliderGeometry'
+import { clampTyped, thinLabels, thumbOffset } from './sliderGeometry'
 
 describe('thumbOffset', () => {
   // O erro que esta função existe para impedir: `0%` e `100%` põem a marca na
@@ -57,5 +57,30 @@ describe('thinLabels', () => {
 
   it('régua folgada não perde nada', () => {
     expect(thinLabels([0.2, 0.4, 0.6], (m) => m, 0.11)).toHaveLength(3)
+  })
+})
+
+describe('clampTyped', () => {
+  it('o que cabe passa inteiro', () => {
+    expect(clampTyped('12', 19)).toBe(12)
+    expect(clampTyped(' 19 ', 19)).toBe(19)
+  })
+
+  // O caso real: teclado numérico de celular numa série de 19 episódios.
+  it('o que não cabe encosta na ponta', () => {
+    expect(clampTyped('999', 19)).toBe(19)
+    expect(clampTyped('-3', 19)).toBe(0)
+  })
+
+  it('fração vira episódio inteiro', () => {
+    expect(clampTyped('12.7', 19)).toBe(13)
+  })
+
+  // `null` é "desistiu", e não "zero": zerar aqui transformaria um toque
+  // acidental no balão em apagar o progresso.
+  it('vazio e lixo não são zero', () => {
+    expect(clampTyped('', 19)).toBeNull()
+    expect(clampTyped('   ', 19)).toBeNull()
+    expect(clampTyped('abc', 19)).toBeNull()
   })
 })

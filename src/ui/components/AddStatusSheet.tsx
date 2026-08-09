@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { seasonProgress, locate, type SeasonInfo } from '@core/items/seasons'
 import {
+  hasRuler,
   progressUnitFor,
   statusFromProgress,
   statusLabelKey,
@@ -101,7 +102,10 @@ export function AddStatusSheet({
     return () => controller.abort()
   }, [chave, region, result])
 
-  const temRegua = Boolean(unit && total && total > 0)
+  // A MESMA pergunta que o painel da obra faz, e da mesma função: se os dois
+  // discordassem, a mesma série apareceria com régua num e com fileira no
+  // outro. Ver `hasRuler`.
+  const temRegua = result ? hasRuler(result.mediaType, total) : false
   const derivado = temRegua
     ? statusFromProgress(visto, total, 'backlog')
     : 'backlog'
@@ -177,6 +181,7 @@ export function AddStatusSheet({
                     : `${t(progressLabelKeyFor(result.mediaType))} ${v}`
                 }}
                 seasonLabel={(season) => t('item.seasonShort', { season })}
+                typeLabel={t('item.typeExact')}
                 onCommit={(v) => setPosicao({ chave, visto: v })}
               />
               {/* O estado que a posição implica, escrito. Sem isto a régua

@@ -12,6 +12,7 @@ import type {
 } from '@core/media/types'
 import {
   canRate,
+  hasRuler,
   mediaLabelKey,
   progressForStatus,
   progressLabelKey,
@@ -190,6 +191,14 @@ function Detail({
     }
   }
 
+  // O TOTAL VIVO, da ficha, e não o guardado no item: é ele que dá o fim certo
+  // quando uma temporada nova saiu depois da última visita. É também o que
+  // decide o painel inteiro — com ele há régua no lugar da fileira de status.
+  const total =
+    detail?.seasons?.reduce((n, s) => n + s.episodes, 0) ||
+    detail?.total ||
+    matched?.progress?.total
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex gap-3">
@@ -266,22 +275,27 @@ function Detail({
           Antes, progresso e notas ficavam entre o status e a sinopse, e
           empurravam a informação da obra para depois de quatro campos em branco
           — quem só queria lembrar do que se tratava rolava por um formulário. */}
-      {matched && (
-        <StatusPicker
-          item={matched}
-          onClose={onClose}
-          setStatus={setStatus}
-          update={update}
-          remove={remove}
-          // O total VIVO, da ficha, e não o guardado no item: é ele que dá o
-          // fim certo quando uma temporada nova saiu depois da última visita.
-          total={
-            detail?.seasons?.reduce((n, s) => n + s.episodes, 0) ||
-            detail?.total ||
-            matched.progress?.total
-          }
-        />
-      )}
+      {matched &&
+        (hasRuler(mediaType, total) ? (
+          <ProgressBlock
+            item={matched}
+            update={update}
+            setStatus={setStatus}
+            remove={remove}
+            onClose={onClose}
+            seasons={detail?.seasons}
+            total={total!}
+          />
+        ) : (
+          <StatusPicker
+            item={matched}
+            onClose={onClose}
+            setStatus={setStatus}
+            update={update}
+            remove={remove}
+            total={total}
+          />
+        ))}
 
       <SourceFacts
         detail={detail}
@@ -615,7 +629,188 @@ function FactItems({ items }: { items: MediaFactItem[] }) {
 }
 
 /**
- * O seletor de status — o controle mais usado do painel, e por isso o primeiro.
+ * TIRAR DA ESTANTE, com a pergunta que vem junto.
+ *
+ * Um componente só porque agora há DOIS painéis que o mostram — a fileira de
+ * status (obra sem régua) e a fileira de interrupções (obra com régua). Duas
+ * cópias de uma pergunta irreversível é uma a mais do que se consegue manter
+ * igual: bastaria um ajuste no texto de uma delas para existirem dois avisos
+ * diferentes para o mesmo apagamento.
+ *
+ * Devolve fragmento, e não `div`: quem chama é uma fileira, e o chip precisa ser
+ * filho DELA para caber no `flex-wrap`. O diálogo não conta — ele é portado para
+ * o `body` e não ocupa lugar aqui.
+ */
+function RemoveChip({
+  item,
+  remove,
+  onClose,
+}: {
+  item: Item
+  remove: ReturnType<typeof useItems>['remove']
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const [confirming, setConfirming] = useState(false)
+
+  return (
+    <>
+      {/* REMOVER FECHA A FILEIRA (decisão do usuário, 09/08/2026): na cabeça de
+          quem usa, "fora da estante" é o último estado, e procurar por ele num
+          botão solto no fim do painel era procurar noutro assunto. Ele entra na
+          fileira, mas NÃO entra como igual — é a única ação irreversível do
+          painel, e fica a poucos pixels de "Abandonado". O vermelho e a
+          confirmação abaixo são o que separam um toque do outro. */}
+      <Chip
+        selected={false}
+        tone="danger"
+        aria-expanded={confirming}
+        onClick={() => setConfirming((c) => !c)}
+      >
+        <Trash size={16} weight="bold" aria-hidden />
+        {t('common.remove')}
+      </Chip>
+
+      {/* A pergunta INTERROMPE, em vez de crescer embaixo da fileira. Ali ela
+          era um terceiro par de botões numa tela que já tem chips e um
+          "Remover" logo acima — a repetição diluía justamente o momento em que
+          é preciso parar e ler. Ver `ConfirmDialog`. */}
+      <ConfirmDialog
+        open={confirming}
+        title={t('item.removeConfirm')}
+        // A pergunta diz O QUE acontece; isto diz O QUE SE PERDE. Sem a
+        // segunda linha, "remover da estante?" soa reversível — e não é.
+        description={t('item.removeBody')}
+        confirmLabel={t('item.removeConfirmAction')}
+        cancelLabel={t('common.cancel')}
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => {
+          setConfirming(false)
+          void remove(item.id)
+          onClose()
+        }}
+      />
+    </>
+  )
+}
+
+/**
+ * A RÉGUA COMO ESTADO (decisão 17, escolha do usuário 09/08/2026).
+ *
+ * Onde a obra tem um total conhecido, este bloco SUBSTITUI a fileira de status
+ * — e ocupa o lugar dela, no topo do painel. Antes eram três controles para um
+ * dado só: a fileira, um campo numérico e o slider, e nenhum dos três sabia dos
+ * outros. A posição na régua já diz o estado (`statusFromProgress`), então a
+ * fileira era a mesma pergunta feita duas vezes.
+ *
+ * SOBRAM DOIS BOTÕES, e sobram porque nenhuma posição os revela: pausado e
+ * abandonado são intenção, não lugar. São *toggles* e não interruptores — os
+ * dois são mutuamente exclusivos, e dois interruptores lado a lado que se
+ * desligam sozinhos mentem sobre o que fazem. Desligar devolve o estado à
+ * posição da régua.
+ *
+ * O SELO AO LADO DO TÍTULO é o que a fileira dizia com o chip aceso: em que
+ * estante a obra vai cair. Sem ele a régua decidiria em silêncio.
+ */
+function ProgressBlock({
+  item,
+  update,
+  setStatus,
+  remove,
+  onClose,
+  seasons,
+  total,
+}: {
+  item: Item
+  update: ReturnType<typeof useItems>['update']
+  setStatus: ReturnType<typeof useItems>['setStatus']
+  remove: ReturnType<typeof useItems>['remove']
+  onClose: () => void
+  seasons?: SeasonInfo[]
+  /** O total VIVO. Só se chega aqui com ele — ver `hasRuler`. */
+  total: number
+}) {
+  const { t } = useTranslation()
+  const unit = progressUnitFor(item.mediaType)!
+  const bruto = item.progress?.current ?? 0
+  const atual = Math.min(bruto, total)
+
+  /** Grava a posição E o estado que ela implica (decisão 15). */
+  function gravar(current: number) {
+    void update(item.id, { progress: { unit, current, total } })
+    const derivado = statusFromProgress(current, total, item.status)
+    if (derivado === item.status) return
+    void setStatus(item.id, derivado)
+    // Concluir fecha o sheet: a comemoração assume a tela, e deixar o detalhe
+    // aberto atrás dela transforma o momento de recompensa em duas camadas
+    // empilhadas. Era o que a fileira fazia ao tocar em "Concluída".
+    if (derivado === 'done') onClose()
+  }
+
+  /** Liga ou desliga uma interrupção. Desligar não escolhe um estado — devolve
+   *  o que a posição já dizia, e por isso a base passada é `active`:
+   *  `statusFromProgress` gruda em pausado/abandonado de propósito, e passar o
+   *  estado atual aqui faria o botão não desligar nunca. */
+  function alternar(estado: 'paused' | 'abandoned') {
+    void setStatus(
+      item.id,
+      item.status === estado
+        ? statusFromProgress(atual, total, 'active')
+        : estado,
+    )
+  }
+
+  /** Como dizer um valor: "T3 E12" quando a fonte conhece as temporadas,
+   *  "Episódio 34" / "Página 234" quando não. */
+  function dizer(v: number): string {
+    const onde = locate(v, seasons ?? [])
+    if (onde)
+      return t('item.seasonEpisode', {
+        season: onde.season,
+        episode: onde.episode,
+      })
+    return `${t(progressLabelKey(unit))} ${v}`
+  }
+
+  return (
+    <div>
+      <div className="mb-2 flex items-center gap-2">
+        <SectionTitle>{t('item.progressLabel')}</SectionTitle>
+        <Badge>{t(statusLabelKey(item.status, item.mediaType))}</Badge>
+      </div>
+
+      <SeasonSlider
+        value={atual}
+        total={total}
+        seasons={seasonProgress(atual, seasons ?? [])}
+        ariaLabel={t('item.progressLabel')}
+        format={dizer}
+        seasonLabel={(season) => t('item.seasonShort', { season })}
+        typeLabel={t('item.typeExact')}
+        onCommit={gravar}
+      />
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {(['paused', 'abandoned'] as const).map((estado) => (
+          <Chip
+            key={estado}
+            selected={item.status === estado}
+            onClick={() => alternar(estado)}
+          >
+            {t(statusLabelKey(estado, item.mediaType))}
+          </Chip>
+        ))}
+        <RemoveChip item={item} remove={remove} onClose={onClose} />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * O seletor de status, para a obra SEM régua — filme, jogo, e qualquer obra
+ * cujo total a fonte não conhece. Ali a fileira continua sendo o único jeito de
+ * dizer "terminei". Onde há régua, quem manda é o `ProgressBlock`.
+ *
  * Separado do resto para a ficha da fonte poder entrar entre ele e o formulário.
  */
 function StatusPicker({
@@ -635,7 +830,6 @@ function StatusPicker({
   total?: number
 }) {
   const { t } = useTranslation()
-  const [confirming, setConfirming] = useState(false)
 
   return (
     <div>
@@ -668,43 +862,8 @@ function StatusPicker({
           </Chip>
         ))}
 
-        {/* REMOVER FECHA A FILEIRA (decisão do usuário, 09/08/2026): na
-            cabeça de quem usa, "fora da estante" é o sexto estado, e procurar
-            por ele num botão solto no fim do painel era procurar noutro
-            assunto. Ele entra na fileira, mas NÃO entra como igual — é a
-            única ação irreversível do painel, e fica a poucos pixels de
-            "Abandonado". O vermelho e a confirmação abaixo são o que separam
-            um toque do outro. */}
-        <Chip
-          selected={false}
-          tone="danger"
-          aria-expanded={confirming}
-          onClick={() => setConfirming((c) => !c)}
-        >
-          <Trash size={16} weight="bold" aria-hidden />
-          {t('common.remove')}
-        </Chip>
+        <RemoveChip item={item} remove={remove} onClose={onClose} />
       </div>
-
-      {/* A pergunta INTERROMPE, em vez de crescer embaixo da fileira. Ali ela
-          era um terceiro par de botões numa tela que já tem seis chips e um
-          "Remover" logo acima — a repetição diluía justamente o momento em que
-          é preciso parar e ler. Ver `ConfirmDialog`. */}
-      <ConfirmDialog
-        open={confirming}
-        title={t('item.removeConfirm')}
-        // A pergunta diz O QUE acontece; isto diz O QUE SE PERDE. Sem a
-        // segunda linha, "remover da estante?" soa reversível — e não é.
-        description={t('item.removeBody')}
-        confirmLabel={t('item.removeConfirmAction')}
-        cancelLabel={t('common.cancel')}
-        onCancel={() => setConfirming(false)}
-        onConfirm={() => {
-          setConfirming(false)
-          void remove(item.id)
-          onClose()
-        }}
-      />
     </div>
   )
 }
@@ -737,11 +896,9 @@ function PersonalControls({
   const totalGuardado = item.progress?.total
   const total = totalDaFonte || totalGuardado
 
-  // `seasonProgress` reparte a contagem corrida entre as temporadas: é ele que
-  // sabe onde cada ponto da régua cai.
-  const temporadas = seasonProgress(atual, seasons ?? [])
+  // Onde a contagem corrida cai, em temporada e episódio — é o que faz o campo
+  // sozinho dizer "T2 E3" em vez de só "23".
   const posicao = locate(atual, seasons ?? [])
-
 
   /**
    * Grava progresso E o status que ele implica (decisão 15).
@@ -756,18 +913,6 @@ function PersonalControls({
     void update(item.id, { progress: { unit: unit!, current, total } })
     const derivado = statusFromProgress(current, total, item.status)
     if (derivado !== item.status) void setStatus(item.id, derivado)
-  }
-
-  /** Como dizer um valor: "T3 E12" quando a fonte conhece as temporadas,
-   *  "Episódio 34" / "Página 234" quando não. */
-  function dizer(v: number): string {
-    const onde = locate(v, seasons ?? [])
-    if (onde)
-      return t('item.seasonEpisode', {
-        season: onde.season,
-        episode: onde.episode,
-      })
-    return `${t(progressLabelKey(unit!))} ${v}`
   }
 
   // HORA NÃO É PROGRESSO (decisão 16, escolha do usuário 09/08/2026). Dota e
@@ -822,29 +967,12 @@ function PersonalControls({
 
   return (
     <>
-      {unit && !contaHoras && (
-        <div>
-          {campoNumerico}
-
-          {/* O SLIDER, quando há um total para percorrer. Sem total não há
-              régua — é o caso de jogo (horas, que a fonte não sabe) e de obra
-              adicionada à mão. Ali sobra o campo, que sozinho já funcionava.
-              Ver decisão 14. */}
-          {total ? (
-            <div className="mt-2">
-              <SeasonSlider
-                value={Math.min(atual, total)}
-                total={total}
-                seasons={temporadas}
-                ariaLabel={t('item.progressLabel')}
-                format={dizer}
-                seasonLabel={(season) => t('item.seasonShort', { season })}
-                onCommit={gravar}
-              />
-            </div>
-          ) : null}
-
-        </div>
+      {/* O CAMPO SOZINHO, para a obra que conta episódios ou páginas mas cujo
+          total ninguém sabe — série que a fonte não conhece, livro digitado à
+          mão. Com total, quem manda é o `ProgressBlock`, lá em cima: a régua
+          tomou o lugar da fileira de status, e o campo virou o balão dela. */}
+      {unit && !contaHoras && !hasRuler(item.mediaType, total) && (
+        <div>{campoNumerico}</div>
       )}
 
       {/* NOTA + FAVORITA.
