@@ -271,7 +271,12 @@ function Detail({
           empurravam a informação da obra para depois de quatro campos em branco
           — quem só queria lembrar do que se tratava rolava por um formulário. */}
       {matched && (
-        <StatusPicker item={matched} onClose={onClose} setStatus={setStatus} />
+        <StatusPicker
+          item={matched}
+          onClose={onClose}
+          setStatus={setStatus}
+          remove={remove}
+        />
       )}
 
       <SourceFacts
@@ -283,10 +288,8 @@ function Detail({
       {matched && (
         <PersonalControls
           item={matched}
-          onClose={onClose}
           update={update}
           setStatus={setStatus}
-          remove={remove}
           // A divisão em temporadas vem da FICHA, não do item: ela não é
           // gravada, é a lente que traduz o número corrido. Fonte fora do ar =
           // sem fileira, e o campo numérico continua funcionando sozinho.
@@ -615,12 +618,15 @@ function StatusPicker({
   item,
   onClose,
   setStatus,
+  remove,
 }: {
   item: Item
   onClose: () => void
   setStatus: ReturnType<typeof useItems>['setStatus']
+  remove: ReturnType<typeof useItems>['remove']
 }) {
   const { t } = useTranslation()
+  const [confirming, setConfirming] = useState(false)
 
   return (
     <div>
@@ -641,30 +647,73 @@ function StatusPicker({
             {t(statusLabelKey(value, item.mediaType))}
           </Chip>
         ))}
+
+        {/* REMOVER FECHA A FILEIRA (decisão do usuário, 09/08/2026): na
+            cabeça de quem usa, "fora da estante" é o sexto estado, e procurar
+            por ele num botão solto no fim do painel era procurar noutro
+            assunto. Ele entra na fileira, mas NÃO entra como igual — é a
+            única ação irreversível do painel, e fica a poucos pixels de
+            "Abandonado". O vermelho e a confirmação abaixo são o que separam
+            um toque do outro. */}
+        <Chip
+          selected={false}
+          tone="danger"
+          aria-expanded={confirming}
+          onClick={() => setConfirming((c) => !c)}
+        >
+          <Trash size={16} weight="bold" aria-hidden />
+          {t('common.remove')}
+        </Chip>
       </div>
+
+      {/* A confirmação nasce COLADA na fileira, e não no rodapé do painel: a
+          pergunta precisa estar onde o dedo acabou de tocar. */}
+      {confirming && (
+        <div className="mt-3 flex flex-col gap-2">
+          <p className="text-body font-semibold">{t('item.removeConfirm')}</p>
+          <div className="flex gap-2">
+            {/* Sair é o caminho FÁCIL (secundária, primeiro na ordem de
+                leitura); continuar é o que carrega o vermelho. */}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setConfirming(false)}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                void remove(item.id)
+                onClose()
+              }}
+            >
+              <Trash size={18} weight="bold" />
+              {t('common.remove')}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-/** O que é SEU sobre a obra: progresso, nota, notas — e tirar da estante. */
+/** O que é SEU sobre a obra: progresso, nota e notas. Tirar da estante mora
+ *  no `StatusPicker`, junto dos outros estados. */
 function PersonalControls({
   item,
-  onClose,
   update,
   setStatus,
-  remove,
   seasons,
 }: {
   item: Item
-  onClose: () => void
   update: ReturnType<typeof useItems>['update']
   setStatus: ReturnType<typeof useItems>['setStatus']
-  remove: ReturnType<typeof useItems>['remove']
   seasons?: SeasonInfo[]
 }) {
   const { t } = useTranslation()
   const [notes, setNotes] = useState(item.notes ?? '')
-  const [confirmingRemove, setConfirmingRemove] = useState(false)
 
   const unit = progressUnitFor(item.mediaType)
   const atual = item.progress?.current ?? 0
@@ -856,46 +905,6 @@ function PersonalControls({
         )}
       </Field>
 
-      {/* Remover é `danger`: uma secundária vermelha. Antes era `ghost`, que
-          fazia a única ação irreversível do painel parecer um link. Vermelha
-          ela lê como "cuidado"; secundária e não primária, ela não convida.
-          A confirmação mantém o par: sair é o caminho fácil (secundária) e
-          continuar é o que carrega o vermelho. */}
-      {confirmingRemove ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-body font-semibold">{t('item.removeConfirm')}</p>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setConfirmingRemove(false)}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => {
-                void remove(item.id)
-                onClose()
-              }}
-            >
-              <Trash size={18} weight="bold" />
-              {t('common.remove')}
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <Button
-          variant="danger"
-          size="sm"
-          onClick={() => setConfirmingRemove(true)}
-          className="self-start"
-        >
-          <Trash size={18} weight="bold" />
-          {t('common.remove')}
-        </Button>
-      )}
     </>
   )
 }

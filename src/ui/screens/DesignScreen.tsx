@@ -296,6 +296,9 @@ export function DesignScreen() {
                 opção {v}
               </Chip>
             ))}
+            <Chip selected={false} tone="danger">
+              danger
+            </Chip>
           </div>
         </section>
 
