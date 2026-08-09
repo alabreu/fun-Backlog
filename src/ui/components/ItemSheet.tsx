@@ -44,6 +44,7 @@ import {
   PlatformIcon,
   PLATFORM_TEXT,
   RatingRow,
+  SeasonSlider,
   SectionTitle,
   ServiceLogo,
   Sheet,
@@ -708,14 +709,48 @@ function PersonalControls({
 
   const unit = progressUnitFor(item.mediaType)
   const atual = item.progress?.current ?? 0
-  // `seasonProgress` é o que sabe repartir a contagem corrida entre elas e
-  // dizer qual já fechou — a fileira precisa dos três estados, não de dois.
+
+  // O TOTAL VIVO, e não o guardado. `progress.total` é uma foto do momento em
+  // que a obra entrou na estante; a tabela de temporadas vem da fonte a cada
+  // abertura. Quando uma série estreia uma temporada nova, os dois discordam —
+  // e quem está certo é a tabela. Sem isto o slider pararia no fim antigo, com
+  // episódios que existem além da ponta da régua.
+  const totalDaFonte = seasons?.reduce((n, s) => n + s.episodes, 0)
+  const totalGuardado = item.progress?.total
+  const total = totalDaFonte || totalGuardado
+  const cresceu = Boolean(
+    totalDaFonte && totalGuardado && totalDaFonte > totalGuardado,
+  )
+
+  // `seasonProgress` reparte a contagem corrida entre as temporadas: é ele que
+  // sabe onde cada ponto da régua cai.
   const temporadas = seasonProgress(atual, seasons ?? [])
   const posicao = locate(atual, seasons ?? [])
-  const total = item.progress?.total
+
   // "Chegou ao fim" precisa de um total conhecido: sem ele, qualquer número
   // digitado seria o fim, e a pergunta apareceria no primeiro episódio.
-  const chegouAoFim = Boolean(total) && atual >= (total ?? 0) && item.status !== 'done'
+  const chegouAoFim =
+    Boolean(total) && atual >= (total ?? 0) && item.status !== 'done'
+
+  /** Grava progresso SEMPRE com o total vivo: é o momento em que a foto velha
+   *  é substituída pela verdade, sem uma escrita solta ao só abrir o painel. */
+  function gravar(current: number) {
+    void update(item.id, {
+      progress: { unit: unit!, current, total },
+    })
+  }
+
+  /** Como dizer um valor: "T3 E12" quando a fonte conhece as temporadas,
+   *  "Episódio 34" / "Página 234" quando não. */
+  function dizer(v: number): string {
+    const onde = locate(v, seasons ?? [])
+    if (onde)
+      return t('item.seasonEpisode', {
+        season: onde.season,
+        episode: onde.episode,
+      })
+    return `${t(progressLabelKey(unit!))} ${v}`
+  }
 
   return (
     <>
@@ -727,9 +762,7 @@ function PersonalControls({
                 {/* A LARGURA VEM DO ENVOLTÓRIO, e não de uma classe no
                     componente: o `Input` já é `w-full`, e em Tailwind v4 duas
                     utilidades da mesma propriedade são decididas pela ordem no
-                    CSS gerado — não pela ordem na string. Um `w-20` aqui às
-                    vezes perde, e o campo ocupando a linha inteira espremia o
-                    "de 62" e o +1 um por cima do outro. */}
+                    CSS gerado — não pela ordem na string. */}
                 <div className="w-24 shrink-0">
                   <Input
                     id={id}
@@ -740,21 +773,18 @@ function PersonalControls({
                     aria-label={t(progressLabelKey(unit))}
                     onChange={(e) => {
                       const current = Number(e.target.value)
-                      void update(item.id, {
-                        progress: Number.isFinite(current)
-                          ? { unit, current, total: item.progress?.total }
-                          : undefined,
-                      })
+                      if (Number.isFinite(current)) gravar(current)
                     }}
                   />
                 </div>
+                {/* O CAMPO FICA, e não é redundância com o slider: numa obra
+                    longa cada passo do slider vale menos de dois pixels, e
+                    mover exatamente um episódio ali é tremor de dedo. O slider
+                    é o gesto; o campo é a pontaria. */}
                 <span className="min-w-0 flex-1 text-body text-muted">
-                  {item.progress?.total
-                    ? t('item.progressOf', { total: item.progress.total })
+                  {total
+                    ? t('item.progressOf', { total })
                     : t(progressLabelKey(unit))}
-                  {/* A POSIÇÃO EM TEMPORADAS, quando a fonte a conhece.
-                      "Episódio 47" não quer dizer nada para ninguém; "T5 E1"
-                      é como as pessoas de fato guardam onde pararam. */}
                   {posicao && (
                     <span className="ml-2 font-semibold text-ink">
                       {t('item.seasonEpisode', {
@@ -764,61 +794,48 @@ function PersonalControls({
                     </span>
                   )}
                 </span>
-                {/* +1 SÓ PARA EPISÓDIO. É a ação de sofá — "vi mais um" — e
-                    hoje ela custa tocar no campo, selecionar e digitar. Em
-                    página não serve (ninguém lê de um em um) e em hora
-                    mentiria: quem joga registra 2,5h, não 1h. */}
-                {unit === 'episode' && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="shrink-0"
-                    aria-label={t('item.progressPlusOneLabel')}
-                    onClick={() =>
-                      void update(item.id, {
-                        progress: {
-                          unit,
-                          current: (item.progress?.current ?? 0) + 1,
-                          total: item.progress?.total,
-                        },
-                      })
-                    }
-                  >
-                    +1
-                  </Button>
-                )}
               </div>
             )}
           </Field>
 
-          {/* FECHAR TEMPORADA. Só aparece quando a fonte devolveu a divisão —
-              séries da TMDB. No AniList cada temporada é uma obra separada,
-              então não há o que agrupar, e a fileira simplesmente não existe. */}
-          {temporadas.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {temporadas.map((season) => (
-                <Chip
-                  key={season.number}
-                  selected={season.done}
-                  aria-label={t('item.closeSeason', { season: season.number })}
-                  onClick={() =>
-                    void update(item.id, {
-                      progress: {
-                        unit,
-                        // Tocar na temporada JÁ fechada desfaz, voltando para o
-                        // fim da anterior. É o mesmo gesto das estrelas, e sem
-                        // ele um toque errado só se conserta digitando.
-                        current: season.done
-                          ? season.through - season.episodes
-                          : season.through,
-                        total: item.progress?.total,
-                      },
-                    })
-                  }
-                >
-                  {t('item.seasonShort', { season: season.number })}
-                </Chip>
-              ))}
+          {/* O SLIDER, quando há um total para percorrer. Sem total não há
+              régua — é o caso de jogo (horas, que a fonte não sabe) e de obra
+              adicionada à mão. Ali sobra o campo, que sozinho já funcionava.
+              Ver decisão 14. */}
+          {total ? (
+            <div className="mt-2">
+              <SeasonSlider
+                value={Math.min(atual, total)}
+                total={total}
+                seasons={temporadas}
+                ariaLabel={t('item.progressLabel')}
+                format={dizer}
+                seasonLabel={(season) => t('item.seasonShort', { season })}
+                onCommit={gravar}
+              />
+            </div>
+          ) : null}
+
+          {/* SAIU TEMPORADA NOVA numa série já terminada. PERGUNTA, não decide:
+              voltar para "assistindo" sozinho apagaria a data de conclusão e
+              tiraria a obra da retrospectiva do ano — um estrago silencioso
+              causado por uma novidade da fonte, não por um ato da pessoa. */}
+          {cresceu && item.status === 'done' && (
+            <div className="mt-2 flex items-center gap-2">
+              <p className="min-w-0 flex-1 text-body text-muted">
+                {t('item.newSeasonPrompt', { total: totalDaFonte ?? 0 })}
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="shrink-0"
+                onClick={() => {
+                  gravar(atual)
+                  void setStatus(item.id, 'active')
+                }}
+              >
+                {t('item.newSeasonConfirm')}
+              </Button>
             </div>
           )}
 
@@ -834,6 +851,7 @@ function PersonalControls({
               <Button
                 variant="secondary"
                 size="sm"
+                className="shrink-0"
                 onClick={() => void setStatus(item.id, 'done')}
               >
                 {t('item.finishedConfirm')}

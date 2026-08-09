@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-slider',
+    date: '2026-08-09',
+    emoji: '🎚️',
+    title: {
+      pt: 'Progresso agora é arrastar, não somar',
+      en: 'Progress is a drag now, not a tally',
+    },
+    items: {
+      pt: [
+        'O "+1" saiu. Em séries, animes e livros você arrasta até onde parou — o balão mostra "T3 E12" enquanto você move.',
+        'Os fins de temporada viram pontos na régua, e tocar em "T3" fecha aquela temporada. No Android o aparelho dá um toque ao cruzar cada temporada.',
+        'Série que você já terminou e ganhou temporada nova agora avisa, e oferece voltar para "assistindo" sem apagar a data em que você concluiu.',
+      ],
+      en: [
+        'The "+1" is gone. On series, anime and books you drag to where you stopped — the bubble reads "S3 E12" as you move.',
+        'Season endings became dots on the ruler, and tapping "S3" closes that season. On Android the phone taps back as you cross each one.',
+        'A series you had finished that gained a new season now says so, and offers to move back to "watching" without erasing the date you completed it.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-tirar-nota',
     date: '2026-08-09',
     emoji: '⭐',

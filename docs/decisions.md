@@ -534,6 +534,53 @@ números de uma vez é menos frequente que procurar dentro de um deles.
 
 ---
 
+## 14. Progresso é um slider, e o `+1` não existe mais
+
+**Decisão do usuário (09/08/2026).** O botão `+1` pressupunha um ritual que
+não acontece: ninguém abre o app para somar um episódio por noite. A
+atualização é esporádica, e o gesto que ela pede é "estou AQUI", não "mais um".
+Isso é um slider.
+
+**Um slider para a obra inteira, não um por temporada.** A série é uma linha só
+na cabeça de quem assiste — "estou na terceira" é uma posição nessa linha. As
+duas formas foram construídas e comparadas no `/design` antes da escolha; a
+empilhada ganhava em precisão (13 episódios em toda a largura contra 62) e
+perdia em tudo o mais: cinco controles idênticos onde havia um, e uma série de
+vinte temporadas viraria uma tela de sliders.
+
+**O que torna a forma única utilizável não é o passo, é o balão ao vivo.** Numa
+trilha de 334px, Breaking Bad dá 5,5px por episódio e The Office 1,7px —
+ninguém mira nisso. Mira-se no texto: arrasta-se até ler "T3 E12". Por isso **o
+campo numérico continua ao lado**: ele é a entrada exata das obras muito
+longas, onde mover um passo cai no nível do tremor do dedo.
+
+Os fins de temporada viram pontos na trilha, e o rótulo abaixo de cada um grava
+aquele número — é a fileira de chips presa ao lugar onde ela acontece.
+
+### Haptic: hoje só no Android, e a nota para o app nativo
+
+O `+1` que saiu levava junto a única confirmação tátil que existia. O slider
+vibra ao **cruzar uma temporada** (não a cada episódio — 62 tecos num arraste é
+um zumbido, e zumbido não informa nada).
+
+**Isso não funciona no iPhone, e não é um bug nosso:** a Apple nunca implementou
+a Vibration API no WebKit, em nenhuma versão do iOS. O Firefox tinha e removeu
+na 129. Sobram Chrome/Android e derivados. `src/ui/haptics.ts` isola isso e cai
+para um no-op silencioso.
+
+Existe uma biblioteca que abusa do haptic de `<input type="checkbox" switch>`
+(iOS 17.4+) para arrancar a vibração no Safari. **Foi avaliada e recusada**
+(09/08/2026): depende de comportamento não documentado que a Apple pode remover
+sem aviso, para um efeito que é decorativo por definição.
+
+> **PARA O APP NATIVO DE iOS:** este é o lugar. Ao portar, ligue o
+> `UIImpactFeedbackGenerator` (estilo `.light`) exatamente onde o
+> `ui/haptics.ts` chama `tick()` — no cruzamento de temporada durante o arraste
+> e ao tocar num marco. É a interação do app que mais pede tato, e a única que
+> hoje fica muda no aparelho do usuário principal.
+
+---
+
 ## Ainda em aberto
 
 - **Identidade visual**: paleta (primitivos em `src/index.css`) e a linguagem do
