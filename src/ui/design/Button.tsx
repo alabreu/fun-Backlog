@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from 'react'
+import type { ComponentPropsWithRef } from 'react'
 
 /**
  * Botão do design system. Três variantes e dois tamanhos cobrem tudo o que as
@@ -86,7 +86,10 @@ export function buttonClasses({
     .join(' ')
 }
 
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+// `ComponentPropsWithRef` e não `ButtonHTMLAttributes`: no React 19 o `ref`
+// é um prop comum, e sem ele no tipo o `ConfirmDialog` não conseguiria pôr o
+// foco inicial no botão de cancelar.
+export type ButtonProps = ComponentPropsWithRef<'button'> &
   ButtonStyleOptions
 
 export function Button({

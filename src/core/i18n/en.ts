@@ -137,6 +137,9 @@ export const en: Record<keyof typeof pt, string> = {
   'item.addedAt': 'Added on {date}',
   'item.completedAt': 'Completed on {date}',
   'item.removeConfirm': 'Remove from the shelf?',
+  'item.removeBody':
+    'Its rating, notes and progress go with it. This cannot be undone.',
+  'item.removeConfirmAction': 'Remove from the shelf',
   'item.removed': 'Removed from the shelf.',
   'item.saveFailed': 'Could not save. Try again.',
   'item.addToShelf': 'Add to shelf',

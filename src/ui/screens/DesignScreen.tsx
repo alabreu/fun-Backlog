@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   Chip,
+  ConfirmDialog,
   ClampedText,
   ExternalLink,
   RatingRow,
@@ -108,6 +109,7 @@ const CORES_GENERO = genreColorIndexes(GENEROS)
 
 export function DesignScreen() {
   const [chip, setChip] = useState('a')
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [theme, setTheme] = useState<Theme>('system')
   const [mediaChip, setMediaChip] = useState<MediaType>('game')
@@ -299,7 +301,23 @@ export function DesignScreen() {
             <Chip selected={false} tone="danger">
               danger
             </Chip>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setConfirmOpen(true)}
+            >
+              ConfirmDialog
+            </Button>
           </div>
+          <ConfirmDialog
+            open={confirmOpen}
+            title="Remover da estante?"
+            description="A nota, as notas e o progresso somem junto. Não dá para desfazer."
+            confirmLabel="Remover da estante"
+            cancelLabel="Cancelar"
+            onCancel={() => setConfirmOpen(false)}
+            onConfirm={() => setConfirmOpen(false)}
+          />
         </section>
 
         <section>

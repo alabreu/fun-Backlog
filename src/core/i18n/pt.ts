@@ -135,6 +135,9 @@ export const pt = {
   'item.addedAt': 'Adicionado em {date}',
   'item.completedAt': 'Concluído em {date}',
   'item.removeConfirm': 'Remover da estante?',
+  'item.removeBody':
+    'A nota, as notas e o progresso desta obra somem junto. Não dá para desfazer.',
+  'item.removeConfirmAction': 'Remover da estante',
   'item.removed': 'Removido da estante.',
   'item.saveFailed': 'Não deu para salvar. Tente de novo.',
   'item.addToShelf': 'Adicionar à estante',

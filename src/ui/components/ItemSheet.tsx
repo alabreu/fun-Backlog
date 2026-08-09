@@ -34,6 +34,7 @@ import {
   Button,
   Chip,
   ClampedText,
+  ConfirmDialog,
   Cover,
   ExternalLink,
   Field,
@@ -666,35 +667,25 @@ function StatusPicker({
         </Chip>
       </div>
 
-      {/* A confirmação nasce COLADA na fileira, e não no rodapé do painel: a
-          pergunta precisa estar onde o dedo acabou de tocar. */}
-      {confirming && (
-        <div className="mt-3 flex flex-col gap-2">
-          <p className="text-body font-semibold">{t('item.removeConfirm')}</p>
-          <div className="flex gap-2">
-            {/* Sair é o caminho FÁCIL (secundária, primeiro na ordem de
-                leitura); continuar é o que carrega o vermelho. */}
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setConfirming(false)}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => {
-                void remove(item.id)
-                onClose()
-              }}
-            >
-              <Trash size={18} weight="bold" />
-              {t('common.remove')}
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* A pergunta INTERROMPE, em vez de crescer embaixo da fileira. Ali ela
+          era um terceiro par de botões numa tela que já tem seis chips e um
+          "Remover" logo acima — a repetição diluía justamente o momento em que
+          é preciso parar e ler. Ver `ConfirmDialog`. */}
+      <ConfirmDialog
+        open={confirming}
+        title={t('item.removeConfirm')}
+        // A pergunta diz O QUE acontece; isto diz O QUE SE PERDE. Sem a
+        // segunda linha, "remover da estante?" soa reversível — e não é.
+        description={t('item.removeBody')}
+        confirmLabel={t('item.removeConfirmAction')}
+        cancelLabel={t('common.cancel')}
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => {
+          setConfirming(false)
+          void remove(item.id)
+          onClose()
+        }}
+      />
     </div>
   )
 }
