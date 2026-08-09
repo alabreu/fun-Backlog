@@ -24,17 +24,15 @@ const CONFIG = {
   /** Quantos resultados DEVOLVER. Espelha o SEARCH_LIMIT de core/media/types.ts. */
   limit: 20,
   /**
-   * Quantos PEDIR à IGDB antes de ordenar por popularidade.
+   * Quantos PEDIR à IGDB EM CADA uma das duas consultas de `searchIgdb`.
    *
    * Buscar "zelda" devolve mais de cem entradas — remasters, ports, DLCs,
    * versões regionais — e o `search` da IGDB ordena por semelhança de string,
    * não por relevância para gente. Nessa ordem, "Zelda's Adventure" ganha de
    * "The Legend of Zelda: Tears of the Kingdom", que tem o nome mais longo.
-   * Cortar em 20 direto do `search` era o que fazia sumir Majora's Mask e TOTK.
    *
-   * Pedindo 50 e reordenando por quantidade de avaliações, os títulos que as
-   * pessoas de fato procuram sobem. O custo é payload, não requisição: continua
-   * sendo UMA chamada, e a IGDB limita requisições, não bytes.
+   * O custo é payload, não requisição: continua sendo UMA chamada, e a IGDB
+   * limita requisições, não bytes.
    */
   igdbPool: 50,
   /** Uma busca menor que isso não é busca, é tecla solta. Espelha o cliente. */
@@ -53,6 +51,8 @@ const CONFIG = {
 
 const TWITCH_TOKEN_URL = 'https://id.twitch.tv/oauth2/token'
 const IGDB_URL = 'https://api.igdb.com/v4/games'
+/** Duas consultas numa requisição só. Ver `searchIgdb`. */
+const IGDB_MULTIQUERY_URL = 'https://api.igdb.com/v4/multiquery'
 const TMDB_URL = 'https://api.themoviedb.org/3'
 
 // Restrinja para a origin do app em produção (`supabase secrets set
@@ -185,9 +185,9 @@ const IGDB_DETAIL_FIELDS =
 const IGDB_WEBSITE_FIELDS = ',websites.url,websites.category'
 
 /** Manda uma query APICalypse, renovando o token uma vez se levar 401. */
-async function askIgdb(body: string): Promise<unknown> {
+async function askIgdb(body: string, url = IGDB_URL): Promise<unknown> {
   const run = async (token: string) =>
-    await fetch(IGDB_URL, {
+    await fetch(url, {
       method: 'POST',
       headers: {
         'Client-ID': Deno.env.get('IGDB_CLIENT_ID') ?? '',
@@ -225,37 +225,85 @@ function byPopularity(rows: unknown): unknown {
     .slice(0, CONFIG.limit)
 }
 
+/**
+ * Busca de jogos: DUAS consultas, sempre, numa requisição só.
+ *
+ * POR QUE DUAS. O `search` da IGDB ordena por semelhança de string, não por
+ * relevância para gente — e numa franquia grande isso é fatal. "Zelda" tem mais
+ * de cem entradas, e nomes curtos como "Zelda's Adventure" ganham de "The
+ * Legend of Zelda: Tears of the Kingdom" justamente por serem curtos. Pedindo
+ * as N primeiras do `search`, os títulos que a pessoa procura podem nem estar
+ * no lote — e aí nenhuma reordenação os recupera.
+ *
+ * ESSE FOI O ERRO DA TENTATIVA ANTERIOR: pedir 50 em vez de 12 e reordenar por
+ * popularidade só conserta a ordem DENTRO do lote. Se o lote está errado, a
+ * ordem certa dele continua sem Breath of the Wild. A consulta por popularidade
+ * já existia aqui, mas só rodava quando o `search` voltava VAZIO — ou seja,
+ * nunca no caso que importava.
+ *
+ * Então as duas rodam juntas e os resultados se somam:
+ *
+ *   relevância  `search "zelda"` — casa nome alternativo, acento e ordem de
+ *               palavras. É o que faz "botw" ou um título japonês acharem algo.
+ *   popularidade `where name ~ *"zelda"*` ordenado por avaliações — substring
+ *               burra, mas garante que os campeões da franquia estejam no lote.
+ *
+ * `multiquery` manda as duas num POST só, então o custo contra o limite da IGDB
+ * (4 req/s para a aplicação INTEIRA) continua o de uma ida.
+ */
+function igdbMultiquery(safe: string): string {
+  return (
+    `query games "relevancia" { ${IGDB_FIELDS} search "${safe}"; ` +
+    `limit ${CONFIG.igdbPool}; };\n` +
+    `query games "popularidade" { ${IGDB_FIELDS} where name ~ *"${safe}"*; ` +
+    `sort total_rating_count desc; limit ${CONFIG.igdbPool}; };`
+  )
+}
+
+/** Junta os dois lotes SEM repetir, e reordena o conjunto por popularidade. */
+function mergeById(lotes: unknown[]): unknown[] {
+  const porId = new Map<number, unknown>()
+  for (const lote of lotes) {
+    if (!Array.isArray(lote)) continue
+    for (const jogo of lote) {
+      const id = (jogo as { id?: number })?.id
+      // Vence a PRIMEIRA ocorrência: os dois lotes trazem os mesmos campos, e
+      // manter a primeira preserva a ordem de chegada em caso de empate.
+      if (typeof id === 'number' && !porId.has(id)) porId.set(id, jogo)
+    }
+  }
+  return byPopularity([...porId.values()]) as unknown[]
+}
+
 async function searchIgdb(query: string): Promise<unknown> {
   const safe = escapeApicalypse(query)
   if (safe.length < CONFIG.minQuery) return []
+
+  try {
+    const resposta = await askIgdb(igdbMultiquery(safe), IGDB_MULTIQUERY_URL)
+    if (Array.isArray(resposta)) {
+      const juntos = mergeById(
+        resposta.map((bloco) => (bloco as { result?: unknown })?.result),
+      )
+      if (juntos.length > 0) return juntos
+    }
+  } catch {
+    // Cai no caminho de antes. Uma melhoria não pode derrubar o que ela
+    // melhora: se a IGDB mudar o formato do multiquery, a busca continua.
+  }
 
   const found = await askIgdb(
     `search "${safe}"; ${IGDB_FIELDS} limit ${CONFIG.igdbPool};`,
   )
   if (Array.isArray(found) && found.length > 0) return byPopularity(found)
 
-  // REDE DE SEGURANÇA para palavra incompleta.
-  //
-  // O `search` da IGDB exige PALAVRAS INTEIRAS: "the last of u" não acha "The
-  // Last of Us", e "starcr" não acha "StarCraft". Como a tela busca enquanto a
-  // pessoa digita, isso significa que o resultado só aparece na última letra —
-  // e some se ela parar no meio. A TMDB casa parcial, então filmes e séries
-  // apareciam e jogos não, o que parecia defeito nosso.
-  //
-  // `name ~ *"…"*` é substring, sem acento nem relevância, e por isso é
-  // FALLBACK e não o caminho principal: o `search` também casa nomes
-  // alternativos e ordena por relevância, coisas que este aqui não faz.
-  //
-  // `total_rating_count` ordena por quantidade de avaliações — o mais próximo
-  // de "conhecido" que a IGDB oferece — senão viria em ordem de id, com os
-  // jogos mais antigos primeiro.
+  // Último recurso, para PALAVRA INCOMPLETA: o `search` exige palavras
+  // inteiras ("starcr" não acha "StarCraft"), e a tela busca a cada tecla.
   try {
     return await askIgdb(
       `where name ~ *"${safe}"*; ${IGDB_FIELDS} sort total_rating_count desc; limit ${CONFIG.limit};`,
     )
   } catch {
-    // Falhou o fallback: devolve o vazio do `search`, que é o comportamento
-    // de antes. Uma rede de segurança não pode derrubar o que ela protege.
     return found
   }
 }
