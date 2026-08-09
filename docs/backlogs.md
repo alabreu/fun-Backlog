@@ -26,9 +26,12 @@ existente, sem criar usuário duplicado.
 Entregues em 07/08/2026: credenciais da IGDB (via Twitch) e Read Access Token
 da TMDB, cadastrados como secrets do Supabase.
 
+Entregues em 09/08/2026: migração `0005_items_favorite.sql` (coluna `favorite`,
+o coração da nota já grava em produção).
+
 | | Item | Por que importa | Onde |
 | --- | --- | --- | --- |
-| 🔴 | Rodar a migração `0005_items_favorite.sql` | Cria a coluna `favorite`. **Antes de a `main` subir**: sem ela, tocar no coração dá erro para quem está logado (o resto do app segue funcionando — o campo só é enviado quando é tocado) | Supabase → SQL Editor |
+| 🔴 | Rodar a migração `0006_completed_at_optional.sql` | **A `main` está segurada esperando isto.** A `0004` criou o check `(status = 'done') = (completed_at is not null)`. O app parou de carimbar a data de conclusão (decisão 16), então **marcar qualquer obra como concluída passa a ser REJEITADO pelo Postgres** enquanto o check existir. A migração só o derruba; a coluna e as datas existentes ficam. É idempotente | Supabase → SQL Editor |
 | 🟡 | `OPENROUTER_API_KEY` como secret + **teto de gasto na chave** | Destrava "Me ajude a escolher". O teto é a única defesa que sobrevive a um bug no código | Supabase → Edge Functions → Secrets |
 | 🟢 | `ALLOWED_ORIGIN` da Edge Function `llm` | Restringe o CORS à origin do app em vez de `*` | Supabase → Edge Functions → Secrets |
 | 🟢 | SMTP customizado (ex.: Resend) | O SMTP padrão do Supabase é lento e limitado — problema real antes de abrir para outras pessoas | Supabase → Auth → SMTP |
@@ -57,7 +60,6 @@ da TMDB, cadastrados como secrets do Supabase.
 | 🟢 | Filtro de favoritas | O coração já grava o dado e a migração `0005` já tem o índice parcial. Falta decidir onde o filtro mora — na estante, na home, ou nas duas |
 | 🟢 | UI de tags | A coluna existe no schema desde a `0004` e nada na tela usa |
 | 🟢 | Ordenação configurável | A estante agora é por seções (decisão 13) e a ordem DELAS é fixa por mídia. Falta poder ordenar DENTRO da seção — hoje é por data de entrada, mais novo primeiro |
-| 🟢 | Concluir não preenche o progresso | O caminho inverso já existe: chegar ao total oferece "marcar como concluída" (decisão do usuário, 09/08/2026). Falta o outro lado — marcar concluída não preenche o progresso até o total |
 | 🟢 | `status_detail` sem UI | "Platinado", "em dia": o campo existe no banco e nada o escreve |
 | 🟢 | Preferências por mídia dentro do país | Hoje o país é um só para tudo. Quem assina streaming brasileiro morando em Portugal precisaria de um país por mídia — só vale se aparecer de verdade |
 | 🟢 | "Em cartaz" na estante, não só na ficha | O filme só avisa que está em cartaz quando o sheet abre. Um selo na capa mostraria sem precisar tocar — depende da identidade visual |
