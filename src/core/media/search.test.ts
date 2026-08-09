@@ -5,7 +5,7 @@ import {
   mapOpenLibraryWork,
   openLibraryCover,
 } from './openlibrary'
-import { dedupe, PROVIDERS, searchAll } from './search'
+import { dedupe, PROVIDERS, searchAll, sortByFranchise } from './search'
 import {
   googleBooksCover,
   mapGoogleVolume,
@@ -357,6 +357,76 @@ describe('dedupe', () => {
       result({ mediaType: 'book', title: `Livro ${i}`, year: 2000 + i }),
     )
     expect(dedupe(muitos)).toHaveLength(SEARCH_LIMIT)
+  })
+})
+
+describe('sortByFranchise', () => {
+  const jogo = (
+    title: string,
+    year: number | undefined,
+    franchise?: string,
+  ): MediaSearchResult =>
+    result({ mediaType: 'game', provider: 'igdb', externalId: title, title, year, franchise })
+
+  // O caso que motivou tudo: buscar "zelda" trazia a franquia intercalada por
+  // popularidade, com um intruso no meio.
+  it('junta a franquia e a ordena por lançamento, sem rebaixar ninguém', () => {
+    const ordenado = sortByFranchise([
+      jogo('Breath of the Wild', 2017, 'The Legend of Zelda'),
+      jogo('Um jogo qualquer', 2010),
+      jogo('Ocarina of Time', 1998, 'The Legend of Zelda'),
+      jogo('Tears of the Kingdom', 2023, 'The Legend of Zelda'),
+    ])
+
+    expect(ordenado.map((r) => r.title)).toEqual([
+      // A franquia herda a posição do seu melhor colocado (BOTW estava em 1º),
+      // e dentro dela vale a cronologia.
+      'Ocarina of Time',
+      'Breath of the Wild',
+      'Tears of the Kingdom',
+      'Um jogo qualquer',
+    ])
+  })
+
+  // A garantia de que o conserto não estraga o que já funcionava: sem o campo,
+  // a lista sai exatamente como entrou. É o caso de anime, série e livro.
+  it('sem franquia nenhuma, não mexe em nada', () => {
+    const entrada = [
+      jogo('C', 2020),
+      jogo('A', 1990),
+      jogo('B', 2005),
+    ]
+    expect(sortByFranchise(entrada).map((r) => r.title)).toEqual(['C', 'A', 'B'])
+  })
+
+  it('obra sem ano vai para o fim do próprio grupo, não para o começo', () => {
+    const ordenado = sortByFranchise([
+      jogo('Sem data', undefined, 'Saga'),
+      jogo('Segundo', 2005, 'Saga'),
+      jogo('Primeiro', 1999, 'Saga'),
+    ])
+    expect(ordenado.map((r) => r.title)).toEqual([
+      'Primeiro',
+      'Segundo',
+      'Sem data',
+    ])
+  })
+
+  // Duas franquias na mesma busca mantêm a ordem relativa que a popularidade
+  // deu: a segunda não pode ultrapassar a primeira ao ser agrupada.
+  it('franquias diferentes não trocam de lugar entre si', () => {
+    const ordenado = sortByFranchise([
+      jogo('Halo 3', 2007, 'Halo'),
+      jogo('Doom 2016', 2016, 'Doom'),
+      jogo('Halo 1', 2001, 'Halo'),
+      jogo('Doom 1993', 1993, 'Doom'),
+    ])
+    expect(ordenado.map((r) => r.title)).toEqual([
+      'Halo 1',
+      'Halo 3',
+      'Doom 1993',
+      'Doom 2016',
+    ])
   })
 })
 

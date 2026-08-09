@@ -163,9 +163,31 @@ function escapeApicalypse(query: string): string {
 // renomeando esse campo — um `where` numa coluna que sumiu derruba a busca
 // INTEIRA, e resultado sujo é melhor que resultado nenhum.
 // `total_rating_count` não aparece na tela: é só o critério de ordenação.
-const IGDB_FIELDS =
+const IGDB_FIELDS_BASE =
   'fields name,first_release_date,cover.image_id,platforms.abbreviation,' +
-  'total_rating_count;'
+  'total_rating_count'
+
+/**
+ * A COLEÇÃO ("The Legend of Zelda"), que o cliente usa para manter os títulos de
+ * uma franquia vizinhos na lista em vez de intercalados por popularidade.
+ *
+ * É uma LISTA DE CANDIDATOS porque o nome do campo é a parte que não dá para
+ * garantir: a IGDB vem renomeando colunas (ver IGDB_COLLECTION_FIELDS) e um
+ * campo inexistente não devolve "sem coleção" — devolve 400 e derruba a busca
+ * inteira. Em vez de apostar num nome, a function tenta o primeiro, e ao levar
+ * 400 desce para o próximo; a string vazia no fim é a desistência, que reproduz
+ * exatamente o comportamento anterior a esta feature.
+ *
+ * A escolha fica LEMBRADA na instância: o custo de descobrir é pago uma vez por
+ * instância fria, não a cada tecla digitada.
+ */
+const IGDB_COLLECTION_FIELDS = ['collection.name', 'collections.name', '']
+let colecaoEscolhida = 0
+
+function igdbFields(): string {
+  const extra = IGDB_COLLECTION_FIELDS[colecaoEscolhida]
+  return `${IGDB_FIELDS_BASE}${extra ? ',' + extra : ''};`
+}
 
 // A ficha pede bem mais campos que a busca — e só a ficha paga por eles, uma
 // obra por vez. Pedir isto na LISTA multiplicaria o payload por doze.
@@ -178,7 +200,7 @@ const IGDB_DETAIL_FIELDS =
 /**
  * "Onde comprar" — Steam, Epic, GOG, itch. Fica SEPARADO do resto dos campos
  * porque `websites.category` é justamente o tipo de coluna que a IGDB vem
- * renomeando (ver o comentário de IGDB_FIELDS), e um campo extinto não devolve
+ * renomeando (ver IGDB_COLLECTION_FIELDS), e um campo extinto não devolve
  * "sem links": devolve erro e derruba a ficha inteira. Separado, `detailIgdb`
  * consegue tentar de novo sem ele.
  */
@@ -251,11 +273,11 @@ function byPopularity(rows: unknown): unknown {
  * `multiquery` manda as duas num POST só, então o custo contra o limite da IGDB
  * (4 req/s para a aplicação INTEIRA) continua o de uma ida.
  */
-function igdbMultiquery(safe: string): string {
+function igdbMultiquery(safe: string, fields: string): string {
   return (
-    `query games "relevancia" { ${IGDB_FIELDS} search "${safe}"; ` +
+    `query games "relevancia" { ${fields} search "${safe}"; ` +
     `limit ${CONFIG.igdbPool}; };\n` +
-    `query games "popularidade" { ${IGDB_FIELDS} where name ~ *"${safe}"*; ` +
+    `query games "popularidade" { ${fields} where name ~ *"${safe}"*; ` +
     `sort total_rating_count desc; limit ${CONFIG.igdbPool}; };`
   )
 }
@@ -275,36 +297,55 @@ function mergeById(lotes: unknown[]): unknown[] {
   return byPopularity([...porId.values()]) as unknown[]
 }
 
-async function searchIgdb(query: string): Promise<unknown> {
-  const safe = escapeApicalypse(query)
-  if (safe.length < CONFIG.minQuery) return []
-
+async function buscaIgdb(safe: string, fields: string): Promise<unknown> {
   try {
-    const resposta = await askIgdb(igdbMultiquery(safe), IGDB_MULTIQUERY_URL)
+    const resposta = await askIgdb(
+      igdbMultiquery(safe, fields),
+      IGDB_MULTIQUERY_URL,
+    )
     if (Array.isArray(resposta)) {
       const juntos = mergeById(
         resposta.map((bloco) => (bloco as { result?: unknown })?.result),
       )
       if (juntos.length > 0) return juntos
     }
-  } catch {
-    // Cai no caminho de antes. Uma melhoria não pode derrubar o que ela
-    // melhora: se a IGDB mudar o formato do multiquery, a busca continua.
+  } catch (error) {
+    // 400 é campo inválido, e quem trata disso é o chamador — os outros erros
+    // caem no caminho antigo, que é a rede de segurança do multiquery.
+    if (error instanceof UpstreamError && error.status === 400) throw error
   }
 
-  const found = await askIgdb(
-    `search "${safe}"; ${IGDB_FIELDS} limit ${CONFIG.igdbPool};`,
-  )
+  const found = await askIgdb(`search "${safe}"; ${fields} limit ${CONFIG.igdbPool};`)
   if (Array.isArray(found) && found.length > 0) return byPopularity(found)
 
   // Último recurso, para PALAVRA INCOMPLETA: o `search` exige palavras
   // inteiras ("starcr" não acha "StarCraft"), e a tela busca a cada tecla.
   try {
     return await askIgdb(
-      `where name ~ *"${safe}"*; ${IGDB_FIELDS} sort total_rating_count desc; limit ${CONFIG.limit};`,
+      `where name ~ *"${safe}"*; ${fields} sort total_rating_count desc; limit ${CONFIG.limit};`,
     )
   } catch {
     return found
+  }
+}
+
+async function searchIgdb(query: string): Promise<unknown> {
+  const safe = escapeApicalypse(query)
+  if (safe.length < CONFIG.minQuery) return []
+
+  // Desce a lista de candidatos a campo de coleção enquanto a IGDB recusar o
+  // nome. Só o 400 faz descer: 429 e 503 são a fonte ocupada ou fora do ar, e
+  // desistir da coleção por causa deles perderia a feature para sempre por um
+  // problema passageiro.
+  for (;;) {
+    try {
+      return await buscaIgdb(safe, igdbFields())
+    } catch (error) {
+      const campoRuim = error instanceof UpstreamError && error.status === 400
+      const restam = colecaoEscolhida < IGDB_COLLECTION_FIELDS.length - 1
+      if (!campoRuim || !restam) throw error
+      colecaoEscolhida++
+    }
   }
 }
 

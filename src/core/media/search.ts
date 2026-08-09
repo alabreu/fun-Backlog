@@ -104,6 +104,57 @@ export function dedupe(results: MediaSearchResult[]): MediaSearchResult[] {
   return kept.slice(0, SEARCH_LIMIT)
 }
 
+/**
+ * Junta os títulos de uma mesma FRANQUIA, sem bagunçar o resto.
+ *
+ * O problema: a busca vem ordenada por popularidade, então procurar "zelda"
+ * devolve Breath of the Wild, depois Ocarina, depois um Mario que casou por
+ * acaso, depois Tears of the Kingdom. Os títulos de uma série ficam
+ * intercalados, e ler a lista vira caça.
+ *
+ * DUAS REGRAS, e a ordem entre elas é o ponto:
+ *
+ * 1. A franquia herda a posição do seu MELHOR colocado. Quem estava no topo por
+ *    popularidade continua no topo — a mudança não rebaixa nada, só puxa os
+ *    parentes para junto. É o que impede o conserto de estragar a busca que já
+ *    funcionava.
+ * 2. Dentro da franquia, ordem de LANÇAMENTO. É como as pessoas guardam uma
+ *    série na cabeça, e é a única ordem em que "o próximo que eu não joguei"
+ *    tem significado. Sem ano vai para o fim do grupo, não para o começo.
+ *
+ * Obra SEM franquia é um grupo de uma só, e por isso não sai do lugar. Como
+ * hoje só a IGDB devolve o campo, em anime, série e livro esta função não muda
+ * absolutamente nada — o que é o comportamento desejado, e não uma limitação a
+ * consertar depois.
+ */
+export function sortByFranchise(
+  results: MediaSearchResult[],
+): MediaSearchResult[] {
+  // Chave do grupo. Sem franquia, uma chave só dela: o índice garante que dois
+  // resultados soltos nunca caiam no mesmo balde.
+  const chave = (r: MediaSearchResult, i: number) => r.franchise ?? `#${i}`
+
+  const melhorPosicao = new Map<string, number>()
+  results.forEach((r, i) => {
+    const k = chave(r, i)
+    if (!melhorPosicao.has(k)) melhorPosicao.set(k, i)
+  })
+
+  return results
+    .map((r, i) => ({ r, i, k: chave(r, i) }))
+    .sort((a, b) => {
+      const grupo =
+        (melhorPosicao.get(a.k) ?? 0) - (melhorPosicao.get(b.k) ?? 0)
+      if (grupo !== 0) return grupo
+      // Mesmo grupo: cronologia. Sem ano fica por último, e entre dois sem ano
+      // vale a ordem de chegada.
+      const anoA = a.r.year ?? Infinity
+      const anoB = b.r.year ?? Infinity
+      return anoA === anoB ? a.i - b.i : anoA - anoB
+    })
+    .map((x) => x.r)
+}
+
 /** Ordem de exibição dos grupos quando a pessoa não escolheu a dela. A posição
  *  de cada mídia na tela não deve dançar entre buscas — memória muscular importa
  *  mais que ordenar por quantidade de resultados. */
@@ -184,7 +235,7 @@ export async function searchAll(
     .filter((type) => byType.has(type))
     .map((type) => ({
       mediaType: type,
-      results: dedupe(byType.get(type) as MediaSearchResult[]),
+      results: sortByFranchise(dedupe(byType.get(type) as MediaSearchResult[])),
     }))
 
   return { groups, failed, skippedNeedingAuth }

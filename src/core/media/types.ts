@@ -24,6 +24,19 @@ export interface MediaSearchResult {
   total?: number
   /** Uma linha de contexto para desempatar homônimos na lista. */
   subtitle?: string
+  /**
+   * A SÉRIE a que a obra pertence, quando a fonte souber ("The Legend of
+   * Zelda"). Serve para manter os títulos de uma franquia vizinhos na lista em
+   * vez de intercalados por popularidade.
+   *
+   * É NOME e não id de propósito: o app só compara com ele mesmo, e um nome
+   * legível é o que permite mostrá-lo na tela um dia sem uma segunda busca.
+   *
+   * Nem toda fonte tem: a IGDB tem coleção, a TMDB só para filmes de saga
+   * oficial, e AniList e as de livro não têm nada equivalente. Ausente é o
+   * caso comum, e a ordenação simplesmente não mexe em quem não tem.
+   */
+  franchise?: string
 }
 
 /**

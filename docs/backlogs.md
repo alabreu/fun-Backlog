@@ -53,6 +53,7 @@ da TMDB, cadastrados como secrets do Supabase.
 | 🟢 | Densidade por peso da mídia | Briefing: um RPG de 80h não pode ocupar o mesmo espaço que um filme de 90min. Decisão visual — vai junto da identidade |
 | 🟢 | Imports de biblioteca | Steam (`GetOwnedGames`: biblioteca + horas jogadas; sem login — basta perfil público, ver decisão 8), Letterboxd (CSV), AniList (username). É **aqui** que um login de terceiro se paga, e não na IGDB (decisão 7): do outro lado existe uma biblioteca sua. Todos precisam de tela de revisão antes de commitar |
 | 🟢 | Visualização em lista compacta | Briefing feature 1, para quem tem backlog gigante |
+| 🟢 | Agrupar franquia na busca (visual) | A ordenação já junta os títulos de uma série (decisão de 09/08/2026, opção A). Falta decidir se vale um cabeçalho de franquia ou um card que abre a lista — depende de a ordenação sozinha ter resolvido |
 | 🟢 | Filtro de favoritas | O coração já grava o dado e a migração `0005` já tem o índice parcial. Falta decidir onde o filtro mora — na estante, na home, ou nas duas |
 | 🟢 | UI de tags | A coluna existe no schema desde a `0004` e nada na tela usa |
 | 🟢 | Ordenação configurável | A estante agora é por seções (decisão 13) e a ordem DELAS é fixa por mídia. Falta poder ordenar DENTRO da seção — hoje é por data de entrada, mais novo primeiro |

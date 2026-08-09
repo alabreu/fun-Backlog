@@ -20,6 +20,8 @@ export function igdbCoverUrl(imageId: string): string {
 }
 
 interface IgdbGame {
+  /** A série ("The Legend of Zelda"), quando a IGDB devolve. */
+  collection?: { name?: string }
   id: number
   name?: string
   /** Unix em SEGUNDOS, não milissegundos — multiplicar antes de usar. */
@@ -51,6 +53,10 @@ export function mapIgdbGame(game: IgdbGame): MediaSearchResult | null {
       ? new Date(game.first_release_date * 1000).getUTCFullYear()
       : undefined,
     subtitle: platforms.length > 0 ? platforms.join(', ') : undefined,
+    // A Edge Function pede o nome da coleção quando a IGDB aceita o campo (ver
+    // o comentário dela). Quando não vem, isto fica ausente e a ordenação por
+    // franquia não tem o que fazer — que é exatamente o comportamento de hoje.
+    franchise: game.collection?.name || undefined,
   }
 }
 
