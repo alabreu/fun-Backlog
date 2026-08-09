@@ -16,6 +16,7 @@
   --palette-gray-900: #1e1e22;
   --palette-gray-950: #1c1c1e;
   --palette-black-900: #131316;
+  --palette-black-1000: #000000; /* só o véu do sheet — nada de texto ou fundo */
   --palette-rose-400: #fb7185;
   --palette-rose-700: #be123c;
   --palette-green-400: #4ade80;
@@ -293,6 +294,11 @@
     --color-on-accent: var(--palette-gray-950);
     --color-success: var(--palette-green-400);
     --color-danger: var(--palette-red-400);
+    /* PRETO no escuro, e não `gray-950`: aquele (#1c1c1e) é MAIS CLARO
+       que o fundo da página (#131316), então o véu CLAREAVA a área em vez
+       de escurecê-la — a razão real de o que está atrás continuar tão
+       presente. No tema claro o `gray-950` segue certo: lá ele escurece. */
+    --color-scrim: var(--palette-black-1000);
     --color-media-game: var(--palette-indigo-400);
     --color-media-movie: var(--palette-cyan-400);
     --color-media-series: var(--palette-magenta-400);
@@ -331,6 +337,7 @@
   --color-on-accent: var(--palette-gray-950);
   --color-success: var(--palette-green-400);
   --color-danger: var(--palette-red-400);
+  --color-scrim: var(--palette-black-1000);
   --color-media-game: var(--palette-indigo-400);
   --color-media-movie: var(--palette-cyan-400);
   --color-media-series: var(--palette-magenta-400);

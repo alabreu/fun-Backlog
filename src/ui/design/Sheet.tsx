@@ -150,11 +150,13 @@ export function Sheet({ open, onClose, label, children }: SheetProps) {
       <div
         aria-hidden="true"
         onClick={onClose}
-        // 70% e não 40%: no tema escuro o fundo da página e a superfície do
-        // painel são vizinhos próximos, e um véu fraco deixava as duas
-        // interfaces parecendo uma coisa só, sem hierarquia. O escurecimento é
-        // o que diz "isto aqui está por cima, e aquilo lá está esperando".
-        className={`absolute inset-0 bg-scrim/70 transition-opacity duration-200 ${
+        // 80%, e sobre um scrim que agora é PRETO no tema escuro. A opacidade
+        // sozinha não resolvia: o token apontava para `gray-950` (#1c1c1e),
+        // mais claro que o fundo da página (#131316) — o véu clareava a área
+        // em vez de escurecê-la, e por isso o que estava atrás continuava
+        // presente por mais que se subisse o alfa. Corrigida a cor, 80% leva o
+        // texto branco de trás a #333: ele existe, mas recua. Ver index.css.
+        className={`absolute inset-0 bg-scrim/80 transition-opacity duration-200 ${
           open ? 'opacity-100' : 'opacity-0'
         }`}
       />
