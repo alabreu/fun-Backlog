@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-status-auto',
+    date: '2026-08-09',
+    emoji: '🪄',
+    title: {
+      pt: 'O status se cuida sozinho em séries, animes e livros',
+      en: 'Status takes care of itself on series, anime and books',
+    },
+    items: {
+      pt: [
+        'Arrastou o progresso? A obra sai da fila sozinha. Chegou ao fim? Vira concluída. Saiu temporada nova? Volta para "assistindo".',
+        'Pausado e abandonado continuam sendo sua escolha, e não mudam quando você anota onde parou — pausar e registrar o episódio é justamente o que se faz junto.',
+        'Adicionar pelo + agora pergunta onde você está, com a régua da obra. Quem já terminou entra direto como concluído.',
+      ],
+      en: [
+        'Dragged the progress? The title leaves the queue on its own. Reached the end? It becomes finished. New season out? It goes back to "watching".',
+        'Paused and dropped are still your call, and they do not change when you note where you stopped — pausing and logging the episode is one act, not two.',
+        'Adding with the + now asks where you are, on the title’s own ruler. Something you already finished comes in as finished.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-slider',
     date: '2026-08-09',
     emoji: '🎚️',

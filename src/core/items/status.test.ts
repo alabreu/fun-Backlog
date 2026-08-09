@@ -3,7 +3,9 @@ import {
   canRate,
   datesForStatus,
   progressUnitFor,
+  progressForStatus,
   shelfSections,
+  statusFromProgress,
   statusLabelKey,
 } from './status'
 import { ITEM_STATUSES, MEDIA_TYPES } from './types'
@@ -65,13 +67,22 @@ describe('datesForStatus', () => {
     })
   })
 
-  it('limpa a conclusão ao sair de "done"', () => {
+  // MUDOU com o status derivado do progresso (decisão 15). Antes a data era
+  // apagada ao sair de "done"; agora é guardada, porque arrastar um episódio
+  // para trás e voltar reescreveria "concluí em março" para "concluí hoje".
+  // A retrospectiva não a mostra sozinha: ela filtra por status TAMBÉM.
+  it('guarda a data da conclusão ao sair de "done"', () => {
+    const concluiu = '2026-03-03T00:00:00.000Z'
     const dates = datesForStatus(
       'active',
-      { startedAt: '2026-01-01T00:00:00.000Z', completedAt: now },
+      { startedAt: '2026-01-01T00:00:00.000Z', completedAt: concluiu },
       now,
     )
-    expect(dates.completedAt).toBeUndefined()
+    expect(dates.completedAt).toBe(concluiu)
+  })
+
+  it('quem nunca concluiu continua sem data', () => {
+    expect(datesForStatus('active', {}, now).completedAt).toBeUndefined()
   })
 
   it('não reescreve a data de conclusão de quem já estava concluído', () => {
@@ -133,5 +144,59 @@ describe('canRate', () => {
     for (const status of ITEM_STATUSES) {
       if (status !== 'backlog') expect(canRate(status)).toBe(true)
     }
+  })
+})
+
+describe('statusFromProgress', () => {
+  it('a posição diz o estado: nada, um pedaço, tudo', () => {
+    expect(statusFromProgress(0, 62, 'backlog')).toBe('backlog')
+    expect(statusFromProgress(1, 62, 'backlog')).toBe('active')
+    expect(statusFromProgress(61, 62, 'active')).toBe('active')
+    expect(statusFromProgress(62, 62, 'active')).toBe('done')
+  })
+
+  // POSIÇÃO NÃO É INTENÇÃO. Sem isto, anotar onde parou tiraria a obra do
+  // pausado — e anotar onde parou é justamente o que se faz ao pausar.
+  it('pausado e abandonado grudam, mesmo mexendo no progresso', () => {
+    expect(statusFromProgress(15, 62, 'paused')).toBe('paused')
+    expect(statusFromProgress(62, 62, 'paused')).toBe('paused')
+    expect(statusFromProgress(0, 62, 'abandoned')).toBe('abandoned')
+  })
+
+  // Jogo mede em horas sem fim conhecido; obra à mão pode não ter total.
+  it('sem total não há o que derivar', () => {
+    expect(statusFromProgress(40, undefined, 'active')).toBe('active')
+    expect(statusFromProgress(40, 0, 'backlog')).toBe('backlog')
+  })
+
+  // Contagem salva maior que o total velho acontece antes de a ficha nova
+  // chegar; ela não pode virar um estado impossível.
+  it('passar do total ainda é concluída', () => {
+    expect(statusFromProgress(70, 62, 'active')).toBe('done')
+  })
+
+  // O caso que o usuário pediu: temporada nova aumenta o total, e a série que
+  // estava concluída volta a ter episódios pela frente.
+  it('temporada nova reabre a série sozinha', () => {
+    expect(statusFromProgress(34, 42, 'done')).toBe('active')
+  })
+})
+
+describe('progressForStatus', () => {
+  // Sem o caminho inverso os dois controles se contradiriam: tocar em
+  // "concluída" deixaria a régua parada no meio.
+  it('os extremos têm resposta óbvia', () => {
+    expect(progressForStatus('done', 62)).toBe(62)
+    expect(progressForStatus('backlog', 62)).toBe(0)
+  })
+
+  it('o meio não se inventa', () => {
+    expect(progressForStatus('active', 62)).toBeNull()
+    expect(progressForStatus('paused', 62)).toBeNull()
+    expect(progressForStatus('abandoned', 62)).toBeNull()
+  })
+
+  it('sem total, nada a dizer', () => {
+    expect(progressForStatus('done', undefined)).toBeNull()
   })
 })

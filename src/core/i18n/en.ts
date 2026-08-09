@@ -87,6 +87,10 @@ export const en: Record<keyof typeof pt, string> = {
   'add.manualMediaLabel': 'Medium',
   'add.manualSubmit': 'Add to shelf',
   'add.pickStatus': 'Add as',
+  'add.pickProgress': 'Where are you?',
+  'add.orPickStatus': 'Or',
+  'add.willEnterAs': 'Comes in as {status}.',
+  'add.confirmDerived': 'Add',
 
   // Completed (the trophy shelf)
   'completed.title': 'Completed',

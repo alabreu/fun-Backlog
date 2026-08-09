@@ -94,8 +94,18 @@ export function progressUnitFor(
  * quem chama aplica sobre o item.
  *
  * `startedAt` é preservado quando já existe: pausar e voltar não deve reescrever
- * a data em que a pessoa começou. `completedAt` é limpo ao sair de `done`, senão
- * a tela de "concluídos" mostraria como troféu do ano algo que foi desmarcado.
+ * a data em que a pessoa começou.
+ *
+ * `completedAt` TAMBÉM É PRESERVADO ao sair de `done`, e isso mudou quando o
+ * status passou a ser derivado do progresso (decisão 15). Antes ele era
+ * apagado, por medo de a retrospectiva do ano mostrar como troféu algo
+ * desmarcado — mas ela filtra por `status === 'done'` E pela data (ver
+ * `completedItems`), então a data sozinha nunca aparece.
+ *
+ * O que o apagamento CUSTAVA ficou caro demais com a derivação: arrastar um
+ * episódio para trás e voltar reescreveria "concluí em março" para "concluí
+ * hoje". Guardada, ela é a data da PRIMEIRA conclusão, e sobrevive a um
+ * arraste sem querer.
  */
 export function datesForStatus(
   status: ItemStatus,
@@ -108,8 +118,61 @@ export function datesForStatus(
 
   return {
     startedAt: started,
-    completedAt: status === 'done' ? (current.completedAt ?? now) : undefined,
+    completedAt:
+      status === 'done' ? (current.completedAt ?? now) : current.completedAt,
   }
+}
+
+/**
+ * O STATUS QUE O PROGRESSO IMPLICA (decisão 15, escolha do usuário 09/08/2026).
+ *
+ * Onde existe um total conhecido, a posição já diz o estado: nada visto é
+ * "na fila", alguma coisa vista é "assistindo", tudo visto é "concluída". Pedir
+ * as duas coisas era pedir a mesma informação duas vezes — e a segunda quase
+ * sempre ficava desatualizada.
+ *
+ * DUAS EXCEÇÕES, e as duas são o mesmo princípio: posição não é intenção.
+ *
+ * 1. PAUSADO E ABANDONADO GRUDAM. "Pausei na terceira" é uma declaração sobre
+ *    o que você pretende fazer, não sobre onde você está — e sem isto seria
+ *    impossível registrar progresso sem sair do pausado, que é justamente
+ *    quando se quer anotar onde parou.
+ * 2. SEM TOTAL, NÃO HÁ REGRA. Jogo mede em horas sem fim conhecido, e obra
+ *    adicionada à mão pode não ter total nenhum. Ali o status continua sendo
+ *    escolhido, como sempre foi.
+ *
+ * Devolve o status ATUAL quando não há o que derivar, e nunca `null`: quem
+ * chama compara e só grava se mudou.
+ */
+export function statusFromProgress(
+  current: number,
+  total: number | undefined,
+  status: ItemStatus,
+): ItemStatus {
+  if (!total || total <= 0) return status
+  if (status === 'paused' || status === 'abandoned') return status
+  if (current >= total) return 'done'
+  return current > 0 ? 'active' : 'backlog'
+}
+
+/**
+ * O CAMINHO INVERSO: que progresso um status escolhido à mão implica.
+ *
+ * Sem isto os dois controles se contradiriam — tocar em "Concluída" deixaria a
+ * régua no meio, dizendo duas coisas diferentes sobre a mesma obra. Só os dois
+ * extremos têm resposta óbvia; "assistindo" pode ser qualquer ponto entre eles,
+ * e chutar um seria inventar informação.
+ *
+ * `null` significa "não mexa no progresso".
+ */
+export function progressForStatus(
+  status: ItemStatus,
+  total: number | undefined,
+): number | null {
+  if (!total || total <= 0) return null
+  if (status === 'done') return total
+  if (status === 'backlog') return 0
+  return null
 }
 
 /**

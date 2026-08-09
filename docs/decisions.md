@@ -581,6 +581,64 @@ sem aviso, para um efeito que é decorativo por definição.
 
 ---
 
+## 15. O status é consequência do progresso, onde há uma régua
+
+**Decisão do usuário (09/08/2026), com uma ressalva registrada e vencida.**
+Onde existe um total conhecido, a posição já diz o estado. Pedir as duas coisas
+era pedir a mesma informação duas vezes — e a segunda quase sempre ficava
+desatualizada, porque ninguém volta ao painel só para trocar "na fila" por
+"assistindo" depois de ver o primeiro episódio.
+
+- nada visto → **na fila**
+- alguma coisa vista → **assistindo**
+- tudo visto → **concluída**
+- o total CRESCE (temporada nova) → volta a **assistindo**, sozinha
+
+**Duas exceções, e as duas são o mesmo princípio: posição não é intenção.**
+
+1. **Pausado e abandonado grudam.** "Pausei na terceira" é uma declaração sobre
+   o que você pretende fazer, não sobre onde está. Sem isto seria impossível
+   anotar onde parou sem sair do pausado — que é justamente quando se anota.
+2. **Sem total, não há regra.** Jogo mede em horas sem fim conhecido, e obra
+   adicionada à mão pode não ter total. Ali o status continua sendo escolhido.
+   Filme não tem progresso nenhum, então nada muda para ele.
+
+**O caminho inverso também existe**, senão os dois controles se contradiriam:
+tocar em "concluída" leva a régua ao fim, e "na fila" a traz ao zero. Só os
+extremos têm resposta óbvia — "assistindo" pode ser qualquer ponto entre eles, e
+chutar um seria inventar informação. Isso fecha de lado um item que estava em
+aberto ("concluir não preenche o progresso").
+
+### A ressalva que foi levantada, e por que ela não bloqueou
+
+Esta decisão **reverte a de 04/08/2026**, quando a pergunta "marcar como
+concluída?" foi preferida ao automático justamente porque marcar sozinho grava
+data no histórico de concluídos. O custo real é que **arrastar um episódio para
+trás desmarcaria a conclusão**, e voltar reescreveria "concluí em março" para
+"concluí hoje" — a estante de troféus ficaria volátil.
+
+Levantado e reafirmado pelo usuário. Mitigado sem contrariar a escolha:
+`datesForStatus` **deixou de apagar `completedAt`** ao sair de `done`. A
+retrospectiva filtra por `status === 'done'` **e** pela data (ver
+`completedItems`), então uma data guardada num item não-concluído nunca aparece
+— e quando a obra volta a `done`, é a data da PRIMEIRA conclusão que ressurge,
+não a de hoje. Verificado em navegador: ir ao fim, voltar um episódio e ir ao
+fim de novo preserva a data original.
+
+### O sheet do `+` busca a ficha
+
+**Escolha do usuário (09/08/2026), com custo aceito.** O resultado de busca da
+TMDB **não traz o número de episódios** — `number_of_episodes` só existe na
+ficha. Sem uma ida à rede ao tocar no `+`, a régua faltaria justamente em série,
+a mídia que a motivou. O custo é uma espera curta antes de poder responder; um
+esqueleto da altura exata do slider ocupa o lugar dela para o painel não crescer
+quando a resposta chega.
+
+Com régua, os chips ficam só com **pausado e abandonado** — os dois que nenhuma
+posição revela.
+
+---
+
 ## Ainda em aberto
 
 - **Identidade visual**: paleta (primitivos em `src/index.css`) e a linguagem do
@@ -594,8 +652,5 @@ sem aviso, para um efeito que é decorativo por definição.
   uniforme. As saídas plausíveis (capa maior ou span de duas colunas para
   mídias longas, agrupamento por tempo) são decisões visuais — ficam para a
   sessão de identidade.
-- **Progresso ao mudar de status**: marcar "concluído" ainda não preenche o
-  progresso até o total conhecido, nem o contrário. Falta decidir se isso é
-  automático ou explícito.
 - **HowLongToBeat**: sem API oficial — avaliar viabilidade antes de prometer
   tempo estimado como campo de primeira classe.

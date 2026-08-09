@@ -85,6 +85,10 @@ export const pt = {
   'add.manualMediaLabel': 'Mídia',
   'add.manualSubmit': 'Adicionar à estante',
   'add.pickStatus': 'Adicionar como',
+  'add.pickProgress': 'Onde você está?',
+  'add.orPickStatus': 'Ou',
+  'add.willEnterAs': 'Entra como {status}.',
+  'add.confirmDerived': 'Adicionar',
 
   // Concluídos (a estante de troféus)
   'completed.title': 'Concluídos',

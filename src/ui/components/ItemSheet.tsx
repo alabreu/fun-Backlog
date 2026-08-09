@@ -13,8 +13,10 @@ import type {
 import {
   canRate,
   mediaLabelKey,
+  progressForStatus,
   progressLabelKey,
   progressUnitFor,
+  statusFromProgress,
   statusLabelKey,
 } from '@core/items/status'
 import {
@@ -277,7 +279,15 @@ function Detail({
           item={matched}
           onClose={onClose}
           setStatus={setStatus}
+          update={update}
           remove={remove}
+          // O total VIVO, da ficha, e não o guardado no item: é ele que dá o
+          // fim certo quando uma temporada nova saiu depois da última visita.
+          total={
+            detail?.seasons?.reduce((n, s) => n + s.episodes, 0) ||
+            detail?.total ||
+            matched.progress?.total
+          }
         />
       )}
 
@@ -620,12 +630,17 @@ function StatusPicker({
   item,
   onClose,
   setStatus,
+  update,
   remove,
+  total,
 }: {
   item: Item
   onClose: () => void
   setStatus: ReturnType<typeof useItems>['setStatus']
+  update: ReturnType<typeof useItems>['update']
   remove: ReturnType<typeof useItems>['remove']
+  /** O total vivo da obra, quando existe — é o que dá sentido a "concluída". */
+  total?: number
 }) {
   const { t } = useTranslation()
   const [confirming, setConfirming] = useState(false)
@@ -640,6 +655,17 @@ function StatusPicker({
             selected={item.status === value}
             onClick={() => {
               void setStatus(item.id, value)
+              // O CAMINHO INVERSO DA DERIVAÇÃO (decisão 15): tocar em
+              // "concluída" leva a régua ao fim, e "na fila" a traz ao zero.
+              // Sem isto os dois controles diriam coisas diferentes sobre a
+              // mesma obra — chip no fim, slider parado no meio. Só os
+              // extremos têm resposta óbvia; o meio não se inventa.
+              const unidade = progressUnitFor(item.mediaType)
+              const alvo = progressForStatus(value, total)
+              if (unidade && alvo !== null && alvo !== item.progress?.current)
+                void update(item.id, {
+                  progress: { unit: unidade, current: alvo, total },
+                })
               // Concluir fecha o sheet: a comemoração assume a tela, e
               // deixar o detalhe aberto atrás dela transforma o momento de
               // recompensa em duas camadas empilhadas.
@@ -718,26 +744,26 @@ function PersonalControls({
   const totalDaFonte = seasons?.reduce((n, s) => n + s.episodes, 0)
   const totalGuardado = item.progress?.total
   const total = totalDaFonte || totalGuardado
-  const cresceu = Boolean(
-    totalDaFonte && totalGuardado && totalDaFonte > totalGuardado,
-  )
 
   // `seasonProgress` reparte a contagem corrida entre as temporadas: é ele que
   // sabe onde cada ponto da régua cai.
   const temporadas = seasonProgress(atual, seasons ?? [])
   const posicao = locate(atual, seasons ?? [])
 
-  // "Chegou ao fim" precisa de um total conhecido: sem ele, qualquer número
-  // digitado seria o fim, e a pergunta apareceria no primeiro episódio.
-  const chegouAoFim =
-    Boolean(total) && atual >= (total ?? 0) && item.status !== 'done'
 
-  /** Grava progresso SEMPRE com o total vivo: é o momento em que a foto velha
-   *  é substituída pela verdade, sem uma escrita solta ao só abrir o painel. */
+  /**
+   * Grava progresso E o status que ele implica (decisão 15).
+   *
+   * SEMPRE com o total vivo: é o momento em que a foto velha é substituída
+   * pela verdade, sem uma escrita solta ao só abrir o painel. E o status sai
+   * junto porque agora ele é consequência da posição, não uma segunda pergunta
+   * — `statusFromProgress` é quem sabe as exceções (pausado e abandonado
+   * grudam; sem total não se deriva nada).
+   */
   function gravar(current: number) {
-    void update(item.id, {
-      progress: { unit: unit!, current, total },
-    })
+    void update(item.id, { progress: { unit: unit!, current, total } })
+    const derivado = statusFromProgress(current, total, item.status)
+    if (derivado !== item.status) void setStatus(item.id, derivado)
   }
 
   /** Como dizer um valor: "T3 E12" quando a fonte conhece as temporadas,
@@ -816,48 +842,6 @@ function PersonalControls({
             </div>
           ) : null}
 
-          {/* SAIU TEMPORADA NOVA numa série já terminada. PERGUNTA, não decide:
-              voltar para "assistindo" sozinho apagaria a data de conclusão e
-              tiraria a obra da retrospectiva do ano — um estrago silencioso
-              causado por uma novidade da fonte, não por um ato da pessoa. */}
-          {cresceu && item.status === 'done' && (
-            <div className="mt-2 flex items-center gap-2">
-              <p className="min-w-0 flex-1 text-body text-muted">
-                {t('item.newSeasonPrompt', { total: totalDaFonte ?? 0 })}
-              </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="shrink-0"
-                onClick={() => {
-                  gravar(atual)
-                  void setStatus(item.id, 'active')
-                }}
-              >
-                {t('item.newSeasonConfirm')}
-              </Button>
-            </div>
-          )}
-
-          {/* Chegou ao total e ainda não está concluída: PERGUNTA, não decide.
-              Mudar status sozinho gravaria data no histórico de concluídos —
-              e quem termina para reassistir não quer isso. Some sozinho quando
-              a pessoa marca ou reduz o progresso, sem estado de dispensa. */}
-          {chegouAoFim && (
-            <div className="mt-2 flex items-center gap-2">
-              <p className="min-w-0 flex-1 text-body text-muted">
-                {t('item.finishedPrompt')}
-              </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="shrink-0"
-                onClick={() => void setStatus(item.id, 'done')}
-              >
-                {t('item.finishedConfirm')}
-              </Button>
-            </div>
-          )}
         </div>
       )}
 

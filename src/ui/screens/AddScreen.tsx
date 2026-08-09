@@ -7,7 +7,7 @@ import {
   progressUnitFor,
   statusLabelKey,
 } from '@core/items/status'
-import type { Item, ItemStatus, MediaType } from '@core/items/types'
+import type { Item, MediaType } from '@core/items/types'
 import { parseMediaLink } from '@core/media/link'
 import {
   hasProviderFor,
@@ -17,7 +17,10 @@ import {
 import { findByImdbId } from '@core/media/tmdb'
 import type { MediaSearchResult } from '@core/media/types'
 import { useRegionStore } from '@core/state/regionStore'
-import { AddStatusSheet } from '@ui/components/AddStatusSheet'
+import {
+  AddStatusSheet,
+  type AddChoice,
+} from '@ui/components/AddStatusSheet'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import {
   Badge,
@@ -181,8 +184,9 @@ export function AddScreen() {
   // no estado escolhido, com as datas que o estado implica (`datesForStatus`).
   // O total que o provider já sabe (episódios, páginas) entra junto: é o que
   // permite mostrar "episódio 3 de 26" no detalhe sem uma segunda ida à API.
-  async function addResult(result: MediaSearchResult, status: ItemStatus) {
+  async function addResult(result: MediaSearchResult, choice: AddChoice) {
     setPendingAdd(null)
+    const { status } = choice
     const unit = progressUnitFor(result.mediaType)
     try {
       await add({
@@ -192,10 +196,14 @@ export function AddScreen() {
         externalIds: { [result.provider]: result.externalId },
         status,
         ...datesForStatus(status, {}, new Date().toISOString()),
+        // O progresso vem do painel: ele já buscou a ficha e sabe o total
+        // de verdade, que o resultado de busca muitas vezes não traz.
         progress:
-          unit && result.total
-            ? { unit, current: 0, total: result.total }
-            : undefined,
+          unit && choice.progress
+            ? { unit, ...choice.progress }
+            : unit && result.total
+              ? { unit, current: 0, total: result.total }
+              : undefined,
       })
       // Aqui o sucesso AINDA fala: nesta tela a obra não aparece em seção
       // nenhuma — o resultado só ganha o check na capa, e um check pequeno num
@@ -437,7 +445,7 @@ export function AddScreen() {
       <AddStatusSheet
         result={pendingAdd}
         onClose={() => setPendingAdd(null)}
-        onPick={(result, status) => void addResult(result, status)}
+        onPick={(result, choice) => void addResult(result, choice)}
       />
 
       <ItemSheet

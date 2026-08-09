@@ -12,7 +12,6 @@ import {
 import {
   MEDIA_TYPES,
   type Item,
-  type ItemStatus,
   type MediaType,
 } from '@core/items/types'
 import { hasProviderFor } from '@core/media/search'
@@ -27,7 +26,10 @@ import {
   Section,
   Toast,
 } from '@ui/design'
-import { AddStatusSheet } from '@ui/components/AddStatusSheet'
+import {
+  AddStatusSheet,
+  type AddChoice,
+} from '@ui/components/AddStatusSheet'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useSectionState } from '@ui/hooks/useSectionState'
@@ -167,8 +169,9 @@ export function ShelfScreen() {
   // no estado escolhido, com as datas que o estado implica (`datesForStatus` —
   // zerado ganha as duas, jogando ganha o início). Sem toast de sucesso: o
   // painel fechando e a obra aparecendo na seção certa É a confirmação.
-  async function addResult(result: MediaSearchResult, status: ItemStatus) {
+  async function addResult(result: MediaSearchResult, choice: AddChoice) {
     setPendingAdd(null)
+    const { status } = choice
     const unit = progressUnitFor(result.mediaType)
     try {
       await add({
@@ -178,10 +181,14 @@ export function ShelfScreen() {
         externalIds: { [result.provider]: result.externalId },
         status,
         ...datesForStatus(status, {}, new Date().toISOString()),
+        // O progresso vem do painel: ele já buscou a ficha e sabe o total
+        // de verdade, que o resultado de busca muitas vezes não traz.
         progress:
-          unit && result.total
-            ? { unit, current: 0, total: result.total }
-            : undefined,
+          unit && choice.progress
+            ? { unit, ...choice.progress }
+            : unit && result.total
+              ? { unit, current: 0, total: result.total }
+              : undefined,
       })
     } catch {
       setFlash({ message: t('add.addFailed') })
@@ -358,7 +365,7 @@ export function ShelfScreen() {
       <AddStatusSheet
         result={pendingAdd}
         onClose={() => setPendingAdd(null)}
-        onPick={(result, status) => void addResult(result, status)}
+        onPick={(result, choice) => void addResult(result, choice)}
       />
 
       <ItemSheet subject={openSubject} onClose={() => setSelected(null)} />
