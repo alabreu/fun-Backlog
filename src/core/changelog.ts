@@ -19,6 +19,29 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-nota-favorita',
+    date: '2026-08-09',
+    emoji: '⭐',
+    title: {
+      pt: 'A nota agora tem "limpar" — e ganhou um coração ao lado',
+      en: 'Ratings can be cleared now — and gained a heart beside them',
+    },
+    items: {
+      pt: [
+        'Um "Limpar" aparece ao lado do rótulo quando há nota. Antes só dava para apagar tocando na estrela exata da nota atual, o que ninguém adivinhava.',
+        'As estrelas ficaram amarelas e centralizadas.',
+        'Um coração ao lado marca a obra como favorita — é outro eixo que a nota: uma diz se a obra é boa, o outro se ela é sua.',
+        'Obra que está na fila não mostra mais a linha de nota: quem não começou não tem impressão, e ali só dava para tocar sem querer. Se ela já tiver nota, a linha continua aparecendo para você poder apagar.',
+      ],
+      en: [
+        'A "Clear" appears next to the label whenever there is a rating. Before, the only way to erase was tapping the exact star of the current rating — which nobody guessed.',
+        'The stars are yellow now, and centred.',
+        'A heart beside them marks a title as a favourite — a different axis from the rating: one says whether it is good, the other whether it is yours.',
+        'Titles still in the queue no longer show the rating row: you cannot have an impression of something you have not started, and all it collected there was accidental taps. If one already has a rating, the row stays so you can clear it.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-logos',
     date: '2026-08-09',
     emoji: '🎬',

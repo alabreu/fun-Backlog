@@ -113,6 +113,7 @@ interface ItemRow {
   status_detail: string | null
   progress: Item['progress'] | null
   rating: number | null
+  favorite: boolean | null
   notes: string | null
   tags: string[] | null
   added_at: string
@@ -131,6 +132,7 @@ function fromRow(row: ItemRow): Item {
     statusDetail: row.status_detail ?? undefined,
     progress: row.progress ?? undefined,
     rating: row.rating ?? undefined,
+    favorite: row.favorite ?? undefined,
     notes: row.notes ?? undefined,
     tags: row.tags ?? [],
     addedAt: row.added_at,
@@ -152,6 +154,11 @@ function toRow(patch: ItemPatch & Partial<NewItem>): Record<string, unknown> {
     row.status_detail = patch.statusDetail ?? null
   if (patch.progress !== undefined) row.progress = patch.progress ?? null
   if (patch.rating !== undefined) row.rating = patch.rating ?? null
+  // Só entra na linha quando o patch FALA dele. Não é micro-otimização: a
+  // coluna nasce na migração 0005, e um update que sempre mandasse
+  // `favorite` falharia inteiro num banco que ainda não a tem — levando
+  // junto a mudança de status ou de progresso que a pessoa queria salvar.
+  if (patch.favorite !== undefined) row.favorite = patch.favorite ?? false
   if (patch.notes !== undefined) row.notes = patch.notes ?? null
   if (patch.tags !== undefined) row.tags = patch.tags
   // Só na criação (a migração convidado→conta manda a data original); num

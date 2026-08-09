@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canRate,
   datesForStatus,
   progressUnitFor,
   shelfSections,
@@ -118,3 +119,18 @@ describe('SHELF_SECTIONS', () => {
   })
 })
 
+describe('canRate', () => {
+  // O caso que gerou a regra: um toque acidental deixou nota numa obra da fila,
+  // e a pessoa não achou como apagar.
+  it('não dá para avaliar o que ainda não começou', () => {
+    expect(canRate('backlog')).toBe(false)
+  })
+
+  // Largar no meio é uma opinião forte, e a impressão de quem está vendo agora
+  // é a mais fresca que vai existir: nenhum dos dois espera a conclusão.
+  it('todo o resto avalia, inclusive abandonado e em andamento', () => {
+    for (const status of ITEM_STATUSES) {
+      if (status !== 'backlog') expect(canRate(status)).toBe(true)
+    }
+  })
+})

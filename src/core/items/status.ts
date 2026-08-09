@@ -138,6 +138,26 @@ export function datesForStatus(
  * Concluído e abandonado fecham todas as listas: são ARQUIVO, consulta e não
  * decisão.
  */
+/**
+ * Faz sentido avaliar uma obra NESTE estado?
+ *
+ * Não em "na fila": nota é impressão, e quem não começou não tem nenhuma. Na
+ * prática o que a linha de estrelas fazia ali era coletar toque acidental — foi
+ * assim que ela apareceu numa obra que ninguém tinha visto.
+ *
+ * Em TODO o resto, sim — inclusive "abandonado" e "em andamento". Largar no
+ * meio é uma opinião forte e vale registrar; e a impressão de uma série que se
+ * está vendo agora é a mais fresca que vai existir. Esperar a conclusão para
+ * deixar avaliar seria o app achando que sabe mais que a pessoa.
+ *
+ * Quem já TEM nota é caso à parte, e a tela resolve: um item avaliado que volta
+ * para a fila continua mostrando a linha, senão a nota viraria um dado
+ * invisível e impossível de apagar — exatamente o problema que isto conserta.
+ */
+export function canRate(status: ItemStatus): boolean {
+  return status !== 'backlog'
+}
+
 export const SHELF_SECTIONS: Record<MediaType, ItemStatus[]> = {
   game: ['active', 'paused', 'backlog', 'done', 'abandoned'],
   series: ['active', 'paused', 'backlog', 'done', 'abandoned'],

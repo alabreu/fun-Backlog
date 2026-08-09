@@ -35,6 +35,13 @@ const PAIRS = [
   ['primary', 'bg', 3, 'superfície do botão / anel de foco'],
   ['primary', 'surface', 3, 'anel de foco sobre card'],
   ['accent', 'surface', 3, 'badge sobre card'],
+  // Estrela e coração são OBJETO GRÁFICO (1.4.11), não texto: o mínimo é 3.
+  // Ficam aqui porque são a única cor da tela que carrega significado sozinha
+  // — trocar a paleta sem esta guarda deixaria a nota ilegível em silêncio.
+  ['rating', 'surface', 3, 'estrela preenchida no sheet'],
+  ['rating', 'bg', 3, 'estrela preenchida no fundo'],
+  ['favorite', 'surface', 3, 'coração de favorita no sheet'],
+  ['favorite', 'bg', 3, 'coração de favorita no fundo'],
   ['on-inverse', 'inverse', 4.5, 'texto do toast (superfície invertida)'],
   // Cor por mídia: cada uma aparece de DOIS jeitos, e os dois têm mínimo
   // diferente. Como texto (cabeçalho de grupo na busca) precisa de 4.5; como

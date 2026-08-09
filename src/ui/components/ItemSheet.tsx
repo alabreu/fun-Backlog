@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Star, Trash } from '@phosphor-icons/react'
+import { Trash } from '@phosphor-icons/react'
 import { detailSourceFor, fetchDetail } from '@core/media/detail'
 import { genreColorIndexes } from '@core/media/genres'
 import type { PlatformFamily } from '@core/media/platforms'
@@ -10,6 +10,7 @@ import type {
   MediaSearchResult,
 } from '@core/media/types'
 import {
+  canRate,
   mediaLabelKey,
   progressLabelKey,
   progressUnitFor,
@@ -30,6 +31,7 @@ import {
   Input,
   PlatformIcon,
   PLATFORM_TEXT,
+  RatingRow,
   SectionTitle,
   ServiceLogo,
   Sheet,
@@ -527,36 +529,49 @@ function PersonalControls({
         </Field>
       )}
 
-      <div>
-        <SectionTitle className="mb-2">{t('item.ratingLabel')}</SectionTitle>
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((value) => {
-            const on = (item.rating ?? 0) >= value
-            return (
-              <button
-                key={value}
-                type="button"
-                aria-label={t('item.ratingValue', { value })}
-                aria-pressed={item.rating === value}
-                onClick={() =>
-                  void update(item.id, {
-                    // Tocar na nota atual limpa: é o gesto que as pessoas
-                    // já esperam de estrelas, e evita um botão só para isso.
-                    rating: item.rating === value ? undefined : value,
-                  })
-                }
-                className="p-1 transition active:scale-90"
+      {/* NOTA + FAVORITA.
+          A linha some inteira para o que está na fila (ver `canRate`): nota é
+          impressão, e quem não começou não tem nenhuma — o que a linha fazia
+          ali era colher toque acidental. Mas ela VOLTA quando o item já carrega
+          nota ou favorita, senão um item avaliado que retorna para a fila
+          esconderia um dado que ninguém mais consegue apagar. */}
+      {(canRate(item.status) || item.rating !== undefined || item.favorite) && (
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <SectionTitle>{t('item.ratingLabel')}</SectionTitle>
+            {/* Aparece só quando há o que limpar — botão morto ao lado de uma
+                linha vazia seria ruído permanente para um caso raro. */}
+            {item.rating !== undefined && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => void update(item.id, { rating: undefined })}
               >
-                <Star
-                  size={26}
-                  weight={on ? 'fill' : 'regular'}
-                  className={on ? 'text-accent' : 'text-muted'}
-                />
-              </button>
-            )
-          })}
+                {t('item.clearRating')}
+              </Button>
+            )}
+          </div>
+          <RatingRow
+            value={item.rating}
+            favorite={item.favorite}
+            // Some as estrelas só quando NÃO HÁ NOTA para mostrar. Olhar só o
+            // status escondia a nota de um item avaliado que voltou para a
+            // fila: sobrava o rótulo "Nota" com um botão "Limpar" ao lado e
+            // nada no meio — o dado invisível que esta feature veio corrigir.
+            ratingHidden={!canRate(item.status) && item.rating === undefined}
+            onChange={(rating) => void update(item.id, { rating })}
+            onFavoriteChange={(favorite) =>
+              void update(item.id, { favorite })
+            }
+            labels={{
+              star: (value) => t('item.ratingValue', { value }),
+              favorite: item.favorite
+                ? t('item.favoriteRemove')
+                : t('item.favoriteAdd'),
+            }}
+          />
         </div>
-      </div>
+      )}
 
       <Field label={t('item.notesLabel')}>
         {(id) => (

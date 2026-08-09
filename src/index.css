@@ -137,6 +137,11 @@
   --color-primary: var(--palette-gray-700); /* ações primárias */
   --color-on-primary: var(--palette-white); /* texto SOBRE primary */
   --color-accent: var(--palette-rose-700); /* badges e destaques */
+  /* Nota e favorita: DOIS eixos, duas cores. Amarelo é a convenção de estrela
+     em todo lugar; o rosa do coração diz, sem legenda, que ele não é a sexta
+     estrela — é outra pergunta ("isto é meu?" e não "isto é bom?"). */
+  --color-rating: var(--palette-amber-700);
+  --color-favorite: var(--palette-rose-700);
   --color-on-accent: var(--palette-white); /* texto SOBRE accent */
   --color-success: var(--palette-green-700); /* confirmações */
   --color-danger: var(--palette-red-700); /* erros */
@@ -283,6 +288,8 @@
     --color-primary: var(--palette-gray-300);
     --color-on-primary: var(--palette-gray-950);
     --color-accent: var(--palette-rose-400);
+    --color-rating: var(--palette-amber-400);
+    --color-favorite: var(--palette-rose-400);
     --color-on-accent: var(--palette-gray-950);
     --color-success: var(--palette-green-400);
     --color-danger: var(--palette-red-400);
@@ -319,6 +326,8 @@
   --color-primary: var(--palette-gray-300);
   --color-on-primary: var(--palette-gray-950);
   --color-accent: var(--palette-rose-400);
+  --color-rating: var(--palette-amber-400);
+  --color-favorite: var(--palette-rose-400);
   --color-on-accent: var(--palette-gray-950);
   --color-success: var(--palette-green-400);
   --color-danger: var(--palette-red-400);

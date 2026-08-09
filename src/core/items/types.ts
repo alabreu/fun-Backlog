@@ -53,6 +53,14 @@ export interface Item {
   progress?: Progress
   /** 1 a 5. Meia-estrela não existe: decisão de produto, não limitação. */
   rating?: number
+  /**
+   * Marcador da pessoa, e NÃO uma sexta estrela.
+   *
+   * Nota responde "isto é bom?"; favorita responde "isto é meu". Os dois eixos
+   * são independentes — dá para amar um filme de nota 3 e reconhecer um de nota
+   * 5 que não é seu. Por isso é campo próprio, com cor própria na tela.
+   */
+  favorite?: boolean
   notes?: string
   tags: string[]
   addedAt: string

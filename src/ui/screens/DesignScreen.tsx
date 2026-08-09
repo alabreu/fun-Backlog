@@ -7,6 +7,7 @@ import {
   Chip,
   ClampedText,
   ExternalLink,
+  RatingRow,
   ServiceLogo,
   Cover,
   CoverGrid,
@@ -110,6 +111,8 @@ export function DesignScreen() {
   const [theme, setTheme] = useState<Theme>('system')
   const [mediaChip, setMediaChip] = useState<MediaType>('game')
   const [ligado, setLigado] = useState(true)
+  const [nota, setNota] = useState<number | undefined>(3)
+  const [favorita, setFavorita] = useState(true)
   const [ordem, setOrdem] = useState<MediaType[]>([...MEDIA_TYPES])
 
   // A vitrine sobrepõe o tema para dar para conferir os dois lados sem mexer
@@ -403,6 +406,37 @@ export function DesignScreen() {
             <code>showIcon={'{false}'}</code> para lista: seis links numa linha
             viram seis setas iguais, e em &quot;onde assistir&quot; todas levam
             ao mesmo endereço.
+          </p>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">RatingRow</SectionTitle>
+          <RatingRow
+            value={nota}
+            favorite={favorita}
+            onChange={setNota}
+            onFavoriteChange={setFavorita}
+            labels={{ star: (v) => `Nota ${v}`, favorite: 'Favorita' }}
+          />
+          <p className="mt-2 text-label text-muted">
+            Dois eixos numa linha: a nota (&quot;isto é bom?&quot;) e a favorita
+            (&quot;isto é meu?&quot;). Forma, cor e o respiro antes do coração
+            são o que impedem ele de ler como uma sexta estrela. Tocar na nota
+            atual limpa.
+          </p>
+          <div className="mt-3">
+            <RatingRow
+              value={undefined}
+              favorite={favorita}
+              ratingHidden
+              onChange={setNota}
+              onFavoriteChange={setFavorita}
+              labels={{ star: (v) => `Nota ${v}`, favorite: 'Favorita' }}
+            />
+          </div>
+          <p className="mt-2 text-label text-muted">
+            <code>ratingHidden</code>: o que a obra da fila mostra — nota é
+            impressão, e quem não começou não tem nenhuma.
           </p>
         </section>
 
