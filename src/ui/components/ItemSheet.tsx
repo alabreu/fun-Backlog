@@ -387,16 +387,24 @@ function SourceFactsSkeleton({ mediaType }: { mediaType: MediaType }) {
         {t('item.detailLoading')}
       </p>
 
-      {/* Fatos: rótulo curto à esquerda, valor à direita. */}
+      {/* Fatos: rótulo EM CIMA do valor, como a lista de verdade ficou
+          (decisão do usuário, 09/08/2026). O esqueleto tem que espelhar o
+          layout, não só a quantidade — empilhado, cada fato ocupa duas linhas
+          em vez de uma, e um esqueleto de uma linha faria o painel saltar
+          justamente ao chegar a ficha, que é o salto que ele existe para
+          evitar. */}
       {Array.from({ length: esperado.fatos }, (_, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <Skeleton shape="line" className="w-28 shrink-0" />
-          <Skeleton shape="line" className="min-w-0 flex-1" />
+        <div key={i}>
+          <Skeleton shape="line" className="mb-1 w-24" />
+          <Skeleton shape="line" className="w-3/4" />
         </div>
       ))}
 
-      {/* Gêneros: uma linha, mais curta que a largura toda. */}
-      <Skeleton shape="line" className="w-2/3" />
+      {/* Gêneros: mesma forma dos fatos — rótulo e uma linha. */}
+      <div>
+        <Skeleton shape="line" className="mb-1 w-20" />
+        <Skeleton shape="line" className="w-2/3" />
+      </div>
 
       {/* Sinopse: título da seção e QUATRO linhas. O `ClampedText` corta em
           seis, mas seis é o TETO, não o comum — reservar o teto fazia o
@@ -463,17 +471,15 @@ function SourceFacts({
           lia como um fato que PERDEU o rótulo. A cor por gênero fica; é ela
           que impede a linha de virar só mais um par rótulo/valor cinza. */}
       {genres.length > 0 && (
-        // `items-baseline` pela mesma medição do FactList: valor de texto puro
-        // (os gêneros não têm ícone) alinha pela linha-base, não pelo topo.
-        <div className="flex items-baseline gap-2">
-          <span className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
+        <div>
+          <span className="mb-1 block text-label uppercase tracking-wide text-muted">
             {t('fact.genres')}
           </span>
           {/* Cada gênero na SUA cor, com o ponto separador em `muted` — se o
               ponto herdasse a cor, ele pertenceria visualmente ao gênero da
               esquerda. O separador vem depois do item e dentro do mesmo
               bloco, para "Aventura ·" quebrar inteiro. */}
-          <p className="flex min-w-0 flex-1 flex-wrap items-center text-body">
+          <p className="flex flex-wrap items-center text-body">
             {genres.map((genre, i) => (
               <span key={genre} className="inline-flex items-center">
                 <span className={GENRE_TEXT[genreColors[i]]}>{genre}</span>
@@ -522,30 +528,24 @@ function FactList({ facts }: { facts: MediaFact[] }) {
   if (facts.length === 0) return null
 
   return (
-    <dl className="flex flex-col gap-1.5">
+    // RÓTULO EM CIMA DO VALOR (decisão do usuário, 09/08/2026), como em
+    // "Sinopse" e "Quem fez". Era uma coluna fixa de 112px à esquerda com o
+    // valor ao lado, e ela cobrava caro justamente onde há mais o que dizer:
+    // "Onde assistir" de um anime popular lista seis serviços, que sobravam
+    // numa faixa de dois terços de tela e quebravam em duas linhas tortas.
+    // Empilhado, o valor tem a largura inteira.
+    //
+    // Some junto o alinhamento condicional que existia aqui — `items-baseline`
+    // para texto puro, topo para lista. Ele era a correção de um desencontro
+    // de 4px entre duas caixas LADO A LADO; sem lado a lado, não há
+    // desencontro que corrigir.
+    <dl className="flex flex-col gap-3">
       {facts.map((fact) => (
-        // ALINHAMENTO, e por que ele é condicional (medido no Chromium, com
-        // sonda de linha-base):
-        //
-        //                     texto puro   lista (ícone ou logo)
-        //   topo (padrão)        -4px              +1px
-        //   items-baseline        0px              +9px
-        //
-        // Rótulo (11px numa linha de 16) e valor (14px numa de 20) empilhados
-        // pelo topo ficam 4px fora de registro: o rótulo flutua acima. O
-        // `items-baseline` zera isso — mas SÓ no texto puro. Lista é um flex
-        // aninhado, e a linha-base de um flex vem do PRIMEIRO ITEM dele: o
-        // selo de 18px, cuja base fica 9px abaixo da do texto. Ali o topo já
-        // acerta, porque as duas caixas começam juntas. Não é gosto: é onde
-        // cada regra mede melhor.
-        <div
-          key={fact.labelKey}
-          className={`flex gap-2 ${fact.items ? '' : 'items-baseline'}`}
-        >
-          <dt className="w-28 shrink-0 text-label uppercase tracking-wide text-muted">
+        <div key={fact.labelKey}>
+          <dt className="mb-1 text-label uppercase tracking-wide text-muted">
             {t(fact.labelKey as MessageKey)}
           </dt>
-          <dd className="min-w-0 flex-1 text-body">
+          <dd className="text-body">
             {fact.items ? <FactItems items={fact.items} /> : fact.value}
           </dd>
         </div>
