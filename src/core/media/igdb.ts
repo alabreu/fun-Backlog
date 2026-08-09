@@ -172,7 +172,10 @@ export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
         ? [{
             labelKey: 'fact.platforms',
             value: families.map((f) => FAMILY_LABEL[f]).join(' · '),
-            values: families,
+            items: families.map((f) => ({
+              label: FAMILY_LABEL[f],
+              platform: f,
+            })),
             lead: true,
           }]
         : []),
@@ -193,8 +196,7 @@ export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
         ? [{
             labelKey: 'fact.buy',
             value: stores.map((s) => s.name).join(' · '),
-            values: stores.map((s) => s.name),
-            links: stores.map((s) => s.url),
+            items: stores.map((s) => ({ label: s.name, url: s.url })),
             lead: true,
           }]
         : []),

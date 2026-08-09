@@ -66,19 +66,38 @@ export interface MediaFact {
    * (é ele que a tela mostra quando não sabe fazer nada de especial), e isto
    * aqui é a mesma informação em itens, para quem souber render melhor.
    */
-  values?: string[]
+  items?: MediaFactItem[]
+}
+
+/**
+ * Um item de um fato que é LISTA — uma plataforma, um streaming, uma loja.
+ *
+ * Era três arrays paralelos (`values`, `links`, `logos`) e virou isto quando o
+ * terceiro apareceu: com arrays paralelos, um `filter` num deles desalinha
+ * silenciosamente os outros, e o bug resultante é um link que leva ao serviço
+ * errado. Um objeto por item torna esse erro impossível de escrever.
+ *
+ * Os três enfeites são MUTUAMENTE EXCLUSIVOS na prática, mas nada aqui força
+ * isso — quem renderiza escolhe o que sabe desenhar e ignora o resto, que é o
+ * que permite uma fonte nova entrar sem mexer na tela.
+ */
+export interface MediaFactItem {
+  /** O texto, sempre. Nenhum enfeite substitui o nome escrito (WCAG 1.4.1). */
+  label: string
+  /** Página da obra NAQUELE serviço ou loja. Abre em aba nova. */
+  url?: string
+  /** Família de plataforma — vira um ícone que o app desenha (`PlatformIcon`). */
+  platform?: string
   /**
-   * O link de cada item de `values`, NA MESMA POSIÇÃO. Item sem link fica
-   * `null` — o array é paralelo, não filtrado, senão as posições saem de fase.
+   * Logo do serviço, hospedado por quem forneceu o dado.
    *
-   * Arrays paralelos em vez de uma lista de objetos porque `values` já existe e
-   * já é lido por quem não liga para link (os ícones de plataforma). Trocar a
-   * forma obrigaria os dois lados a mudar para um ganho de nada.
-   *
-   * É sempre URL de terceiro: quem renderiza abre em aba nova, com
-   * `rel="noopener noreferrer"`.
+   * Diferente de `platform`: ali o desenho é nosso e a cor é uma aproximação
+   * nossa; aqui a imagem é a marca de verdade. Foi o que resolveu o "color
+   * coding de streaming" — as marcas se agrupam em dois matizes só (Netflix,
+   * YouTube e Globoplay são todas vermelhas; Disney+, Max e Paramount+ todas
+   * azuis), então cor aproximada não distinguiria nada. O logo distingue.
    */
-  links?: (string | null)[]
+  logoUrl?: string
 }
 
 export interface MediaDetail {

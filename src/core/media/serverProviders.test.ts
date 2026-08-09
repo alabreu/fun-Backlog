@@ -10,6 +10,7 @@ import {
   isInTheaters,
   mapTmdbDetail,
   mapTmdbResult,
+  tmdbLogoUrl,
   tmdbPosterUrl,
   tmdbProvider,
 } from './tmdb'
@@ -347,7 +348,10 @@ describe('ficha da IGDB', () => {
     expect(d?.facts?.[0]).toEqual({
       labelKey: 'fact.platforms',
       value: 'PlayStation · PC',
-      values: ['playstation', 'pc'],
+      items: [
+        { label: 'PlayStation', platform: 'playstation' },
+        { label: 'PC', platform: 'pc' },
+      ],
       lead: true,
     })
   })
@@ -368,10 +372,9 @@ describe('ficha da IGDB', () => {
     // Wikipedia e site oficial ficam de fora: "onde comprar" com uma landing
     // page dentro \u00e9 o r\u00f3tulo mentindo. E Steam antes de GOG apesar de vir
     // depois na resposta — a ordem \u00e9 nossa, n\u00e3o da IGDB.
-    expect(comprar?.values).toEqual(['Steam', 'GOG'])
-    expect(comprar?.links).toEqual([
-      'https://store.steampowered.com/app/367520',
-      'https://gog.com/hk',
+    expect(comprar?.items).toEqual([
+      { label: 'Steam', url: 'https://store.steampowered.com/app/367520' },
+      { label: 'GOG', url: 'https://gog.com/hk' },
     ])
     expect(comprar?.lead).toBe(true)
   })
@@ -427,7 +430,7 @@ describe('ficha da TMDB', () => {
           results: {
             BR: {
               link: 'https://www.themoviedb.org/movie/693134/watch?locale=BR',
-              flatrate: [{ provider_name: 'Max' }],
+              flatrate: [{ provider_name: 'Max', logo_path: '/max.jpg' }],
             },
           },
         },
@@ -441,11 +444,17 @@ describe('ficha da TMDB', () => {
       {
         labelKey: 'fact.where',
         value: 'Max',
-        values: ['Max'],
         // A TMDB d\u00e1 UM link por pa\u00eds (a p\u00e1gina do JustWatch), n\u00e3o um por
         // servi\u00e7o — ent\u00e3o todos apontam para o mesmo lugar, e \u00e9 esse link que
-        // a condi\u00e7\u00e3o de uso dos dados pede que exista.
-        links: ['https://www.themoviedb.org/movie/693134/watch?locale=BR'],
+        // a condi\u00e7\u00e3o de uso dos dados pede que exista. O logo vem da mesma
+        // resposta: \u00e9 ele que distingue as marcas, e n\u00e3o a cor delas.
+        items: [
+          {
+            label: 'Max',
+            url: 'https://www.themoviedb.org/movie/693134/watch?locale=BR',
+            logoUrl: tmdbLogoUrl('/max.jpg'),
+          },
+        ],
         lead: true,
       },
       { labelKey: 'fact.runtime', value: '2h 46min' },
@@ -495,8 +504,8 @@ describe('ficha da TMDB', () => {
     // brasileira s\u00f3 porque o padr\u00e3o do app \u00e9 BR.
     const br = mapTmdbDetail(body, 'movie', 'BR')
     const pt = mapTmdbDetail(body, 'movie', 'PT')
-    expect(br?.facts?.[0].values).toEqual(['Globoplay'])
-    expect(pt?.facts?.[0].values).toEqual(['RTP Play'])
+    expect(br?.facts?.[0].items?.map((i) => i.label)).toEqual(['Globoplay'])
+    expect(pt?.facts?.[0].items?.map((i) => i.label)).toEqual(['RTP Play'])
   })
 
   it('sem provedor no pa\u00eds pedido, "onde assistir" fica vazio', () => {

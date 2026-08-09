@@ -7,6 +7,7 @@ import {
   Chip,
   ClampedText,
   ExternalLink,
+  ServiceLogo,
   Cover,
   CoverGrid,
   NavRow,
@@ -75,6 +76,20 @@ const TOKENS_TEXT = [
   { name: 'display', cls: 'text-display' },
 ] as const
 
+
+/** Selos de mentira para a vitrine: SVG embutido, sem depender da rede nem de
+ *  marca de terceiro num arquivo do repositório. */
+const selo = (cor: string) =>
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="92" height="92"><rect width="92" height="92" rx="10" fill="${cor}"/></svg>`,
+  )
+
+const SERVICOS = [
+  { nome: 'Serviço A', src: selo('#e50914') },
+  { nome: 'Serviço B', src: selo('#1ce783') },
+  { nome: 'Serviço C', src: selo('#00a1d6') },
+]
 
 const LONGO =
   'Um texto suficientemente longo para transbordar três linhas e provar que a ' +
@@ -378,6 +393,40 @@ export function DesignScreen() {
             de saída — o aviso de que o toque troca de contexto. O sublinhado é a
             segunda pista de &quot;clicável&quot;: cor sozinha reprovaria em
             1.4.1.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <ExternalLink href="https://www.justwatch.com" showIcon={false}>
+              Sem seta
+            </ExternalLink>
+          </div>
+          <p className="mt-2 text-label text-muted">
+            <code>showIcon={'{false}'}</code> para lista: seis links numa linha
+            viram seis setas iguais, e em &quot;onde assistir&quot; todas levam
+            ao mesmo endereço.
+          </p>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">ServiceLogo</SectionTitle>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body">
+            {SERVICOS.map((s) => (
+              <span key={s.nome} className="inline-flex items-center gap-1.5">
+                <ServiceLogo src={s.src} />
+                {s.nome}
+              </span>
+            ))}
+            <span className="inline-flex items-center gap-1.5">
+              <ServiceLogo src="https://exemplo.invalido/nao-existe.png" />
+              Logo quebrado
+            </span>
+          </div>
+          <p className="mt-2 text-label text-muted">
+            A marca de verdade, hospedada por quem deu o dado — diferente do{' '}
+            <code>PlatformIcon</code>, cujo desenho é nosso. Foi a resposta a
+            &quot;dá para colorir os streamings?&quot;: as marcas se agrupam em
+            dois matizes (Netflix, YouTube e Globoplay vermelhas; Disney+, Max e
+            Paramount+ azuis), então cor aproximada não distinguiria nada. O
+            último exemplo tem URL quebrada: o selo some e sobra o nome.
           </p>
         </section>
 

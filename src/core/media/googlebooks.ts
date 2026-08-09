@@ -120,8 +120,7 @@ export function mapGoogleVolumeDetail(volume: GoogleVolume): MediaDetail | null 
           {
             labelKey: 'fact.buy',
             value: 'Google Play',
-            values: ['Google Play'],
-            links: [buyLink],
+            items: [{ label: 'Google Play', url: buyLink }],
             lead: true,
           },
         ]

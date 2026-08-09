@@ -283,8 +283,7 @@ describe('mapeamento do Google Books', () => {
     expect(aVenda?.facts?.[0]).toEqual({
       labelKey: 'fact.buy',
       value: 'Google Play',
-      values: ['Google Play'],
-      links: ['https://play.example/x'],
+      items: [{ label: 'Google Play', url: 'https://play.example/x' }],
       lead: true,
     })
 
@@ -388,9 +387,12 @@ describe('ficha do AniList', () => {
     })
 
     const onde = d?.facts?.find((f) => f.labelKey === 'fact.where')
-    expect(onde?.values).toEqual(['Crunchyroll', 'Netflix'])
-    // O link leva \u00e0 P\u00c1GINA DA OBRA no servi\u00e7o, n\u00e3o \u00e0 home dele.
-    expect(onde?.links).toEqual(['https://cr.example/21', 'https://nf.example/21'])
+    // O link leva \u00e0 P\u00c1GINA DA OBRA no servi\u00e7o, n\u00e3o \u00e0 home dele. Sem logo:
+    // o AniList manda s\u00f3 o nome, ent\u00e3o anime fica em texto (a TMDB tem logo).
+    expect(onde?.items).toEqual([
+      { label: 'Crunchyroll', url: 'https://cr.example/21' },
+      { label: 'Netflix', url: 'https://nf.example/21' },
+    ])
     // Fato-l\u00edder e primeiro da lista: sobe acima da sinopse.
     expect(onde?.lead).toBe(true)
     expect(d?.facts?.[0]).toBe(onde)

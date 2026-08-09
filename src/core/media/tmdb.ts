@@ -30,6 +30,18 @@ export function tmdbPosterUrl(posterPath: string): string {
   return `https://image.tmdb.org/t/p/${POSTER_SIZE}${posterPath}`
 }
 
+/**
+ * Logo de um serviço de streaming, na mesma CDN dos pôsteres.
+ *
+ * `w92` para um selo desenhado a 18px: cobre uma tela de 3x com folga e ainda é
+ * um arquivo pequeno. O `w45` seria o tamanho "certo" em CSS, mas borra em
+ * qualquer telefone moderno — e logo borrado lê como app quebrado, não como
+ * economia.
+ */
+export function tmdbLogoUrl(logoPath: string): string {
+  return `https://image.tmdb.org/t/p/w92${logoPath}`
+}
+
 interface TmdbResult {
   id: number
   /** `multi` mistura os três; `person` é descartado. */
@@ -104,7 +116,7 @@ interface TmdbDetailBody extends TmdbResult {
       {
         /** Página do JustWatch daquela obra NAQUELE país. */
         link?: string
-        flatrate?: { provider_name?: string }[]
+        flatrate?: { provider_name?: string; logo_path?: string }[]
       }
     >
   }
@@ -209,9 +221,8 @@ export function mapTmdbDetail(
   // Só `flatrate` (incluído na assinatura). Aluguel e compra virariam uma
   // lista de dez serviços que não responde "dá para ver hoje?".
   const watch = body['watch/providers']?.results?.[region]
-  const onde = (watch?.flatrate ?? [])
-    .map((p) => p?.provider_name)
-    .filter((n): n is string => Boolean(n))
+  const servicos = (watch?.flatrate ?? []).filter((p) => Boolean(p?.provider_name))
+  const onde = servicos.map((p) => p.provider_name as string)
 
   // O MESMO link para todos os serviços, porque é o que a TMDB dá: a lista vem
   // do JustWatch e o que ela devolve é UMA página por obra por país, não uma
@@ -224,8 +235,16 @@ export function mapTmdbDetail(
     facts.unshift({
       labelKey: 'fact.where',
       value: onde.join(' · '),
-      values: onde,
-      links: onde.map(() => justWatch),
+      // O LOGO vem junto, e é o que resolve o reconhecimento: as cores das
+      // marcas se agrupam em dois matizes só (Netflix, YouTube e Globoplay são
+      // vermelhas; Disney+, Max e Paramount+ são azuis), então pintar o texto
+      // não distinguiria nada. A imagem, sim — e ela já vem nesta resposta, sem
+      // requisição a mais para a API.
+      items: servicos.map((p) => ({
+        label: p.provider_name as string,
+        url: justWatch ?? undefined,
+        logoUrl: p.logo_path ? tmdbLogoUrl(p.logo_path) : undefined,
+      })),
       lead: true,
     })
 

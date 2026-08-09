@@ -8,10 +8,17 @@ import type { AnchorHTMLAttributes, ReactNode } from 'react'
  * lembra de repetir: abre em aba nova (a pessoa não perde a estante), leva
  * `rel="noopener noreferrer"` (o site de destino não recebe controle da nossa
  * janela nem de onde o clique veio) e mostra o ícone de "sai daqui" — que é o
- * aviso de que o toque troca de contexto, e o que 3.2.5 do WCAG pede.
+ * aviso de que o toque troca de contexto, e o que 3.2.5 do WCAG sugere.
  *
  * O sublinhado NÃO é decoração: é a segunda pista de "isto é clicável", ao lado
  * do ícone. Cor sozinha reprovaria em 1.4.1.
+ *
+ * `showIcon={false}` é para LISTA, e a diferença é de densidade: um link avulso
+ * (a tela de Créditos) merece a seta; seis links numa linha viram seis setas
+ * idênticas, e no caso de "onde assistir" elas ainda apontam todas para o mesmo
+ * endereço — a TMDB dá uma página por país, não uma por serviço. Ali a seta
+ * deixa de avisar e passa a poluir. O sublinhado continua carregando a
+ * afordância, e 3.2.5 é AAA — o app promete AA (ver ACCESSIBILITY.md).
  */
 export interface ExternalLinkProps
   extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'target' | 'rel'> {
@@ -19,12 +26,15 @@ export interface ExternalLinkProps
   children?: ReactNode
   /** Tamanho do ícone. 14 acompanha o texto de corpo; 16 fica melhor solto. */
   iconSize?: number
+  /** Mostra a seta de "abre fora". Ver o comentário do componente. */
+  showIcon?: boolean
 }
 
 export function ExternalLink({
   href,
   children,
   iconSize = 14,
+  showIcon = true,
   className = '',
   ...rest
 }: ExternalLinkProps) {
@@ -37,7 +47,7 @@ export function ExternalLink({
       {...rest}
     >
       {children}
-      <ArrowSquareOut size={iconSize} aria-hidden />
+      {showIcon && <ArrowSquareOut size={iconSize} aria-hidden />}
     </a>
   )
 }

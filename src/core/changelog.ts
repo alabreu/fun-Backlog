@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-logos',
+    date: '2026-08-09',
+    emoji: '🎬',
+    title: {
+      pt: 'Os streamings agora aparecem com o logo',
+      en: 'Streaming services now show their logo',
+    },
+    items: {
+      pt: [
+        'Em filmes e séries, cada serviço de "onde assistir" vem com o selo da marca — dá para achar a sua assinatura sem ler a lista.',
+        'A setinha de "abre fora" saiu de dentro das listas: eram seis iguais na mesma linha, todas levando ao mesmo lugar.',
+        'Animes continuam em texto, porque o AniList manda só o nome do serviço.',
+      ],
+      en: [
+        'For films and series, each "where to watch" service now carries its brand mark — you can spot your subscription without reading the list.',
+        'The "opens elsewhere" arrow left the lists: six identical ones on a line, all going to the same place.',
+        'Anime stays as text, because AniList only sends the service name.',
+      ],
+    },
+  },
+  {
     id: '2026-08-08-google-books',
     date: '2026-08-08',
     emoji: '📚',

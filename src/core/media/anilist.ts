@@ -194,8 +194,7 @@ export function mapAniListDetail(media: AniListDetail): MediaDetail | null {
     facts.unshift({
       labelKey: 'fact.where',
       value: onde.join(' · '),
-      values: onde,
-      links: onde.map((site) => streaming.get(site) ?? null),
+      items: onde.map((site) => ({ label: site, url: streaming.get(site) ?? undefined })),
       lead: true,
     })
 

@@ -185,6 +185,7 @@
 
   /* --- Raio: nomeado pelo PAPEL, não pelo tamanho. --- */
   --radius-control: 9999px; /* botões, chips */
+  --radius-logo: 0.25rem; /* selo de marca de terceiro (4px) */
   --radius-field: 1rem; /* inputs, textareas */
   --radius-card: 1rem; /* cards e blocos de conteúdo */
   --radius-sheet: 1.5rem; /* bottom sheets */
