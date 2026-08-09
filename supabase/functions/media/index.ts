@@ -297,6 +297,35 @@ function mergeById(lotes: unknown[]): unknown[] {
   return byPopularity([...porId.values()]) as unknown[]
 }
 
+/**
+ * DIAGNÓSTICO da busca de jogos.
+ *
+ * Existe porque a mesma falha ("procurar zelda não traz Breath of the Wild")
+ * sobreviveu a três correções feitas às cegas: sem ver a resposta da IGDB, cada
+ * hipótese sobre a causa era um palpite caro. Isto registra o suficiente para
+ * distinguir as hipóteses entre si, e nada além.
+ *
+ * NÃO registra o texto buscado nem nada do usuário — só qual caminho a função
+ * tomou, quantas linhas cada consulta devolveu e se os campos que a ordenação
+ * depende vieram. É o mínimo para diagnosticar e o máximo que é dele.
+ */
+function diag(dados: Record<string, unknown>): void {
+  console.log(JSON.stringify({ diag: 'igdb-search', ...dados }))
+}
+
+/** O primeiro item tem o campo? É o que separa "a IGDB não mandou" de "a
+ *  ordenação está errada" — duas causas com o mesmo sintoma na tela. */
+function amostra(linhas: unknown): Record<string, unknown> {
+  const primeira = Array.isArray(linhas) ? linhas[0] : undefined
+  const l = primeira as
+    | { total_rating_count?: number; collection?: unknown; collections?: unknown }
+    | undefined
+  return {
+    temRating: l?.total_rating_count !== undefined,
+    temCollection: l?.collection !== undefined || l?.collections !== undefined,
+  }
+}
+
 async function buscaIgdb(safe: string, fields: string): Promise<unknown> {
   try {
     const resposta = await askIgdb(
@@ -304,18 +333,35 @@ async function buscaIgdb(safe: string, fields: string): Promise<unknown> {
       IGDB_MULTIQUERY_URL,
     )
     if (Array.isArray(resposta)) {
-      const juntos = mergeById(
-        resposta.map((bloco) => (bloco as { result?: unknown })?.result),
-      )
+      const lotes = resposta.map((bloco) => (bloco as { result?: unknown })?.result)
+      // Os DOIS tamanhos separados: se a consulta de popularidade voltar vazia,
+      // o `where name ~ *"…"*` não está casando — hipótese diferente de o
+      // multiquery ter falhado, e as duas dão a mesma tela.
+      diag({
+        caminho: 'multiquery',
+        lotes: lotes.map((l) => (Array.isArray(l) ? l.length : -1)),
+        campoColecao: IGDB_COLLECTION_FIELDS[colecaoEscolhida] || '(nenhum)',
+        ...amostra(lotes[1] ?? lotes[0]),
+      })
+      const juntos = mergeById(lotes)
       if (juntos.length > 0) return juntos
+    } else {
+      diag({ caminho: 'multiquery', formatoInesperado: typeof resposta })
     }
   } catch (error) {
+    const status = error instanceof UpstreamError ? error.status : 0
+    diag({ caminho: 'multiquery', falhou: status })
     // 400 é campo inválido, e quem trata disso é o chamador — os outros erros
     // caem no caminho antigo, que é a rede de segurança do multiquery.
     if (error instanceof UpstreamError && error.status === 400) throw error
   }
 
   const found = await askIgdb(`search "${safe}"; ${fields} limit ${CONFIG.igdbPool};`)
+  diag({
+    caminho: 'search',
+    linhas: Array.isArray(found) ? found.length : -1,
+    ...amostra(found),
+  })
   if (Array.isArray(found) && found.length > 0) return byPopularity(found)
 
   // Último recurso, para PALAVRA INCOMPLETA: o `search` exige palavras
@@ -345,6 +391,10 @@ async function searchIgdb(query: string): Promise<unknown> {
       const restam = colecaoEscolhida < IGDB_COLLECTION_FIELDS.length - 1
       if (!campoRuim || !restam) throw error
       colecaoEscolhida++
+      diag({
+        campoColecaoRecusado: true,
+        proximo: IGDB_COLLECTION_FIELDS[colecaoEscolhida] || '(nenhum)',
+      })
     }
   }
 }
