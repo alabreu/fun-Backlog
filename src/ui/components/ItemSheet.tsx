@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Trash, X } from '@phosphor-icons/react'
 import { detailSourceFor, fetchDetail } from '@core/media/detail'
 import { genreColorIndexes } from '@core/media/genres'
+import { fullSizeCoverUrl } from '@core/media/image'
 import type { PlatformFamily } from '@core/media/platforms'
 import type {
   MediaDetail,
@@ -37,6 +38,7 @@ import {
   ExternalLink,
   Field,
   GENRE_TEXT,
+  ImageViewer,
   Input,
   PlatformIcon,
   PLATFORM_TEXT,
@@ -47,6 +49,7 @@ import {
   Skeleton,
   Textarea,
 } from '@ui/design'
+import { useImageDownload } from '@ui/hooks/useImageDownload'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
@@ -137,6 +140,8 @@ function Detail({
   const [loadingDetail, setLoadingDetail] = useState(Boolean(source))
   const [adding, setAdding] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [viewerOpen, setViewerOpen] = useState(false)
+  const { download, downloading } = useImageDownload()
 
   useEffect(() => {
     if (!source) return
@@ -187,8 +192,27 @@ function Detail({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex gap-3">
+        {/* A capa é TOCÁVEL quando existe: a arte é o conteúdo deste app, e em
+            80px ela não é vista, é reconhecida. Sem capa, nada de botão — o
+            fallback com a inicial não tem o que ampliar. */}
         <div className="w-20 shrink-0">
-          <Cover src={coverUrl} title={title} media={mediaType} lazy={false} />
+          {coverUrl ? (
+            <button
+              type="button"
+              aria-label={t('item.viewCover')}
+              onClick={() => setViewerOpen(true)}
+              className="block w-full transition active:scale-95"
+            >
+              <Cover
+                src={coverUrl}
+                title={title}
+                media={mediaType}
+                lazy={false}
+              />
+            </button>
+          ) : (
+            <Cover src={coverUrl} title={title} media={mediaType} lazy={false} />
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-title font-bold">{title}</h2>
@@ -269,6 +293,28 @@ function Detail({
           seasons={detail?.seasons}
         />
       )}
+
+      {/* A capa em tela cheia. Pede a versão AMPLIADA (a guardada tem a
+          largura do grid e borra esticada) e guarda a menor como rede: a url
+          grande é reescrita a partir da conhecida, e reescrita de url de
+          terceiro é um palpite. Ver `core/media/image.ts`. */}
+      <ImageViewer
+        src={viewerOpen && coverUrl ? fullSizeCoverUrl(coverUrl) : null}
+        fallbackSrc={coverUrl}
+        // "Capa de X", e não só "X": o painel da obra ATRÁS deste já se chama
+        // "X", e dois diálogos com o mesmo nome fazem o leitor de tela anunciar
+        // a mesma coisa duas vezes, sem dizer qual dos dois está na frente.
+        label={t('item.coverDialog', { title })}
+        onClose={() => setViewerOpen(false)}
+        onDownload={() =>
+          void download(coverUrl ? fullSizeCoverUrl(coverUrl) : '', title)
+        }
+        downloading={downloading}
+        labels={{
+          close: t('common.close'),
+          download: t('item.downloadCover'),
+        }}
+      />
     </div>
   )
 }

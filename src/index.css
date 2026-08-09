@@ -400,6 +400,14 @@ body {
   box-sizing: border-box;
 }
 
+/* Elemento `fixed` posiciona-se pela JANELA, então ele escapa do padding do
+   #root acima — o recuo do notch precisa ser dele mesmo. Usado pelos controles
+   que flutuam sobre a imagem em tela cheia (ImageViewer); soma a margem padrão
+   de tela para o botão não colar no topo em aparelho sem notch. */
+.pt-safe {
+  padding-top: calc(env(safe-area-inset-top) + var(--spacing-gutter));
+}
+
 /* Superfícies opacas (card, linha, sheet) escondem o grão do body — elas
    ganham o seu. Aplicado como `background-image`, o grão fica acima da cor de
    fundo e abaixo do conteúdo: uma capa dentro de um sheet continua limpa.

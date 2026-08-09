@@ -19,6 +19,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-capa-cheia',
+    date: '2026-08-09',
+    emoji: '🖼️',
+    title: {
+      pt: 'A capa em tela cheia, e dá para baixar',
+      en: 'The cover at full screen, and you can save it',
+    },
+    items: {
+      pt: [
+        'Toque na capa dentro do painel de uma obra para ver a arte ocupando a tela — na maior resolução que a fonte tiver, não na miniatura da estante.',
+        'Um botão salva a imagem, com o nome da obra no arquivo em vez do código da fonte.',
+      ],
+      en: [
+        'Tap the cover inside a title’s panel to see the art fill the screen — at the largest resolution the source has, not the shelf thumbnail.',
+        'A button saves the image, named after the title instead of the source’s code.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-add-status',
     date: '2026-08-09',
     emoji: '➕',
