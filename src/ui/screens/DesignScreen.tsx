@@ -495,54 +495,30 @@ export function DesignScreen() {
         </section>
 
         <section>
-          <SectionTitle className="mb-2">
-            SeasonSlider — protótipo, escolher uma forma
-          </SectionTitle>
+          <SectionTitle className="mb-2">SeasonSlider</SectionTitle>
           <p className="mb-4 text-body text-muted">
-            Substituiria campo + "+1" + chips de temporada. Arraste e veja o
-            rótulo: é ele que se mira, não o pixel. Toque num marco (T2, T3…)
-            para fechar aquela temporada.
+            Substitui campo + "+1" + chips de temporada. O balão segue o
+            polegar; os pontos na trilha são fins de temporada, e o rótulo
+            abaixo de cada um fecha aquela temporada. Vibra ao CRUZAR uma
+            temporada — no iOS não vibra, o Safari não tem a API.
           </p>
 
           {SERIES.map((serie, i) => {
             const total = serie.seasons.reduce((n, s) => n + s.episodes, 0)
-            const progresso = seasonProgress(vistos[i], serie.seasons)
-            const posicao = locate(vistos[i], serie.seasons)
             const formata = (v: number) => {
-              const p = locate(v, serie.seasons)
-              return p ? `T${p.season} E${p.episode}` : `${v} episódios`
+              const pos = locate(v, serie.seasons)
+              return pos ? `T${pos.season} E${pos.episode}` : `${v} ep`
             }
             return (
               <div key={serie.nome} className="mb-6">
-                <p className="mb-2 text-label uppercase tracking-wide text-muted">
-                  {serie.nome} · {(342 / (total - 1)).toFixed(1)}px por episódio
+                <p className="mb-1 text-label uppercase tracking-wide text-muted">
+                  {serie.nome} · {(334 / (total - 1)).toFixed(1)}px por episódio
                 </p>
-                <Card className="mb-2">
-                  <p className="mb-1 text-label text-muted">A · slider único</p>
-                  <SeasonSlider
-                    mode="single"
-                    value={vistos[i]}
-                    total={total}
-                    seasons={progresso}
-                    ariaLabel="Progresso"
-                    format={formata}
-                    seasonLabel={(n: number) => `T${n}`}
-                    onCommit={(v: number) =>
-                      setVistos((atual) =>
-                        atual.map((x, j) => (j === i ? v : x)),
-                      )
-                    }
-                  />
-                </Card>
                 <Card>
-                  <p className="mb-1 text-label text-muted">
-                    B · um por temporada ({serie.seasons.length} linhas)
-                  </p>
                   <SeasonSlider
-                    mode="stacked"
                     value={vistos[i]}
                     total={total}
-                    seasons={progresso}
+                    seasons={seasonProgress(vistos[i], serie.seasons)}
                     ariaLabel="Progresso"
                     format={formata}
                     seasonLabel={(n: number) => `T${n}`}
@@ -553,9 +529,6 @@ export function DesignScreen() {
                     }
                   />
                 </Card>
-                <p className="mt-1 text-label text-muted">
-                  posição: {posicao ? `T${posicao.season} E${posicao.episode}` : '—'}
-                </p>
               </div>
             )
           })}
