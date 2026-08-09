@@ -24,6 +24,7 @@ import {
   NavRow,
   Rail,
   RailItem,
+  Skeleton,
   Screen,
   ScreenBody,
   SectionTitle,
@@ -126,10 +127,19 @@ export function HomeScreen() {
       </header>
 
       <ScreenBody as="main">
-        {/* Três estados para o herói, e a diferença entre eles importa:
-            estante vazia é um convite, fila sem nada em andamento é um
-            empurrão, e em andamento é o carrossel de continuar. */}
-        {emptyShelf ? (
+        {/* QUATRO estados para o herói. Antes eram três, e o quarto — ainda
+            carregando — não desenhava nada: os três testes davam falso ao mesmo
+            tempo, então a lista de estantes nascia colada no topo e descia
+            quando o carrossel chegava.
+
+            O esqueleto tem a MESMA altura de um card do carrossel, que é o
+            desfecho de longe mais comum: quem abre o app tem algo em andamento.
+            Nos outros dois (estante vazia, ou fila sem nada começado) ainda
+            sobra um ajuste — reservar a altura de um deles pioraria o caso
+            comum para melhorar o raro. */}
+        {loading ? (
+          <HeroSkeleton />
+        ) : emptyShelf ? (
           <div className="rounded-card bg-surface px-5 py-8 text-center ring-1 ring-ink/5">
             <h2 className="text-title font-bold">{t('home.emptyTitle')}</h2>
             <p className="mx-auto mt-1 max-w-xs text-body text-muted">
@@ -207,6 +217,33 @@ export function HomeScreen() {
  * Card do carrossel. Diferente da célula do grid: aqui cabe o PROGRESSO, e é
  * ele que transforma "olha o que você começou" em "continue daqui".
  */
+/**
+ * O herói enquanto a estante carrega. Espelha o `ItemCard` abaixo: mesma trilha,
+ * mesma largura de item, capa 2:3 e uma linha de título. Se o card mudar de
+ * forma, este precisa mudar junto — é a única maneira de a altura continuar
+ * batendo, e a altura é a razão de ele existir.
+ */
+function HeroSkeleton() {
+  const { t } = useTranslation()
+  return (
+    <section aria-busy="true">
+      {/* Sem isto o leitor de tela ouve silêncio até a estante chegar: o
+          esqueleto é `aria-hidden`, então não há nada para ele ler. */}
+      <p role="status" className="sr-only">
+        {t('home.loading')}
+      </p>
+      <Rail>
+        {[0, 1, 2].map((i) => (
+          <RailItem key={i}>
+            <Skeleton shape="cover" />
+            <Skeleton shape="line" className="mt-2 w-3/4" />
+          </RailItem>
+        ))}
+      </Rail>
+    </section>
+  )
+}
+
 function ItemCard({
   item,
   eager,

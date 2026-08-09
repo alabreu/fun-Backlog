@@ -9,6 +9,7 @@ export const pt = {
   // Home
   'home.menuButton': 'Menu',
   'home.suggestionsBody': 'Da sua fila, para você começar hoje.',
+  'home.loading': 'Carregando sua estante…',
   'home.shelves': 'Suas estantes',
   'home.searchFab': 'Buscar ou adicionar',
   'home.progressHours': '{current} h',

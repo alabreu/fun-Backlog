@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-skeletons',
+    date: '2026-08-09',
+    emoji: '🩻',
+    title: {
+      pt: 'A tela parou de pular enquanto carrega',
+      en: 'The screen stopped jumping while it loads',
+    },
+    items: {
+      pt: [
+        'Na home, a lista de estantes nascia colada no topo e descia quando o carrossel chegava — 283 pixels de salto. Agora o espaço já está reservado.',
+        'No painel de uma obra, a ficha chegava e empurrava status, progresso e nota para baixo, bem quando o dedo já ia num deles. Também reservado.',
+        'O tamanho reservado leva em conta a mídia: a ficha de um jogo traz mais coisa que a de um livro.',
+      ],
+      en: [
+        'On the home screen the shelf list started at the top and dropped when the carousel arrived — a 283-pixel jump. The space is reserved now.',
+        'In a title\u2019s panel the details arrived and pushed status, progress and rating down, right as your thumb was heading for one of them. Reserved too.',
+        'How much space gets reserved depends on the media: a game\u2019s details carry more than a book\u2019s.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-temporadas',
     date: '2026-08-09',
     emoji: '📺',

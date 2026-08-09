@@ -16,7 +16,11 @@ import {
   progressUnitFor,
   statusLabelKey,
 } from '@core/items/status'
-import { ITEM_STATUSES, type Item } from '@core/items/types'
+import {
+  ITEM_STATUSES,
+  type Item,
+  type MediaType,
+} from '@core/items/types'
 import {
   locate,
   seasonProgress,
@@ -40,6 +44,7 @@ import {
   SectionTitle,
   ServiceLogo,
   Sheet,
+  Skeleton,
   Textarea,
 } from '@ui/design'
 import { useItems } from '@ui/hooks/useItems'
@@ -245,7 +250,11 @@ function Detail({
         <StatusPicker item={matched} onClose={onClose} setStatus={setStatus} />
       )}
 
-      <SourceFacts detail={detail} loading={loadingDetail} />
+      <SourceFacts
+        detail={detail}
+        loading={loadingDetail}
+        mediaType={mediaType}
+      />
 
       {matched && (
         <PersonalControls
@@ -266,17 +275,114 @@ function Detail({
 
 /** A ficha que veio da fonte. Separada porque ela é a mesma nos dois modos —
  *  e porque uma obra sem ficha simplesmente não renderiza nada aqui. */
+/**
+ * A ficha enquanto ela carrega.
+ *
+ * Espelha a ORDEM real do bloco abaixo — dois fatos-líderes, a linha de
+ * gêneros, a sinopse — porque é isso que dá a altura certa, e a altura é o
+ * ponto: sem ela, status, progresso e nota saltavam para baixo quando a ficha
+ * chegava, no momento em que o dedo já estava a caminho de um deles.
+ *
+ * O ACERTO É APROXIMADO, e vale dizer por quê: a ficha de um jogo traz
+ * plataformas, jogadores e onde comprar; a de um livro traz quase nada. Sem
+ * saber a mídia — e às vezes nem a fonte sabe antes de responder — não dá para
+ * reservar a altura exata. Isto tira o salto grande e deixa um ajuste pequeno,
+ * que é o melhor disponível sem gravar a ficha inteira em cache.
+ */
+/**
+ * QUANTOS FATOS cada mídia costuma trazer, e se ela traz "quem fez".
+ *
+ * Não é adivinhação: sai do que cada provider de fato emite. Jogo (IGDB) manda
+ * plataformas, jogadores e onde comprar; série (TMDB) manda onde assistir mais
+ * duração, temporadas e episódios; livro quase nada. É a única informação sobre
+ * o tamanho da ficha que a tela tem ANTES de a resposta chegar — e a mídia ela
+ * já sabe, porque veio do item.
+ *
+ * Errar aqui não quebra nada: erra a altura reservada, e o salto volta a
+ * crescer um pouco. Por isso a tabela vive ao lado do esqueleto e não num
+ * arquivo de configuração — quem mexer no que um provider emite passa por aqui.
+ */
+const FICHA_ESPERADA: Record<MediaType, { fatos: number; pessoas: boolean }> = {
+  game: { fatos: 3, pessoas: true },
+  movie: { fatos: 2, pessoas: true },
+  series: { fatos: 4, pessoas: true },
+  anime: { fatos: 3, pessoas: true },
+  book: { fatos: 1, pessoas: false },
+}
+
+/**
+ * A ficha enquanto ela carrega.
+ *
+ * Espelha a ORDEM real do bloco abaixo — fatos, gêneros, sinopse, mais fatos,
+ * quem fez — porque é isso que dá a altura certa, e a altura é o ponto: sem
+ * ela, status, progresso e nota saltavam para baixo quando a ficha chegava, no
+ * momento em que o dedo já estava a caminho de um deles.
+ *
+ * A sinopse reserva SEIS linhas porque é onde o `ClampedText` corta: seis é o
+ * teto real, não um chute. Ficha curta sobra um pouco; ficha longa bate.
+ *
+ * O ACERTO CONTINUA APROXIMADO, e vale dizer: a fonte pode não devolver metade
+ * do que a mídia costuma ter. Isto tira a maior parte do salto, não todo ele.
+ */
+function SourceFactsSkeleton({ mediaType }: { mediaType: MediaType }) {
+  const { t } = useTranslation()
+  const esperado = FICHA_ESPERADA[mediaType]
+
+  return (
+    <div aria-busy="true" className="flex flex-col gap-4">
+      <p role="status" className="sr-only">
+        {t('item.detailLoading')}
+      </p>
+
+      {/* Fatos: rótulo curto à esquerda, valor à direita. */}
+      {Array.from({ length: esperado.fatos }, (_, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <Skeleton shape="line" className="w-28 shrink-0" />
+          <Skeleton shape="line" className="min-w-0 flex-1" />
+        </div>
+      ))}
+
+      {/* Gêneros: uma linha, mais curta que a largura toda. */}
+      <Skeleton shape="line" className="w-2/3" />
+
+      {/* Sinopse: título da seção e QUATRO linhas. O `ClampedText` corta em
+          seis, mas seis é o TETO, não o comum — reservar o teto fazia o
+          esqueleto ficar 74px mais alto que a ficha de verdade (medido numa
+          série), e aí o conteúdo saltava para CIMA ao chegar. Errar para menos
+          e errar para mais custam o mesmo; quatro é onde os dois lados ficam
+          pequenos. A última linha pela metade é o que faz o bloco ler como
+          parágrafo em vez de grade. */}
+      <div className="flex flex-col gap-2">
+        <Skeleton shape="line" className="mb-1 w-24" />
+        <Skeleton shape="line" />
+        <Skeleton shape="line" />
+        <Skeleton shape="line" />
+        <Skeleton shape="line" className="w-1/2" />
+      </div>
+
+      {esperado.pessoas && (
+        <div className="flex flex-col gap-2">
+          <Skeleton shape="line" className="mb-1 w-24" />
+          <Skeleton shape="line" className="w-5/6" />
+        </div>
+      )}
+    </div>
+  )
+}
+
 function SourceFacts({
   detail,
   loading,
+  mediaType,
 }: {
   detail: MediaDetail | null
   loading: boolean
+  /** Conhecida ANTES da resposta — é o que dimensiona o esqueleto. */
+  mediaType: MediaType
 }) {
   const { t } = useTranslation()
 
-  if (loading)
-    return <p className="text-body text-muted">{t('item.detailLoading')}</p>
+  if (loading) return <SourceFactsSkeleton mediaType={mediaType} />
   if (!detail) return null
 
   const facts = detail.facts ?? []

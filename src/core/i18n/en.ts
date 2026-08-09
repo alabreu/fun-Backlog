@@ -11,6 +11,7 @@ export const en: Record<keyof typeof pt, string> = {
   // Home
   'home.menuButton': 'Menu',
   'home.suggestionsBody': 'From your queue, to start today.',
+  'home.loading': 'Loading your shelf…',
   'home.shelves': 'Your shelves',
   'home.searchFab': 'Search or add',
   'home.progressHours': '{current} h',

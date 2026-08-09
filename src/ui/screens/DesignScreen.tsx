@@ -9,6 +9,7 @@ import {
   ExternalLink,
   RatingRow,
   ServiceLogo,
+  Skeleton,
   Cover,
   CoverGrid,
   NavRow,
@@ -406,6 +407,30 @@ export function DesignScreen() {
             <code>showIcon={'{false}'}</code> para lista: seis links numa linha
             viram seis setas iguais, e em &quot;onde assistir&quot; todas levam
             ao mesmo endereço.
+          </p>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">Skeleton</SectionTitle>
+          <div className="flex gap-3">
+            <div className="w-24">
+              <Skeleton shape="cover" />
+              <Skeleton shape="line" className="mt-2 w-3/4" />
+            </div>
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <Skeleton shape="line" />
+              <Skeleton shape="line" />
+              <Skeleton shape="line" className="w-1/2" />
+              <Skeleton className="h-16" />
+            </div>
+          </div>
+          <p className="mt-2 text-label text-muted">
+            Formas: <code>cover</code> (2:3, igual ao Cover), <code>line</code>{' '}
+            (barra fina dentro da altura de uma linha de corpo) e{' '}
+            <code>block</code>. O que ele resolve não é a espera, é o SALTO — a
+            altura precisa ser a do conteúdo que vem. Medido: a home saltava
+            283px e passou a 7px. Pulsa, e a pulsação para sozinha em{' '}
+            <code>prefers-reduced-motion</code>.
           </p>
         </section>
 
