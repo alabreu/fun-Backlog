@@ -1,4 +1,5 @@
 import type { MediaType } from '@core/items/types'
+import type { SeasonInfo } from '@core/items/seasons'
 
 /**
  * A interface comum das fontes externas. O resto do app não sabe de onde veio o
@@ -117,6 +118,15 @@ export interface MediaDetail {
   score?: number
   /** Total de episódios/páginas, para preencher o progresso ao adicionar. */
   total?: number
+  /**
+   * A divisão em temporadas, quando a fonte a conhece.
+   *
+   * NÃO é gravada no item: o progresso continua sendo um número corrido, e isto
+   * é a lente que o traduz para "T4 E2" e permite fechar uma temporada de uma
+   * vez (ver `core/items/seasons.ts`). Só a TMDB tem — no AniList cada
+   * temporada é uma obra separada, então lá não há o que agrupar.
+   */
+  seasons?: SeasonInfo[]
   /**
    * O filme ainda está no cinema, NO PAÍS da pessoa.
    *

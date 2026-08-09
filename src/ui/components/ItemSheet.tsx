@@ -17,6 +17,11 @@ import {
   statusLabelKey,
 } from '@core/items/status'
 import { ITEM_STATUSES, type Item } from '@core/items/types'
+import {
+  locate,
+  seasonProgress,
+  type SeasonInfo,
+} from '@core/items/seasons'
 import type { MessageKey } from '@core/i18n'
 import { useRegionStore } from '@core/state/regionStore'
 import {
@@ -247,7 +252,12 @@ function Detail({
           item={matched}
           onClose={onClose}
           update={update}
+          setStatus={setStatus}
           remove={remove}
+          // A divisão em temporadas vem da FICHA, não do item: ela não é
+          // gravada, é a lente que traduz o número corrido. Fonte fora do ar =
+          // sem fileira, e o campo numérico continua funcionando sozinho.
+          seasons={detail?.seasons}
         />
       )}
     </div>
@@ -483,50 +493,156 @@ function PersonalControls({
   item,
   onClose,
   update,
+  setStatus,
   remove,
+  seasons,
 }: {
   item: Item
   onClose: () => void
   update: ReturnType<typeof useItems>['update']
+  setStatus: ReturnType<typeof useItems>['setStatus']
   remove: ReturnType<typeof useItems>['remove']
+  seasons?: SeasonInfo[]
 }) {
   const { t } = useTranslation()
   const [notes, setNotes] = useState(item.notes ?? '')
   const [confirmingRemove, setConfirmingRemove] = useState(false)
 
   const unit = progressUnitFor(item.mediaType)
+  const atual = item.progress?.current ?? 0
+  // `seasonProgress` é o que sabe repartir a contagem corrida entre elas e
+  // dizer qual já fechou — a fileira precisa dos três estados, não de dois.
+  const temporadas = seasonProgress(atual, seasons ?? [])
+  const posicao = locate(atual, seasons ?? [])
+  const total = item.progress?.total
+  // "Chegou ao fim" precisa de um total conhecido: sem ele, qualquer número
+  // digitado seria o fim, e a pergunta apareceria no primeiro episódio.
+  const chegouAoFim = Boolean(total) && atual >= (total ?? 0) && item.status !== 'done'
 
   return (
     <>
       {unit && (
-        <Field label={t('item.progressLabel')}>
-          {(id) => (
-            <div className="flex items-center gap-2">
-              <Input
-                id={id}
-                type="number"
-                inputMode="numeric"
-                min={0}
-                value={item.progress?.current ?? ''}
-                aria-label={t(progressLabelKey(unit))}
-                onChange={(e) => {
-                  const current = Number(e.target.value)
-                  void update(item.id, {
-                    progress: Number.isFinite(current)
-                      ? { unit, current, total: item.progress?.total }
-                      : undefined,
-                  })
-                }}
-                className="w-28"
-              />
-              <span className="text-body text-muted">
-                {item.progress?.total
-                  ? t('item.progressOf', { total: item.progress.total })
-                  : t(progressLabelKey(unit))}
-              </span>
+        <div>
+          <Field label={t('item.progressLabel')}>
+            {(id) => (
+              <div className="flex items-center gap-2">
+                {/* A LARGURA VEM DO ENVOLTÓRIO, e não de uma classe no
+                    componente: o `Input` já é `w-full`, e em Tailwind v4 duas
+                    utilidades da mesma propriedade são decididas pela ordem no
+                    CSS gerado — não pela ordem na string. Um `w-20` aqui às
+                    vezes perde, e o campo ocupando a linha inteira espremia o
+                    "de 62" e o +1 um por cima do outro. */}
+                <div className="w-24 shrink-0">
+                  <Input
+                    id={id}
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    value={item.progress?.current ?? ''}
+                    aria-label={t(progressLabelKey(unit))}
+                    onChange={(e) => {
+                      const current = Number(e.target.value)
+                      void update(item.id, {
+                        progress: Number.isFinite(current)
+                          ? { unit, current, total: item.progress?.total }
+                          : undefined,
+                      })
+                    }}
+                  />
+                </div>
+                <span className="min-w-0 flex-1 text-body text-muted">
+                  {item.progress?.total
+                    ? t('item.progressOf', { total: item.progress.total })
+                    : t(progressLabelKey(unit))}
+                  {/* A POSIÇÃO EM TEMPORADAS, quando a fonte a conhece.
+                      "Episódio 47" não quer dizer nada para ninguém; "T5 E1"
+                      é como as pessoas de fato guardam onde pararam. */}
+                  {posicao && (
+                    <span className="ml-2 font-semibold text-ink">
+                      {t('item.seasonEpisode', {
+                        season: posicao.season,
+                        episode: posicao.episode,
+                      })}
+                    </span>
+                  )}
+                </span>
+                {/* +1 SÓ PARA EPISÓDIO. É a ação de sofá — "vi mais um" — e
+                    hoje ela custa tocar no campo, selecionar e digitar. Em
+                    página não serve (ninguém lê de um em um) e em hora
+                    mentiria: quem joga registra 2,5h, não 1h. */}
+                {unit === 'episode' && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="shrink-0"
+                    aria-label={t('item.progressPlusOneLabel')}
+                    onClick={() =>
+                      void update(item.id, {
+                        progress: {
+                          unit,
+                          current: (item.progress?.current ?? 0) + 1,
+                          total: item.progress?.total,
+                        },
+                      })
+                    }
+                  >
+                    +1
+                  </Button>
+                )}
+              </div>
+            )}
+          </Field>
+
+          {/* FECHAR TEMPORADA. Só aparece quando a fonte devolveu a divisão —
+              séries da TMDB. No AniList cada temporada é uma obra separada,
+              então não há o que agrupar, e a fileira simplesmente não existe. */}
+          {temporadas.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {temporadas.map((season) => (
+                <Chip
+                  key={season.number}
+                  selected={season.done}
+                  aria-label={t('item.closeSeason', { season: season.number })}
+                  onClick={() =>
+                    void update(item.id, {
+                      progress: {
+                        unit,
+                        // Tocar na temporada JÁ fechada desfaz, voltando para o
+                        // fim da anterior. É o mesmo gesto das estrelas, e sem
+                        // ele um toque errado só se conserta digitando.
+                        current: season.done
+                          ? season.through - season.episodes
+                          : season.through,
+                        total: item.progress?.total,
+                      },
+                    })
+                  }
+                >
+                  {t('item.seasonShort', { season: season.number })}
+                </Chip>
+              ))}
             </div>
           )}
-        </Field>
+
+          {/* Chegou ao total e ainda não está concluída: PERGUNTA, não decide.
+              Mudar status sozinho gravaria data no histórico de concluídos —
+              e quem termina para reassistir não quer isso. Some sozinho quando
+              a pessoa marca ou reduz o progresso, sem estado de dispensa. */}
+          {chegouAoFim && (
+            <div className="mt-2 flex items-center gap-2">
+              <p className="min-w-0 flex-1 text-body text-muted">
+                {t('item.finishedPrompt')}
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => void setStatus(item.id, 'done')}
+              >
+                {t('item.finishedConfirm')}
+              </Button>
+            </div>
+          )}
+        </div>
       )}
 
       {/* NOTA + FAVORITA.

@@ -1,3 +1,4 @@
+import type { SeasonInfo } from '@core/items/seasons'
 import { DEFAULT_REGION } from '@core/region'
 import {
   SEARCH_LIMIT,
@@ -100,6 +101,7 @@ interface TmdbDetailBody extends TmdbResult {
   episode_run_time?: number[]
   number_of_seasons?: number
   number_of_episodes?: number
+  seasons?: { season_number?: number; episode_count?: number }[]
   credits?: {
     cast?: { name?: string }[]
     crew?: { name?: string; job?: string }[]
@@ -172,6 +174,32 @@ export function isInTheaters(
   // exclusividade de sala, mesmo que ainda haja uma sessão em algum lugar.
   const home = earliest([4, 5, 6])
   return home === undefined || home > now
+}
+
+/**
+ * A divisão em temporadas, quando ela existe.
+ *
+ * A TEMPORADA 0 FICA DE FORA. A TMDB a usa para especiais, extras e
+ * recapitulações, e não a conta em `number_of_episodes` — somar tudo daria um
+ * total maior que o da própria ficha, e "fechar a última temporada" nunca
+ * chegaria ao fim. Temporada anunciada mas ainda sem episódio (`0`) também sai:
+ * viraria um botão que não move o progresso.
+ *
+ * `undefined` e não `[]` quando não sobra nada: filme não tem temporada, e um
+ * array vazio faria a tela precisar distinguir "sem temporadas" de "não se
+ * aplica" para chegar na mesma conclusão.
+ */
+function mapSeasons(
+  seasons: TmdbDetailBody['seasons'],
+): SeasonInfo[] | undefined {
+  const uteis = (seasons ?? [])
+    .filter((s) => (s?.season_number ?? 0) > 0 && (s?.episode_count ?? 0) > 0)
+    .map((s) => ({
+      number: s.season_number as number,
+      episodes: s.episode_count as number,
+    }))
+    .sort((a, b) => a.number - b.number)
+  return uteis.length > 0 ? uteis : undefined
 }
 
 /** "2h 46min" / "46min" — minutos crus não dizem nada num relance. */
@@ -262,6 +290,12 @@ export function mapTmdbDetail(
     // vote_average é 0–10; o resto do app fala em 0–100.
     score: body.vote_average ? Math.round(body.vote_average * 10) : undefined,
     total: body.number_of_episodes,
+    // A TEMPORADA 0 FICA DE FORA. A TMDB a usa para especiais, extras e
+    // recapitulações, e não a conta em `number_of_episodes` — somar tudo daria
+    // um total maior que o da própria ficha, e "fechar a última temporada"
+    // nunca chegaria ao fim. Temporada anunciada mas sem episódio (`0`) também
+    // sai: ela viraria um botão que não move o progresso.
+    seasons: mapSeasons(body.seasons),
   }
 }
 

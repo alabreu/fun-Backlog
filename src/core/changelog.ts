@@ -19,6 +19,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-temporadas',
+    date: '2026-08-09',
+    emoji: '📺',
+    title: {
+      pt: 'Progresso de série agora fala em temporadas',
+      en: 'Series progress now speaks in seasons',
+    },
+    items: {
+      pt: [
+        'Um "+1" ao lado do campo marca mais um episódio — a ação de sofá deixou de custar tocar no campo, selecionar e digitar.',
+        'O número agora vem traduzido: em vez de "episódio 47", você lê "T5 E1", que é como a gente guarda onde parou.',
+        'Uma fileira de temporadas fecha qualquer uma de um toque, sem você calcular o acumulado. Tocar de novo na temporada já fechada desfaz.',
+        'Ao chegar no último episódio, o app PERGUNTA se quer marcar como concluída — não decide por você.',
+        'Vale para séries. Em anime cada temporada já é uma obra separada na fonte, então não há o que agrupar.',
+      ],
+      en: [
+        'A "+1" beside the field marks one more episode — the couch action no longer costs tapping the field, selecting and typing.',
+        'The number comes translated now: instead of "episode 47" you read "S5 E1", which is how people actually remember where they stopped.',
+        'A row of seasons closes any of them in one tap, with no running total to work out. Tapping a finished season again undoes it.',
+        'On reaching the last episode the app ASKS whether to mark it finished — it does not decide for you.',
+        'Series only. In anime each season is already a separate title at the source, so there is nothing to group.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-nota-favorita',
     date: '2026-08-09',
     emoji: '⭐',

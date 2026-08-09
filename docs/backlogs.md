@@ -56,7 +56,7 @@ da TMDB, cadastrados como secrets do Supabase.
 | 🟢 | Filtro de favoritas | O coração já grava o dado e a migração `0005` já tem o índice parcial. Falta decidir onde o filtro mora — na estante, na home, ou nas duas |
 | 🟢 | UI de tags | A coluna existe no schema desde a `0004` e nada na tela usa |
 | 🟢 | Ordenação configurável | A estante agora é por seções (decisão 13) e a ordem DELAS é fixa por mídia. Falta poder ordenar DENTRO da seção — hoje é por data de entrada, mais novo primeiro |
-| 🟢 | Progresso ao mudar de status | Concluir não preenche o progresso até o total conhecido, nem o contrário. Falta decidir se é automático |
+| 🟢 | Concluir não preenche o progresso | O caminho inverso já existe: chegar ao total oferece "marcar como concluída" (decisão do usuário, 09/08/2026). Falta o outro lado — marcar concluída não preenche o progresso até o total |
 | 🟢 | `status_detail` sem UI | "Platinado", "em dia": o campo existe no banco e nada o escreve |
 | 🟢 | Preferências por mídia dentro do país | Hoje o país é um só para tudo. Quem assina streaming brasileiro morando em Portugal precisaria de um país por mídia — só vale se aparecer de verdade |
 | 🟢 | "Em cartaz" na estante, não só na ficha | O filme só avisa que está em cartaz quando o sheet abre. Um selo na capa mostraria sem precisar tocar — depende da identidade visual |

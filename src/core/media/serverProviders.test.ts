@@ -484,6 +484,37 @@ describe('ficha da TMDB', () => {
     expect(d?.total).toBe(62)
   })
 
+  it('a divis\u00e3o em temporadas exclui especiais e temporada an\u00fanciada vazia', () => {
+    const d = mapTmdbDetail(
+      {
+        id: 1396,
+        name: 'Breaking Bad',
+        number_of_episodes: 62,
+        seasons: [
+          // A TMDB p\u00f5e os especiais na temporada 0 e N\u00c3O os conta em
+          // `number_of_episodes`: som\u00e1-los faria "fechar a \u00faltima temporada"
+          // nunca chegar ao total da pr\u00f3pria ficha.
+          { season_number: 0, episode_count: 8 },
+          { season_number: 2, episode_count: 13 },
+          { season_number: 1, episode_count: 7 },
+          // Anunciada, ainda sem epis\u00f3dio: viraria um bot\u00e3o que n\u00e3o move nada.
+          { season_number: 3, episode_count: 0 },
+        ],
+      },
+      'tv',
+    )
+
+    // Ordenadas pelo n\u00famero, e n\u00e3o pela ordem em que a resposta veio.
+    expect(d?.seasons).toEqual([
+      { number: 1, episodes: 7 },
+      { number: 2, episodes: 13 },
+    ])
+  })
+
+  it('filme n\u00e3o carrega array vazio de temporadas', () => {
+    expect(mapTmdbDetail({ id: 1, title: 'X' }, 'movie')?.seasons).toBeUndefined()
+  })
+
   it('dura\u00e7\u00e3o abaixo de uma hora n\u00e3o mostra "0h"', () => {
     const d = mapTmdbDetail({ id: 1, title: 'Curta', runtime: 22 }, 'movie')
     expect(d?.facts?.[0].value).toBe('22min')
