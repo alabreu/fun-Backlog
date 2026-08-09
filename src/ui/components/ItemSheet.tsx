@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Trash } from '@phosphor-icons/react'
+import { Trash, X } from '@phosphor-icons/react'
 import { detailSourceFor, fetchDetail } from '@core/media/detail'
 import { genreColorIndexes } from '@core/media/genres'
 import type { PlatformFamily } from '@core/media/platforms'
@@ -770,11 +770,21 @@ function PersonalControls({
             {/* Aparece só quando há o que limpar — botão morto ao lado de uma
                 linha vazia seria ruído permanente para um caso raro. */}
             {item.rating !== undefined && (
+              // `quiet` + o X: em `ghost` o botão tinha o mesmo peso do
+              // "NOTA" à esquerda e lia como um segundo título. Rebaixado para
+              // `muted`, com o ícone dizendo "apagar" antes da palavra, ele
+              // vira o que é — a saída, disponível sem competir.
               <Button
-                variant="ghost"
-                size="sm"
+                variant="quiet"
+                size="xs"
+                // `-mr-3` cancela o padding do alvo: o texto encosta na margem
+                // do painel, como o "NOTA" encosta do outro lado. Sem isso, a
+                // linha fica visivelmente torta — rótulo na margem, botão 12px
+                // para dentro.
+                className="-mr-3"
                 onClick={() => void update(item.id, { rating: undefined })}
               >
+                <X size={12} weight="bold" aria-hidden />
                 {t('item.clearRating')}
               </Button>
             )}
@@ -793,7 +803,8 @@ function PersonalControls({
             }
             labels={{
               star: (value) => t('item.ratingValue', { value }),
-              favorite: item.favorite
+              favorite: t('item.favorite'),
+              favoriteAction: item.favorite
                 ? t('item.favoriteRemove')
                 : t('item.favoriteAdd'),
             }}

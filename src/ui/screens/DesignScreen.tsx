@@ -268,6 +268,9 @@ export function DesignScreen() {
               <Button variant="ghost" size="sm">
                 ghost sm
               </Button>
+              <Button variant="quiet" size="xs">
+                quiet xs
+              </Button>
               <Button variant="danger" size="sm">
                 danger sm
               </Button>
@@ -441,7 +444,11 @@ export function DesignScreen() {
             favorite={favorita}
             onChange={setNota}
             onFavoriteChange={setFavorita}
-            labels={{ star: (v) => `Nota ${v}`, favorite: 'Favorita' }}
+            labels={{
+              star: (v) => `Nota ${v}`,
+              favorite: 'Favorito',
+              favoriteAction: 'Marcar como favorita',
+            }}
           />
           <p className="mt-2 text-label text-muted">
             Dois eixos numa linha: a nota (&quot;isto é bom?&quot;) e a favorita
@@ -456,7 +463,11 @@ export function DesignScreen() {
               ratingHidden
               onChange={setNota}
               onFavoriteChange={setFavorita}
-              labels={{ star: (v) => `Nota ${v}`, favorite: 'Favorita' }}
+              labels={{
+              star: (v) => `Nota ${v}`,
+              favorite: 'Favorito',
+              favoriteAction: 'Marcar como favorita',
+            }}
             />
           </div>
           <p className="mt-2 text-label text-muted">

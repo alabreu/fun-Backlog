@@ -128,6 +128,7 @@ export const en: Record<keyof typeof pt, string> = {
   'item.finishedConfirm': 'Mark as finished',
   'item.ratingLabel': 'Rating',
   'item.clearRating': 'Clear',
+  'item.favorite': 'Favourite',
   'item.favoriteAdd': 'Mark as favourite',
   'item.favoriteRemove': 'Remove from favourites',
   'item.ratingValue': '{value} of 5',
