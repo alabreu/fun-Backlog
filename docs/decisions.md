@@ -639,6 +639,58 @@ posição revela.
 
 ---
 
+## 16. A data de conclusão sai; filme perde o meio; hora não é progresso
+
+Três ajustes do usuário (09/08/2026) que vêm da mesma observação: **o app está
+descrevendo o uso errado.**
+
+### A data de conclusão deixa de ser carimbada
+
+Ela só seria verdade para quem termina a obra e registra no mesmo dia. Este é um
+app de BACKLOG: a maior parte da estante entra de uma vez, com anos de coisas já
+vistas. Carimbar "hoje" em tudo isso inventa um dado errado — e a retrospectiva
+por ano ficava organizada em cima dele.
+
+O que muda: `datesForStatus` não grava mais `completed_at`, o selo "Concluído em
+X" saiu do painel, e `completedItems` passou a olhar só o status — senão tudo o
+que fosse concluído a partir de agora sumiria da tela de troféus.
+
+**A coluna FICA, e as datas existentes também.** Ela não custa nada vazia, e é
+onde uma importação futura (Letterboxd, AniList) põe a data DE VERDADE, que é a
+única que vale a pena ter. O filtro por ano continua funcionando para quem tem
+data, e desaparece sozinho quando ninguém tem.
+
+**Exigiu migração** (`0006`): a `0004` tinha um check `(status = 'done') =
+(completed_at is not null)`. Sem removê-lo, marcar "concluído" passaria a ser
+REJEITADO pelo banco. Ele não foi trocado nem por metade da regra — "data só em
+item concluído" quebraria a preservação da decisão 15, em que um item legado
+datado carrega a data ao voltar para "assistindo".
+
+### Filme não tem estados do meio
+
+Só **na fila**, **assistido** e **abandonado**. Ninguém assiste um filme num
+intervalo grande o bastante para "pausado" e "assistindo" significarem alguma
+coisa — eram duas casas que nunca se preenchiam, ocupando espaço na fileira e
+uma seção inteira na estante.
+
+"Abandonado" fica, com outro sentido: num filme ele não é "parei no meio", é
+"não me agradou o suficiente para chegar ao fim". Isso é uma opinião, e vale.
+
+Os estados existentes por mídia agora vivem em `statusesFor()`. **Nenhum item
+fica escondido:** a estante acrescenta ao fim qualquer estado órfão que ainda
+tenha itens (um filme gravado como "assistindo" antes desta decisão), e a seção
+some sozinha quando o último sai dela.
+
+### Hora é investimento, não progresso
+
+Dota e CS não têm fim: as horas ali medem quanto se investiu, não quanto falta.
+E mesmo num jogo com fim, "40 horas" não diz o quanto resta. Por isso o campo
+saiu do lugar do progresso, virou **"Horas jogadas"** e desceu para depois da
+nota, antes das anotações — informação de acervo, não de andamento. Jogo não tem
+régua e nunca teve; agora também não finge ter.
+
+---
+
 ## Ainda em aberto
 
 - **Identidade visual**: paleta (primitivos em `src/index.css`) e a linguagem do

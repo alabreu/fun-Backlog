@@ -4,8 +4,9 @@ import {
   progressUnitFor,
   statusFromProgress,
   statusLabelKey,
+  statusesFor,
 } from '@core/items/status'
-import { ITEM_STATUSES, type ItemStatus } from '@core/items/types'
+import type { ItemStatus } from '@core/items/types'
 import { fetchDetail } from '@core/media/detail'
 import type { MediaSearchResult } from '@core/media/types'
 import { useRegionStore } from '@core/state/regionStore'
@@ -198,7 +199,7 @@ export function AddStatusSheet({
                   régua, os cinco. */}
               {(temRegua
                 ? (['paused', 'abandoned'] as ItemStatus[])
-                : ITEM_STATUSES
+                : statusesFor(result.mediaType)
               ).map((value) => (
                 <Chip
                   key={value}

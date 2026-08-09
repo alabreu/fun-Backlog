@@ -37,8 +37,17 @@ describe('completedItems', () => {
     expect(completedItems(shelf)).toHaveLength(1)
   })
 
-  it('ignora "concluído" sem data — troféu precisa de quando', () => {
-    expect(completedItems([item({ status: 'done' })])).toEqual([])
+  // MUDOU na decisão 16: o status sozinho decide. Exigir data fazia sumir
+  // desta tela tudo o que fosse concluído a partir de agora, porque o app
+  // parou de carimbá-la.
+  it('conta o concluído mesmo sem data', () => {
+    expect(
+      completedItems([
+        item({ status: 'done' }),
+        item({ status: 'done', completedAt: '2026-01-02T00:00:00.000Z' }),
+        item({ status: 'active' }),
+      ]),
+    ).toHaveLength(2)
   })
 })
 

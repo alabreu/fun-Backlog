@@ -120,6 +120,8 @@ export const en: Record<keyof typeof pt, string> = {
   // Item (detail)
   'item.statusLabel': 'Status',
   'item.progressLabel': 'Progress',
+  'item.hoursLabel': 'Hours played',
+  'item.hoursUnit': 'hours so far',
   'item.progress.page': 'Page',
   'item.progress.episode': 'Episode',
   'item.progress.hour': 'Hours',

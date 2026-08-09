@@ -1,5 +1,5 @@
 import type { MessageKey } from '@core/i18n'
-import type { ItemStatus, MediaType, ProgressUnit } from './types'
+import { ITEM_STATUSES, type ItemStatus, type MediaType, type ProgressUnit } from './types'
 
 /**
  * O vocabulário do catálogo: como cada status se CHAMA em cada mídia, e o que
@@ -96,16 +96,15 @@ export function progressUnitFor(
  * `startedAt` é preservado quando já existe: pausar e voltar não deve reescrever
  * a data em que a pessoa começou.
  *
- * `completedAt` TAMBÉM É PRESERVADO ao sair de `done`, e isso mudou quando o
- * status passou a ser derivado do progresso (decisão 15). Antes ele era
- * apagado, por medo de a retrospectiva do ano mostrar como troféu algo
- * desmarcado — mas ela filtra por `status === 'done'` E pela data (ver
- * `completedItems`), então a data sozinha nunca aparece.
+ * `completedAt` NÃO É MAIS CARIMBADO (decisão 16). A data de conclusão só seria
+ * verdade para quem termina a obra e registra no mesmo dia — e este é um app de
+ * BACKLOG: a maior parte da estante entra de uma vez, com anos de coisas já
+ * vistas. Carimbar "hoje" em tudo isso é inventar um dado errado e depois
+ * organizar uma retrospectiva em cima dele.
  *
- * O que o apagamento CUSTAVA ficou caro demais com a derivação: arrastar um
- * episódio para trás e voltar reescreveria "concluí em março" para "concluí
- * hoje". Guardada, ela é a data da PRIMEIRA conclusão, e sobrevive a um
- * arraste sem querer.
+ * A data que EXISTE é preservada: quem já tem uma (de antes desta decisão, ou
+ * de uma importação futura que traga a data de verdade) continua com ela, e a
+ * retrospectiva continua sabendo agrupá-la por ano.
  */
 export function datesForStatus(
   status: ItemStatus,
@@ -116,11 +115,7 @@ export function datesForStatus(
     current.startedAt ??
     (status === 'active' || status === 'done' ? now : undefined)
 
-  return {
-    startedAt: started,
-    completedAt:
-      status === 'done' ? (current.completedAt ?? now) : current.completedAt,
-  }
+  return { startedAt: started, completedAt: current.completedAt }
 }
 
 /**
@@ -222,14 +217,41 @@ export function canRate(status: ItemStatus): boolean {
   return status !== 'backlog'
 }
 
+/**
+ * QUE ESTADOS EXISTEM em cada mídia (decisão 16, escolha do usuário 09/08/2026).
+ *
+ * FILME NÃO TEM MEIO. Ninguém assiste um filme num intervalo grande o bastante
+ * para "pausado" e "assistindo" significarem alguma coisa: ou está na fila, ou
+ * foi assistido, ou foi largado no meio. Os dois estados intermediários eram
+ * casas que nunca se preenchiam, ocupando espaço na fileira e na estante.
+ *
+ * "Abandonado" FICA, e muda de sentido aqui: num filme ele não é "parei de
+ * assistir", é "não me agradou o suficiente para chegar ao fim" — que é uma
+ * opinião, e vale registrar.
+ *
+ * As outras quatro mídias mantêm os cinco: elas são de sessão longa, e ali
+ * pausar é uma coisa que acontece de verdade.
+ */
+const STATUSES_BY_MEDIA: Record<MediaType, ItemStatus[]> = {
+  game: [...ITEM_STATUSES],
+  series: [...ITEM_STATUSES],
+  anime: [...ITEM_STATUSES],
+  book: [...ITEM_STATUSES],
+  movie: ['backlog', 'done', 'abandoned'],
+}
+
+export function statusesFor(mediaType: MediaType): ItemStatus[] {
+  return STATUSES_BY_MEDIA[mediaType]
+}
+
 export const SHELF_SECTIONS: Record<MediaType, ItemStatus[]> = {
   game: ['active', 'backlog', 'done', 'paused', 'abandoned'],
   series: ['active', 'backlog', 'done', 'paused', 'abandoned'],
   anime: ['active', 'backlog', 'done', 'paused', 'abandoned'],
   book: ['active', 'backlog', 'done', 'paused', 'abandoned'],
-  // Filmes continuam abrindo com a fila, porque escolher é o que se faz
-  // nesta estante — o resto segue a mesma ordem das outras mídias.
-  movie: ['backlog', 'active', 'done', 'paused', 'abandoned'],
+  // Filme abre com a fila (escolher é o que se faz nesta estante) e não tem os
+  // dois estados do meio — ver `STATUSES_BY_MEDIA`.
+  movie: ['backlog', 'done', 'abandoned'],
 }
 
 export function shelfSections(mediaType: MediaType): ItemStatus[] {

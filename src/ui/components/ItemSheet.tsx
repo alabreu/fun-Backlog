@@ -18,12 +18,9 @@ import {
   progressUnitFor,
   statusFromProgress,
   statusLabelKey,
+  statusesFor,
 } from '@core/items/status'
-import {
-  ITEM_STATUSES,
-  type Item,
-  type MediaType,
-} from '@core/items/types'
+import { type Item, type MediaType } from '@core/items/types'
 import {
   locate,
   seasonProgress,
@@ -236,11 +233,6 @@ function Detail({
                 decisão: sair de casa hoje, ou esperar chegar no streaming. */}
             {detail?.inTheaters && (
               <Badge tone="accent">{t('item.inTheaters')}</Badge>
-            )}
-            {matched?.completedAt && (
-              <Badge tone="accent">
-                {t('item.completedAt', { date: formatDate(matched.completedAt) })}
-              </Badge>
             )}
           </div>
           {matched && (
@@ -649,7 +641,7 @@ function StatusPicker({
     <div>
       <SectionTitle className="mb-2">{t('item.statusLabel')}</SectionTitle>
       <div className="flex flex-wrap gap-2">
-        {ITEM_STATUSES.map((value) => (
+        {statusesFor(item.mediaType).map((value) => (
           <Chip
             key={value}
             selected={item.status === value}
@@ -778,51 +770,61 @@ function PersonalControls({
     return `${t(progressLabelKey(unit!))} ${v}`
   }
 
+  // HORA NÃO É PROGRESSO (decisão 16, escolha do usuário 09/08/2026). Dota e
+  // CS não têm fim: as horas ali medem INVESTIMENTO, não caminho percorrido —
+  // e mesmo num jogo com fim, "40 horas" não diz o quanto falta. Por isso elas
+  // saem do lugar do progresso, ganham nome próprio e descem para depois da
+  // nota: é informação de acervo, não de andamento.
+  const contaHoras = unit === 'hour'
+
+  const campoNumerico = (
+    <Field label={t(contaHoras ? 'item.hoursLabel' : 'item.progressLabel')}>
+      {(id) => (
+        <div className="flex items-center gap-2">
+          {/* A LARGURA VEM DO ENVOLTÓRIO, e não de uma classe no componente: o
+              `Input` já é `w-full`, e em Tailwind v4 duas utilidades da mesma
+              propriedade são decididas pela ordem no CSS gerado. */}
+          <div className="w-24 shrink-0">
+            <Input
+              id={id}
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={item.progress?.current ?? ''}
+              aria-label={t(
+                contaHoras ? 'item.hoursLabel' : progressLabelKey(unit!),
+              )}
+              onChange={(e) => {
+                const current = Number(e.target.value)
+                if (Number.isFinite(current)) gravar(current)
+              }}
+            />
+          </div>
+          <span className="min-w-0 flex-1 text-body text-muted">
+            {contaHoras
+              ? t('item.hoursUnit')
+              : total
+                ? t('item.progressOf', { total })
+                : t(progressLabelKey(unit!))}
+            {!contaHoras && posicao && (
+              <span className="ml-2 font-semibold text-ink">
+                {t('item.seasonEpisode', {
+                  season: posicao.season,
+                  episode: posicao.episode,
+                })}
+              </span>
+            )}
+          </span>
+        </div>
+      )}
+    </Field>
+  )
+
   return (
     <>
-      {unit && (
+      {unit && !contaHoras && (
         <div>
-          <Field label={t('item.progressLabel')}>
-            {(id) => (
-              <div className="flex items-center gap-2">
-                {/* A LARGURA VEM DO ENVOLTÓRIO, e não de uma classe no
-                    componente: o `Input` já é `w-full`, e em Tailwind v4 duas
-                    utilidades da mesma propriedade são decididas pela ordem no
-                    CSS gerado — não pela ordem na string. */}
-                <div className="w-24 shrink-0">
-                  <Input
-                    id={id}
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    value={item.progress?.current ?? ''}
-                    aria-label={t(progressLabelKey(unit))}
-                    onChange={(e) => {
-                      const current = Number(e.target.value)
-                      if (Number.isFinite(current)) gravar(current)
-                    }}
-                  />
-                </div>
-                {/* O CAMPO FICA, e não é redundância com o slider: numa obra
-                    longa cada passo do slider vale menos de dois pixels, e
-                    mover exatamente um episódio ali é tremor de dedo. O slider
-                    é o gesto; o campo é a pontaria. */}
-                <span className="min-w-0 flex-1 text-body text-muted">
-                  {total
-                    ? t('item.progressOf', { total })
-                    : t(progressLabelKey(unit))}
-                  {posicao && (
-                    <span className="ml-2 font-semibold text-ink">
-                      {t('item.seasonEpisode', {
-                        season: posicao.season,
-                        episode: posicao.episode,
-                      })}
-                    </span>
-                  )}
-                </span>
-              </div>
-            )}
-          </Field>
+          {campoNumerico}
 
           {/* O SLIDER, quando há um total para percorrer. Sem total não há
               régua — é o caso de jogo (horas, que a fonte não sabe) e de obra
@@ -879,6 +881,10 @@ function PersonalControls({
           />
         </div>
       )}
+
+      {/* AS HORAS, depois da nota e antes das anotações. É acervo, não
+          andamento: nenhum slider, nenhum estado derivado dela. */}
+      {contaHoras && <div>{campoNumerico}</div>}
 
       <Field label={t('item.notesLabel')}>
         {(id) => (

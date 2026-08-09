@@ -5,6 +5,7 @@ import {
   progressUnitFor,
   progressForStatus,
   shelfSections,
+  statusesFor,
   statusFromProgress,
   statusLabelKey,
 } from './status'
@@ -60,52 +61,77 @@ describe('datesForStatus', () => {
     ).toBe(started)
   })
 
-  it('concluir sem ter começado carimba as duas datas', () => {
+  // MUDOU na decisão 16: a data de conclusão deixou de ser carimbada. Num app
+  // de backlog a estante entra de uma vez, com anos de coisas já vistas, e
+  // "hoje" seria mentira em quase todas.
+  it('concluir carimba o início, e NÃO inventa a conclusão', () => {
     expect(datesForStatus('done', {}, now)).toEqual({
       startedAt: now,
-      completedAt: now,
+      completedAt: undefined,
     })
+  })
+
+  it('a data que já existe sobrevive', () => {
+    const antiga = '2025-03-03T00:00:00.000Z'
+    expect(
+      datesForStatus('done', { completedAt: antiga }, now).completedAt,
+    ).toBe(antiga)
+    expect(
+      datesForStatus('active', { completedAt: antiga }, now).completedAt,
+    ).toBe(antiga)
   })
 
   // MUDOU com o status derivado do progresso (decisão 15). Antes a data era
   // apagada ao sair de "done"; agora é guardada, porque arrastar um episódio
   // para trás e voltar reescreveria "concluí em março" para "concluí hoje".
   // A retrospectiva não a mostra sozinha: ela filtra por status TAMBÉM.
-  it('guarda a data da conclusão ao sair de "done"', () => {
-    const concluiu = '2026-03-03T00:00:00.000Z'
-    const dates = datesForStatus(
-      'active',
-      { startedAt: '2026-01-01T00:00:00.000Z', completedAt: concluiu },
-      now,
-    )
-    expect(dates.completedAt).toBe(concluiu)
-  })
-
   it('quem nunca concluiu continua sem data', () => {
     expect(datesForStatus('active', {}, now).completedAt).toBeUndefined()
   })
 
-  it('não reescreve a data de conclusão de quem já estava concluído', () => {
-    const done = '2026-02-02T00:00:00.000Z'
-    expect(datesForStatus('done', { completedAt: done }, now).completedAt).toBe(
-      done,
-    )
+  it('quem nunca concluiu continua sem data em qualquer estado', () => {
+    expect(datesForStatus('done', {}, now).completedAt).toBeUndefined()
+    expect(datesForStatus('paused', {}, now).completedAt).toBeUndefined()
   })
 })
 
 describe('SHELF_SECTIONS', () => {
-  it('toda mídia lista os cinco estados, sem sobrar nem faltar', () => {
+  // A estante mostra EXATAMENTE os estados que a mídia tem. Filme perdeu os
+  // dois do meio na decisão 16 — uma seção para um estado que não existe seria
+  // uma casa impossível de preencher.
+  it('cada mídia lista os estados que ela tem, sem sobrar nem faltar', () => {
     for (const media of MEDIA_TYPES) {
-      const secoes = shelfSections(media)
-      expect([...secoes].sort()).toEqual([...ITEM_STATUSES].sort())
+      expect([...shelfSections(media)].sort()).toEqual(
+        [...statusesFor(media)].sort(),
+      )
+    }
+  })
+
+  // Ninguém assiste um filme num intervalo grande o bastante para "pausado" e
+  // "assistindo" significarem algo. "Abandonado" fica, com outro sentido: não
+  // agradou o suficiente para chegar ao fim.
+  it('filme tem três estados, sem os do meio', () => {
+    expect(statusesFor('movie')).toEqual(['backlog', 'done', 'abandoned'])
+  })
+
+  it('as mídias de sessão longa mantêm os cinco', () => {
+    for (const media of ['game', 'series', 'anime', 'book'] as const) {
+      expect([...statusesFor(media)].sort()).toEqual([...ITEM_STATUSES].sort())
     }
   })
 
   // Pausado é quase-arquivo (decisão do usuário, 09/08/2026): a seção vive
   // vazia, e no meio da estante só empurrava o que importa para baixo.
-  it('pausado é o penúltimo e abandonado fecha, em toda mídia', () => {
+  it('pausado é o penúltimo e abandonado fecha, onde pausado existe', () => {
     for (const media of MEDIA_TYPES) {
+      if (!statusesFor(media).includes('paused')) continue
       expect(shelfSections(media).slice(-2)).toEqual(['paused', 'abandoned'])
+    }
+  })
+
+  it('abandonado fecha a lista em toda mídia', () => {
+    for (const media of MEDIA_TYPES) {
+      expect(shelfSections(media).at(-1)).toBe('abandoned')
     }
   })
 
@@ -123,9 +149,10 @@ describe('SHELF_SECTIONS', () => {
 
   // Concluído continua visível antes do quase-arquivo: consulta-se "o que eu
   // já zerei" com mais frequência do que se retoma um pausado.
-  it('concluído vem antes de pausado, em toda mídia', () => {
+  it('concluído vem antes de pausado, onde os dois existem', () => {
     for (const media of MEDIA_TYPES) {
       const secoes = shelfSections(media)
+      if (!secoes.includes('paused')) continue
       expect(secoes.indexOf('done')).toBeLessThan(secoes.indexOf('paused'))
     }
   })

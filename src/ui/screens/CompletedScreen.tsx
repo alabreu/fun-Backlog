@@ -139,9 +139,16 @@ export function CompletedScreen() {
                   media={item.mediaType}
                   lazy={index > 5}
                 />
-                <Badge tone="onCover" className="absolute bottom-1.5 left-1.5">
-                  {dateFmt.format(new Date(item.completedAt as string))}
-                </Badge>
+                {/* O selo só existe quando há data. O app parou de carimbá-la
+                    (decisão 16), então a maioria das capas não tem — e um
+                    `new Date(undefined)` aqui imprimiria "Invalid Date" em
+                    cima da arte. As datas que sobraram são de antes, ou virão
+                    de uma importação que traga a de verdade. */}
+                {item.completedAt && (
+                  <Badge tone="onCover" className="absolute bottom-1.5 left-1.5">
+                    {dateFmt.format(new Date(item.completedAt))}
+                  </Badge>
+                )}
               </div>
               <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
                 {item.title}

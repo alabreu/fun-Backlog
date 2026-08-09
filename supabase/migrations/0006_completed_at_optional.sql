@@ -1,0 +1,31 @@
+-- A data de conclusão deixa de ser obrigatória para um item concluído.
+--
+-- POR QUE. A 0004 amarrou as duas coisas com um check:
+--
+--   (status = 'done') = (completed_at is not null)
+--
+-- A regra estava certa para o app que existia então, em que concluir era um
+-- ato feito no dia em que a obra acabou. Ela deixou de estar (decisão 16):
+-- este é um app de BACKLOG, e a maior parte da estante entra de uma vez, com
+-- anos de coisas já vistas. Carimbar "hoje" em tudo isso inventa um dado
+-- errado e depois organiza uma retrospectiva em cima dele.
+--
+-- Com o app parando de carimbar, o check passaria a REJEITAR toda marcação de
+-- "concluído". Não é uma melhoria adiável: sem esta migração, o update não
+-- passa.
+--
+-- POR QUE NEM METADE DA REGRA SOBREVIVE. A tentação é trocá-lo por
+-- `completed_at is null or status = 'done'` — "data só em item concluído".
+-- Isso quebraria a outra metade da decisão 15: a data que existe é PRESERVADA
+-- ao sair de "concluído", justamente para que voltar ao fim restaure a data
+-- original em vez de reescrevê-la com a de hoje. Um item legado, datado, que
+-- volta para "assistindo" carrega a data — e é assim que deve ser.
+--
+-- A COLUNA FICA. Não custa nada vazia, guarda as datas que já existem, e é
+-- onde uma importação futura (Letterboxd, AniList) põe a data DE VERDADE, que
+-- é a única que vale a pena ter.
+--
+-- Idempotente: rodar duas vezes não quebra.
+
+alter table public.items
+  drop constraint if exists items_completed_at_matches_status;

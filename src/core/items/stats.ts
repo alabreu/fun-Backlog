@@ -10,17 +10,30 @@ import type { Item, MediaType } from './types'
  * unidade) e não desenho.
  */
 
-/** Só o que está concluído E tem data — o check da migração 0004 garante o par,
- *  mas a estante local de versões antigas pode ter escapado. */
+/**
+ * O que está concluído — e SÓ o status decide (decisão 16).
+ *
+ * Exigia data também, e isso deixou de fazer sentido quando o app parou de
+ * carimbá-la: num app de backlog a maior parte da estante entra de uma vez,
+ * com anos de coisas já vistas, e "hoje" seria mentira em quase todas. Com a
+ * exigência, tudo que fosse concluído a partir de agora sumiria desta tela.
+ */
 export function completedItems(items: Item[]): Item[] {
-  return items.filter((i) => i.status === 'done' && Boolean(i.completedAt))
+  return items.filter((i) => i.status === 'done')
 }
 
-/** Anos com alguma conclusão, do mais recente para o mais antigo. */
+/**
+ * Anos com alguma conclusão DATADA, do mais recente para o mais antigo.
+ *
+ * Devolve vazio quando ninguém tem data — e é assim que a tela sabe esconder o
+ * filtro de ano em vez de mostrar um filtro que não filtra nada. As datas que
+ * existem são de antes da decisão 16, ou virão de uma importação que traga a
+ * data de verdade.
+ */
 export function yearsWithCompletions(items: Item[]): number[] {
   const years = new Set<number>()
   for (const item of completedItems(items))
-    years.add(new Date(item.completedAt as string).getFullYear())
+    if (item.completedAt) years.add(new Date(item.completedAt).getFullYear())
   return [...years].sort((a, b) => b - a)
 }
 
@@ -30,13 +43,15 @@ export function completedInYear(items: Item[], year?: number): Item[] {
     year === undefined
       ? done
       : done.filter(
-          (i) => new Date(i.completedAt as string).getFullYear() === year,
+          (i) =>
+            i.completedAt &&
+            new Date(i.completedAt).getFullYear() === year,
         )
 
-  // Mais recente primeiro: a tela de troféu conta uma história em ordem
-  // inversa, e o que você acabou de terminar é o que você quer ver.
+  // Mais recente primeiro. Sem data de conclusão, a de ENTRADA é o melhor
+  // substituto: ela também é "o mais novo primeiro", só que do catálogo.
   return filtered.sort((a, b) =>
-    (b.completedAt as string).localeCompare(a.completedAt as string),
+    (b.completedAt ?? b.addedAt).localeCompare(a.completedAt ?? a.addedAt),
   )
 }
 

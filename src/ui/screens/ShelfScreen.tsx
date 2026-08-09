@@ -10,6 +10,7 @@ import {
   statusLabelKey,
 } from '@core/items/status'
 import {
+  ITEM_STATUSES,
   MEDIA_TYPES,
   type Item,
   type MediaType,
@@ -117,18 +118,24 @@ export function ShelfScreen() {
   // "Nada aqui" empurrando para baixo os dois resultados que interessam. A
   // pergunta mudou de "como está minha estante" para "onde está o que eu
   // procuro", e a resposta certa é só o que casa.
-  const sections = useMemo(
-    () =>
-      mediaType
-        ? shelfSections(mediaType)
-            .map((value) => ({
-              status: value,
-              items: visible.filter((i) => i.status === value),
-            }))
-            .filter(({ items: found }) => !trimmed || found.length > 0)
-        : [],
-    [mediaType, visible, trimmed],
-  )
+  const sections = useMemo(() => {
+    if (!mediaType) return []
+    const canonicas = shelfSections(mediaType)
+    // NENHUM ITEM FICA ESCONDIDO. Filme perdeu "assistindo" e "pausado"
+    // (decisão 16), e um filme gravado num deles antes disso não tem mais
+    // seção — ficaria invisível na estante, com o dado intacto no banco e
+    // nenhuma forma de alcançá-lo. Estados órfãos entram no fim, e somem
+    // sozinhos quando o último item sai deles.
+    const orfaos = ITEM_STATUSES.filter(
+      (s) => !canonicas.includes(s) && visible.some((i) => i.status === s),
+    )
+    return [...canonicas, ...orfaos]
+      .map((value) => ({
+        status: value,
+        items: visible.filter((i) => i.status === value),
+      }))
+      .filter(({ items: found }) => !trimmed || found.length > 0)
+  }, [mediaType, visible, trimmed])
 
   const total = useMemo(
     () =>

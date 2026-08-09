@@ -118,6 +118,8 @@ export const pt = {
   // Item (detalhe)
   'item.statusLabel': 'Status',
   'item.progressLabel': 'Progresso',
+  'item.hoursLabel': 'Horas jogadas',
+  'item.hoursUnit': 'horas até agora',
   'item.progress.page': 'Página',
   'item.progress.episode': 'Episódio',
   'item.progress.hour': 'Horas',

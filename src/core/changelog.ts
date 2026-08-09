@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-ajustes-midia',
+    date: '2026-08-09',
+    emoji: '🎬',
+    title: {
+      pt: 'Cada mídia com o que ela realmente tem',
+      en: 'Each medium with what it actually has',
+    },
+    items: {
+      pt: [
+        'A data de conclusão saiu. Ela dizia "hoje" para uma estante inteira de coisas vistas anos atrás — e isso não era verdade em quase nada.',
+        'Filme agora tem três estados: na fila, assistido e abandonado. Ninguém pausa um filme por semanas; "abandonado" passa a querer dizer "não me agradou até o fim".',
+        'Em jogos, as horas deixaram de se chamar progresso: elas medem quanto você investiu, não quanto falta. Mudaram de lugar, para depois da nota.',
+      ],
+      en: [
+        'The completion date is gone. It said "today" for a whole shelf of things watched years ago — true for almost none of them.',
+        'Movies now have three states: in the queue, watched and dropped. Nobody pauses a film for weeks; "dropped" now means "it did not hold me to the end".',
+        'On games, hours stopped being called progress: they measure what you put in, not what is left. They moved below the rating.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-status-auto',
     date: '2026-08-09',
     emoji: '🪄',
