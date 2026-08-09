@@ -31,6 +31,16 @@ Como trabalhar aqui:
 - **Português nas conversas, inglês no código e nos commits.** (O template usa
   português nos comentários e docs — mantenha isso onde já existe.)
 - Commits pequenos e frequentes.
+- **Subir para a `main` faz parte da entrega** (autorizado em 09/08/2026). O
+  usuário testa em produção, então trabalho terminado vai para a `main` sem
+  precisar pedir a cada vez. Duas condições que NÃO são negociáveis:
+  - `npm run lint`, `npm test` e `npm run build` verdes ANTES do push, cada um
+    verificado pelo código de saída e sem cano no meio (`| tail` mascara a
+    falha — já derrubou um deploy de produção). Sem gate de revisão, esta é a
+    única rede que existe.
+  - Mudança que depende de **migração** espera. A migração é rodada à mão pelo
+    usuário, e subir o código antes abre uma janela em que o app quebra. Avise
+    e segure o push até ele confirmar.
 
 ## O que já vem pronto (não reimplementar)
 
