@@ -25,7 +25,6 @@ import {
   Screen,
   ScreenBody,
   Section,
-  SectionTitle,
   Toast,
 } from '@ui/design'
 import { AddStatusSheet } from '@ui/components/AddStatusSheet'
@@ -288,26 +287,33 @@ export function ShelfScreen() {
           </div>
         )}
 
-        {searchingExternal && (
-          <section className="mt-6 pb-8">
-            <SectionTitle media={mediaType} className="mb-2">
-              {t('shelf.notOnShelf')}
-            </SectionTitle>
+        {/* MESMA `Section` das seções de status, e não um cabeçalho próprio: os
+            resultados da fonte são mais um bloco desta estante, e antes eles
+            eram anunciados por um rótulo miúdo em caixa alta enquanto "Jogando"
+            e "Na fila" tinham título de verdade — a mesma tela falando em dois
+            tons. Vem com a contagem junto, como as outras.
 
-            {noSource ? (
-              <p className="text-body text-muted">
-                {signedIn
+            Os três vazios possíveis (sem fonte, buscando, nada encontrado)
+            entram como `emptyLabel`: a `Section` já mostra essa mensagem no
+            lugar do conteúdo quando a contagem é zero, com a mesma tipografia
+            que eles tinham soltos aqui. */}
+        {searchingExternal && (
+          <Section
+            className="mt-6 pb-8"
+            title={t('shelf.notOnShelf')}
+            count={fresh.length}
+            collapsible={false}
+            emptyLabel={
+              noSource
+                ? signedIn
                   ? t('add.noSource', { media: t(mediaLabelKey(mediaType)) })
-                  : t('add.needsLogin')}
-              </p>
-            ) : searching ? (
-              <p className="text-body text-muted">{t('add.searching')}</p>
-            ) : fresh.length === 0 ? (
-              <p className="text-body text-muted">
-                {t('add.noResults', { query: trimmed })}
-              </p>
-            ) : (
-              <CoverGrid>
+                  : t('add.needsLogin')
+                : searching
+                  ? t('add.searching')
+                  : t('add.noResults', { query: trimmed })
+            }
+          >
+            <CoverGrid>
                 {fresh.map((result) => (
                   <li key={`${result.provider}:${result.externalId}`}>
                     {/* Irmãos, não aninhados: botão dentro de botão é HTML
@@ -340,9 +346,8 @@ export function ShelfScreen() {
                     </div>
                   </li>
                 ))}
-              </CoverGrid>
-            )}
-          </section>
+            </CoverGrid>
+          </Section>
         )}
       </ScreenBody>
 

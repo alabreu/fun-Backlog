@@ -46,8 +46,9 @@ export interface SectionProps {
   title: string
   /** Quantos itens há aqui. Aparece ao lado da seta, sempre — inclusive zero. */
   count: number
-  open: boolean
-  onToggle: () => void
+  /** Só faz sentido com `collapsible`: sem ele a seção está sempre aberta. */
+  open?: boolean
+  onToggle?: () => void
   /** Mostrado no lugar do conteúdo quando não há nada. */
   emptyLabel: string
   /**
@@ -64,7 +65,10 @@ export interface SectionProps {
 export function Section({
   title,
   count,
-  open,
+  // Uma seção que não colapsa não tem estado de abertura para o pai guardar —
+  // exigir os dois dela obrigaria a inventar um `() => {}` no lugar da chamada,
+  // que é ruído fingindo ser API.
+  open = true,
   onToggle,
   emptyLabel,
   collapsible = true,
