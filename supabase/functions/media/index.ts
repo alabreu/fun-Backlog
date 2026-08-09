@@ -163,19 +163,34 @@ const IGDB_FIELDS_BASE =
   'total_rating_count'
 
 /**
- * A COLEÇÃO ("The Legend of Zelda"), que o cliente usa para manter os títulos de
- * uma franquia vizinhos na lista em vez de intercalados por popularidade.
+ * A FRANQUIA ("The Legend of Zelda"), que o cliente usa para manter os títulos
+ * de uma série vizinhos na lista em vez de intercalados por popularidade.
  *
- * É uma LISTA DE CANDIDATOS porque o nome do campo é a parte que não dá para
- * garantir: a IGDB vem renomeando colunas e um campo inexistente não devolve
- * "sem coleção" — devolve 400 e derruba a busca inteira. Em vez de apostar num
- * nome, a function tenta o primeiro, e ao levar 400 desce para o próximo; a
- * string vazia no fim é a desistência, que reproduz o comportamento anterior.
+ * ERA `collection.name`, E ESSE ERA O ERRO. Na IGDB, "collection" é a SÉRIE, e
+ * ela é bem mais fina do que o nome sugere: existe uma coleção chamada "The
+ * Legend of Zelda: Breath of the Wild", contendo o jogo e suas edições. Pedir
+ * a coleção dava a cada Zelda um nome de grupo diferente, e um grupo de um só
+ * não muda de lugar — por isso a ordenação por franquia não teve efeito
+ * nenhum na tela. O guarda-chuva é `franchise`, o que a igdb.com mostra em
+ * /franchises/the-legend-of-zelda.
+ *
+ * Continua uma LISTA DE CANDIDATOS porque o nome do campo é a parte que não dá
+ * para garantir daqui: a IGDB está renomeando os dois pares para o plural
+ * (`franchises` substitui `franchise`) e um campo inexistente não devolve "sem
+ * franquia" — devolve 400 e derruba a busca inteira. A function tenta o
+ * primeiro, e ao levar 400 desce para o próximo; a string vazia no fim é a
+ * desistência, e mesmo ela é sobrevivível: sem o campo, o cliente agrupa pelo
+ * título antes dos dois pontos.
  *
  * A escolha fica LEMBRADA na instância: o custo de descobrir é pago uma vez por
  * instância fria, não a cada tecla digitada.
  */
-const IGDB_COLLECTION_FIELDS = ['collection.name', 'collections.name', '']
+const IGDB_COLLECTION_FIELDS = [
+  'franchises.name',
+  'franchise.name',
+  'collection.name',
+  '',
+]
 let colecaoEscolhida = 0
 
 function igdbFields(): string {
@@ -293,11 +308,19 @@ function diag(dados: Record<string, unknown>): void {
 function amostra(linhas: unknown): Record<string, unknown> {
   const lista = Array.isArray(linhas) ? linhas : []
   const l = lista[0] as
-    | { total_rating_count?: number; collection?: unknown; collections?: unknown }
+    | {
+        total_rating_count?: number
+        franchise?: unknown
+        franchises?: unknown
+        collection?: unknown
+      }
     | undefined
   return {
     temRating: l?.total_rating_count !== undefined,
-    temCollection: l?.collection !== undefined || l?.collections !== undefined,
+    temFranquia:
+      l?.franchises !== undefined ||
+      l?.franchise !== undefined ||
+      l?.collection !== undefined,
     // Cortados em 18 caracteres: cabem três numa linha de celular, e o começo
     // do título já é suficiente para reconhecê-lo.
     top: lista
@@ -345,7 +368,7 @@ async function buscaIgdb(safe: string, fields: string): Promise<unknown> {
     ),
   ])
 
-  // As duas falharam: 400 sobe para o chamador trocar o campo de coleção; o
+  // As duas falharam: 400 sobe para o chamador trocar o campo de franquia; o
   // resto vira indisponibilidade normal.
   if (relevancia.erro && popularidade.erro) {
     diag({ erros: [relevancia.erro, popularidade.erro] })
@@ -381,9 +404,9 @@ async function searchIgdb(query: string): Promise<unknown> {
   if (safe.length < CONFIG.minQuery) return []
   ultimoDiag = []
 
-  // Desce a lista de candidatos a campo de coleção enquanto a IGDB recusar o
+  // Desce a lista de candidatos a campo de franquia enquanto a IGDB recusar o
   // nome. Só o 400 faz descer: 429 e 503 são a fonte ocupada ou fora do ar, e
-  // desistir da coleção por causa deles perderia a feature para sempre por um
+  // desistir da franquia por causa deles perderia a feature para sempre por um
   // problema passageiro.
   for (;;) {
     try {
@@ -394,7 +417,7 @@ async function searchIgdb(query: string): Promise<unknown> {
       if (!campoRuim || !restam) throw error
       colecaoEscolhida++
       diag({
-        campoColecaoRecusado: true,
+        campoRecusado: true,
         proximo: IGDB_COLLECTION_FIELDS[colecaoEscolhida] || '(nenhum)',
       })
     }

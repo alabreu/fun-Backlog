@@ -5,7 +5,13 @@ import {
   mapOpenLibraryWork,
   openLibraryCover,
 } from './openlibrary'
-import { dedupe, PROVIDERS, searchAll, sortByFranchise } from './search'
+import {
+  dedupe,
+  familyKey,
+  PROVIDERS,
+  searchAll,
+  sortByFranchise,
+} from './search'
 import {
   googleBooksCover,
   mapGoogleVolume,
@@ -388,15 +394,61 @@ describe('sortByFranchise', () => {
     ])
   })
 
-  // A garantia de que o conserto não estraga o que já funcionava: sem o campo,
-  // a lista sai exatamente como entrou. É o caso de anime, série e livro.
-  it('sem franquia nenhuma, não mexe em nada', () => {
+  // A garantia de que o conserto não estraga o que já funcionava: títulos que
+  // não têm nada em comum saem exatamente como entraram.
+  it('sem nada em comum, não mexe em nada', () => {
     const entrada = [
       jogo('C', 2020),
       jogo('A', 1990),
       jogo('B', 2005),
     ]
     expect(sortByFranchise(entrada).map((r) => r.title)).toEqual(['C', 'A', 'B'])
+  })
+
+  // O caso REAL da IGDB, e a razão de o conserto anterior não ter surtido
+  // efeito: a fonte devolvia uma "coleção" diferente para cada Zelda (existe
+  // uma chamada "The Legend of Zelda: Breath of the Wild"), então cada jogo
+  // virava um grupo de um só. O título salva sozinho.
+  it('agrupa pelo título antes dos dois pontos quando a fonte não ajuda', () => {
+    const ordenado = sortByFranchise([
+      jogo('The Legend of Zelda: Breath of the Wild', 2017),
+      jogo('Super Mario Odyssey', 2017),
+      jogo('The Legend of Zelda: Ocarina of Time', 1998),
+      jogo('The Legend of Zelda: Tears of the Kingdom', 2023),
+    ])
+
+    expect(ordenado.map((r) => r.title)).toEqual([
+      'The Legend of Zelda: Ocarina of Time',
+      'The Legend of Zelda: Breath of the Wild',
+      'The Legend of Zelda: Tears of the Kingdom',
+      'Super Mario Odyssey',
+    ])
+  })
+
+  // O original de 1986 não tem subtítulo, e mesmo assim é da família: a chave
+  // de quem não tem dois pontos é o título inteiro, que é igual ao prefixo dos
+  // outros.
+  it('o título sem subtítulo entra no grupo que leva o nome dele', () => {
+    const ordenado = sortByFranchise([
+      jogo('The Legend of Zelda: Breath of the Wild', 2017),
+      jogo('The Legend of Zelda', 1986),
+    ])
+    expect(ordenado.map((r) => r.year)).toEqual([1986, 2017])
+  })
+
+  // Casar pelo prefixo não pode virar casar por qualquer coisa: o hífen sem
+  // espaço faz parte do nome, não separa subtítulo.
+  it('não parte um nome composto por hífen', () => {
+    expect(familyKey(jogo('Spider-Man 2', 2023))).toBe('spider man 2')
+    expect(familyKey(jogo('Marvel - Spider-Man', 2018))).toBe('marvel')
+  })
+
+  // As duas fontes de chave passam pela mesma normalização, então uma obra com
+  // o campo da fonte e outra só com o título caem no mesmo grupo.
+  it('o campo da fonte e o título casam entre si', () => {
+    expect(familyKey(jogo('Ocarina of Time', 1998, 'The Legend of Zelda'))).toBe(
+      familyKey(jogo('The Legend of Zelda: Breath of the Wild', 2017)),
+    )
   })
 
   it('obra sem ano vai para o fim do próprio grupo, não para o começo', () => {

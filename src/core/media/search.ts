@@ -77,20 +77,30 @@ export interface SearchOptions {
  * Obra sem ano fica com uma chave só dela — na dúvida, mostrar duas vezes é
  * menos grave que sumir com a que a pessoa procurava.
  */
+/**
+ * O título reduzido ao que ele tem de conteúdo: sem caixa, sem acento e sem
+ * pontuação. "O Senhor dos Anéis:" e "O senhor dos aneis" viram a mesma coisa,
+ * que é o que a pessoa vê na tela.
+ */
+function normalizeTitle(title: string): string {
+  return (
+    title
+      .toLowerCase()
+      .normalize('NFD')
+      // Tira o acento (a combinação que o NFD separou) e depois tudo que não
+      // for letra ou número.
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+  )
+}
+
 export function dedupe(results: MediaSearchResult[]): MediaSearchResult[] {
   const seen = new Set<string>()
   const kept: MediaSearchResult[] = []
 
   for (const result of results) {
-    const title = result.title
-      .toLowerCase()
-      .normalize('NFD')
-      // Tira acento (a combinação separada pelo NFD) e depois tudo que não é
-      // letra ou número: "O Senhor dos Anéis:" e "O senhor dos aneis" viram a
-      // mesma coisa, que é o que a pessoa vê na tela.
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim()
+    const title = normalizeTitle(result.title)
     const key = result.year
       ? `${result.mediaType}:${title}:${result.year}`
       : `${result.mediaType}:${title}:${result.provider}:${result.externalId}`
@@ -103,6 +113,7 @@ export function dedupe(results: MediaSearchResult[]): MediaSearchResult[] {
   // Duas fontes juntas passam de vinte com folga, e a lista é para ESCOLHER.
   return kept.slice(0, SEARCH_LIMIT)
 }
+
 
 /**
  * Junta os títulos de uma mesma FRANQUIA, sem bagunçar o resto.
@@ -122,17 +133,47 @@ export function dedupe(results: MediaSearchResult[]): MediaSearchResult[] {
  *    série na cabeça, e é a única ordem em que "o próximo que eu não joguei"
  *    tem significado. Sem ano vai para o fim do grupo, não para o começo.
  *
- * Obra SEM franquia é um grupo de uma só, e por isso não sai do lugar. Como
- * hoje só a IGDB devolve o campo, em anime, série e livro esta função não muda
- * absolutamente nada — o que é o comportamento desejado, e não uma limitação a
- * consertar depois.
+ * Obra que não casa com ninguém é um grupo de uma só, e por isso não sai do
+ * lugar. Quem decide o grupo é `familyKey` — e é ELE que faz isto valer para
+ * todas as mídias, não só para a IGDB: a trilogia do Senhor dos Anéis e as
+ * temporadas de um anime se agrupam pelo título, sem campo nenhum da fonte.
  */
+/**
+ * A que FAMÍLIA um resultado pertence, para efeito de agrupamento.
+ *
+ * Duas fontes de verdade, nesta ordem:
+ *
+ * 1. O campo da fonte (`franchise`), quando ela tem um. É o melhor: alguém
+ *    catalogou.
+ * 2. O TÍTULO ANTES DOS DOIS PONTOS. Não é gambiarra — é como a indústria
+ *    nomeia: "The Legend of Zelda: Breath of the Wild", "Final Fantasy VII:
+ *    Remake", "O Senhor dos Anéis: A Sociedade do Anel". O prefixo é
+ *    literalmente o nome da série, escrito pelo próprio editor.
+ *
+ * Sem dois pontos, a chave é o título inteiro normalizado — e é isso que faz
+ * "The Legend of Zelda" (1986, sem subtítulo) cair no MESMO grupo que "The
+ * Legend of Zelda: Ocarina of Time". Um grupo de um só não move nada, então o
+ * caso comum (título solto que não casa com ninguém) continua intocado.
+ *
+ * As duas fontes passam pela MESMA normalização de propósito: assim uma obra
+ * que veio com o campo preenchido e outra que só tem o título casam entre si,
+ * em vez de formarem dois grupos com o mesmo nome.
+ */
+export function familyKey(result: MediaSearchResult): string {
+  if (result.franchise) return normalizeTitle(result.franchise)
+
+  // Só os separadores que introduzem SUBTÍTULO. O hífen exige espaço dos dois
+  // lados: sem isso, "Spider-Man" viraria a família "Spider".
+  const prefixo = result.title.split(/\s*:\s*|\s+[–—-]\s+/)[0]
+  return normalizeTitle(prefixo.length >= 2 ? prefixo : result.title)
+}
+
 export function sortByFranchise(
   results: MediaSearchResult[],
 ): MediaSearchResult[] {
-  // Chave do grupo. Sem franquia, uma chave só dela: o índice garante que dois
-  // resultados soltos nunca caiam no mesmo balde.
-  const chave = (r: MediaSearchResult, i: number) => r.franchise ?? `#${i}`
+  // Chave vazia (título que normaliza para nada) vira uma chave só dela: o
+  // índice garante que dois resultados sem nome não caiam no mesmo balde.
+  const chave = (r: MediaSearchResult, i: number) => familyKey(r) || `#${i}`
 
   const melhorPosicao = new Map<string, number>()
   results.forEach((r, i) => {

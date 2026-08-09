@@ -20,7 +20,24 @@ export function igdbCoverUrl(imageId: string): string {
 }
 
 interface IgdbGame {
-  /** A série ("The Legend of Zelda"), quando a IGDB devolve. */
+  /**
+   * A FRANQUIA ("The Legend of Zelda"). Quatro campos porque a IGDB tem dois
+   * conceitos parecidos e está no meio de uma renomeação em ambos:
+   *
+   * - `franchise`/`franchises` é o guarda-chuva — o que a igdb.com mostra em
+   *   /franchises/the-legend-of-zelda e o que queremos aqui.
+   * - `collection`/`collections` é a SÉRIE, e é bem mais fina do que o nome
+   *   sugere: existe uma coleção chamada "The Legend of Zelda: Breath of the
+   *   Wild", com o jogo e suas edições dentro. Agrupar por ela deixaria cada
+   *   Zelda no seu próprio grupo — que foi exatamente o que aconteceu.
+   *
+   * O plural é o campo novo em cada par (`franchises` substitui `franchise`),
+   * então ele vem primeiro na leitura. A coleção fica como último recurso: é
+   * agrupamento fino demais, mas ainda é melhor que nenhum.
+   */
+  franchises?: { name?: string }[]
+  franchise?: { name?: string }
+  collections?: { name?: string }[]
   collection?: { name?: string }
   id: number
   name?: string
@@ -53,10 +70,15 @@ export function mapIgdbGame(game: IgdbGame): MediaSearchResult | null {
       ? new Date(game.first_release_date * 1000).getUTCFullYear()
       : undefined,
     subtitle: platforms.length > 0 ? platforms.join(', ') : undefined,
-    // A Edge Function pede o nome da coleção quando a IGDB aceita o campo (ver
-    // o comentário dela). Quando não vem, isto fica ausente e a ordenação por
-    // franquia não tem o que fazer — que é exatamente o comportamento de hoje.
-    franchise: game.collection?.name || undefined,
+    // Lê o primeiro dos quatro campos que vier (ver `IgdbGame`). Ausente não é
+    // problema: `familyKey` cai no título, e "The Legend of Zelda: Ocarina of
+    // Time" agrupa igual.
+    franchise:
+      game.franchises?.[0]?.name ||
+      game.franchise?.name ||
+      game.collections?.[0]?.name ||
+      game.collection?.name ||
+      undefined,
   }
 }
 
