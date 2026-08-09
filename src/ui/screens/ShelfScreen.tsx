@@ -10,6 +10,7 @@ import {
 } from '@core/items/status'
 import { MEDIA_TYPES, type Item, type MediaType } from '@core/items/types'
 import { hasProviderFor } from '@core/media/search'
+import { lastMediaDiag } from '@core/media/server'
 import type { MediaSearchResult } from '@core/media/types'
 import {
   Cover,
@@ -332,6 +333,15 @@ export function ShelfScreen() {
           </section>
         )}
       </ScreenBody>
+
+      {/* SONDA TEMPORÁRIA da busca de jogos — sai junto com o diagnóstico.
+          Fora de `ScreenBody` para não empurrar a lista, e sem i18n de
+          propósito: é ferramenta de diagnóstico, não texto de produto. */}
+      {lastMediaDiag !== null && searchingExternal && (
+        <p className="max-h-24 overflow-y-auto break-all px-gutter pb-2 text-label text-muted">
+          {JSON.stringify(lastMediaDiag)}
+        </p>
+      )}
 
       {flash && (
         <Toast

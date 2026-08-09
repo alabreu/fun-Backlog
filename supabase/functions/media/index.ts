@@ -24,15 +24,12 @@ const CONFIG = {
   /** Quantos resultados DEVOLVER. Espelha o SEARCH_LIMIT de core/media/types.ts. */
   limit: 20,
   /**
-   * Quantos PEDIR à IGDB EM CADA uma das duas consultas de `searchIgdb`.
+   * Quantos PEDIR à IGDB EM CADA uma das duas consultas de `buscaIgdb`.
    *
    * Buscar "zelda" devolve mais de cem entradas — remasters, ports, DLCs,
    * versões regionais — e o `search` da IGDB ordena por semelhança de string,
    * não por relevância para gente. Nessa ordem, "Zelda's Adventure" ganha de
    * "The Legend of Zelda: Tears of the Kingdom", que tem o nome mais longo.
-   *
-   * O custo é payload, não requisição: continua sendo UMA chamada, e a IGDB
-   * limita requisições, não bytes.
    */
   igdbPool: 50,
   /** Uma busca menor que isso não é busca, é tecla solta. Espelha o cliente. */
@@ -51,8 +48,6 @@ const CONFIG = {
 
 const TWITCH_TOKEN_URL = 'https://id.twitch.tv/oauth2/token'
 const IGDB_URL = 'https://api.igdb.com/v4/games'
-/** Duas consultas numa requisição só. Ver `searchIgdb`. */
-const IGDB_MULTIQUERY_URL = 'https://api.igdb.com/v4/multiquery'
 const TMDB_URL = 'https://api.themoviedb.org/3'
 
 // Restrinja para a origin do app em produção (`supabase secrets set
@@ -172,11 +167,10 @@ const IGDB_FIELDS_BASE =
  * uma franquia vizinhos na lista em vez de intercalados por popularidade.
  *
  * É uma LISTA DE CANDIDATOS porque o nome do campo é a parte que não dá para
- * garantir: a IGDB vem renomeando colunas (ver IGDB_COLLECTION_FIELDS) e um
- * campo inexistente não devolve "sem coleção" — devolve 400 e derruba a busca
- * inteira. Em vez de apostar num nome, a function tenta o primeiro, e ao levar
- * 400 desce para o próximo; a string vazia no fim é a desistência, que reproduz
- * exatamente o comportamento anterior a esta feature.
+ * garantir: a IGDB vem renomeando colunas e um campo inexistente não devolve
+ * "sem coleção" — devolve 400 e derruba a busca inteira. Em vez de apostar num
+ * nome, a function tenta o primeiro, e ao levar 400 desce para o próximo; a
+ * string vazia no fim é a desistência, que reproduz o comportamento anterior.
  *
  * A escolha fica LEMBRADA na instância: o custo de descobrir é pago uma vez por
  * instância fria, não a cada tecla digitada.
@@ -200,9 +194,8 @@ const IGDB_DETAIL_FIELDS =
 /**
  * "Onde comprar" — Steam, Epic, GOG, itch. Fica SEPARADO do resto dos campos
  * porque `websites.category` é justamente o tipo de coluna que a IGDB vem
- * renomeando (ver IGDB_COLLECTION_FIELDS), e um campo extinto não devolve
- * "sem links": devolve erro e derruba a ficha inteira. Separado, `detailIgdb`
- * consegue tentar de novo sem ele.
+ * renomeando, e um campo extinto não devolve "sem links": devolve erro e
+ * derruba a ficha inteira. Separado, `detailIgdb` tenta de novo sem ele.
  */
 const IGDB_WEBSITE_FIELDS = ',websites.url,websites.category'
 
@@ -247,41 +240,6 @@ function byPopularity(rows: unknown): unknown {
     .slice(0, CONFIG.limit)
 }
 
-/**
- * Busca de jogos: DUAS consultas, sempre, numa requisição só.
- *
- * POR QUE DUAS. O `search` da IGDB ordena por semelhança de string, não por
- * relevância para gente — e numa franquia grande isso é fatal. "Zelda" tem mais
- * de cem entradas, e nomes curtos como "Zelda's Adventure" ganham de "The
- * Legend of Zelda: Tears of the Kingdom" justamente por serem curtos. Pedindo
- * as N primeiras do `search`, os títulos que a pessoa procura podem nem estar
- * no lote — e aí nenhuma reordenação os recupera.
- *
- * ESSE FOI O ERRO DA TENTATIVA ANTERIOR: pedir 50 em vez de 12 e reordenar por
- * popularidade só conserta a ordem DENTRO do lote. Se o lote está errado, a
- * ordem certa dele continua sem Breath of the Wild. A consulta por popularidade
- * já existia aqui, mas só rodava quando o `search` voltava VAZIO — ou seja,
- * nunca no caso que importava.
- *
- * Então as duas rodam juntas e os resultados se somam:
- *
- *   relevância  `search "zelda"` — casa nome alternativo, acento e ordem de
- *               palavras. É o que faz "botw" ou um título japonês acharem algo.
- *   popularidade `where name ~ *"zelda"*` ordenado por avaliações — substring
- *               burra, mas garante que os campeões da franquia estejam no lote.
- *
- * `multiquery` manda as duas num POST só, então o custo contra o limite da IGDB
- * (4 req/s para a aplicação INTEIRA) continua o de uma ida.
- */
-function igdbMultiquery(safe: string, fields: string): string {
-  return (
-    `query games "relevancia" { ${fields} search "${safe}"; ` +
-    `limit ${CONFIG.igdbPool}; };\n` +
-    `query games "popularidade" { ${fields} where name ~ *"${safe}"*; ` +
-    `sort total_rating_count desc; limit ${CONFIG.igdbPool}; };`
-  )
-}
-
 /** Junta os dois lotes SEM repetir, e reordena o conjunto por popularidade. */
 function mergeById(lotes: unknown[]): unknown[] {
   const porId = new Map<number, unknown>()
@@ -306,78 +264,122 @@ function mergeById(lotes: unknown[]): unknown[] {
  * distinguir as hipóteses entre si, e nada além.
  *
  * NÃO registra o texto buscado nem nada do usuário — só qual caminho a função
- * tomou, quantas linhas cada consulta devolveu e se os campos que a ordenação
- * depende vieram. É o mínimo para diagnosticar e o máximo que é dele.
+ * tomou, quantas linhas cada consulta devolveu, os primeiros títulos e se os
+ * campos de que a ordenação depende vieram.
  */
+let ultimoDiag: Record<string, unknown>[] = []
+
+/** O diagnóstico da última resposta de cada busca, para acompanhar o cache. */
+const diagCache = new Map<string, Record<string, unknown>[]>()
+
 function diag(dados: Record<string, unknown>): void {
   console.log(JSON.stringify({ diag: 'igdb-search', ...dados }))
+  // ACUMULA para devolver na resposta: o acesso a logs do agente entrega só as
+  // requisições, não a saída de console, e o celular não tem DevTools. Sai
+  // junto com esta sonda assim que a causa estiver identificada.
+  ultimoDiag.push(dados)
 }
 
-/** O primeiro item tem o campo? É o que separa "a IGDB não mandou" de "a
- *  ordenação está errada" — duas causas com o mesmo sintoma na tela. */
+/**
+ * O que a IGDB devolveu, resumido: os três primeiros nomes e se os campos de
+ * que a ordenação depende vieram.
+ *
+ * Os NOMES são o que separa as duas metades do problema. Se "Breath of the
+ * Wild" está aqui e não está na tela, o defeito é nosso, depois da resposta —
+ * mapeamento, corte ou ordenação no cliente. Se não está nem aqui, o defeito é
+ * a consulta. São hipóteses opostas com a mesma tela, e três títulos decidem
+ * entre elas.
+ */
 function amostra(linhas: unknown): Record<string, unknown> {
-  const primeira = Array.isArray(linhas) ? linhas[0] : undefined
-  const l = primeira as
+  const lista = Array.isArray(linhas) ? linhas : []
+  const l = lista[0] as
     | { total_rating_count?: number; collection?: unknown; collections?: unknown }
     | undefined
   return {
     temRating: l?.total_rating_count !== undefined,
     temCollection: l?.collection !== undefined || l?.collections !== undefined,
+    // Cortados em 18 caracteres: cabem três numa linha de celular, e o começo
+    // do título já é suficiente para reconhecê-lo.
+    top: lista
+      .slice(0, 3)
+      .map((g) => String((g as { name?: string })?.name ?? '?').slice(0, 18)),
   }
 }
 
-async function buscaIgdb(safe: string, fields: string): Promise<unknown> {
+/** Roda uma consulta e devolve o erro em vez de lançar: com duas em paralelo,
+ *  uma falhando não pode levar a outra junto. */
+async function tentar(
+  q: string,
+): Promise<{ linhas: unknown; erro: number }> {
   try {
-    const resposta = await askIgdb(
-      igdbMultiquery(safe, fields),
-      IGDB_MULTIQUERY_URL,
-    )
-    if (Array.isArray(resposta)) {
-      const lotes = resposta.map((bloco) => (bloco as { result?: unknown })?.result)
-      // Os DOIS tamanhos separados: se a consulta de popularidade voltar vazia,
-      // o `where name ~ *"…"*` não está casando — hipótese diferente de o
-      // multiquery ter falhado, e as duas dão a mesma tela.
-      diag({
-        caminho: 'multiquery',
-        lotes: lotes.map((l) => (Array.isArray(l) ? l.length : -1)),
-        campoColecao: IGDB_COLLECTION_FIELDS[colecaoEscolhida] || '(nenhum)',
-        ...amostra(lotes[1] ?? lotes[0]),
-      })
-      const juntos = mergeById(lotes)
-      if (juntos.length > 0) return juntos
-    } else {
-      diag({ caminho: 'multiquery', formatoInesperado: typeof resposta })
-    }
+    return { linhas: await askIgdb(q), erro: 0 }
   } catch (error) {
-    const status = error instanceof UpstreamError ? error.status : 0
-    diag({ caminho: 'multiquery', falhou: status })
-    // 400 é campo inválido, e quem trata disso é o chamador — os outros erros
-    // caem no caminho antigo, que é a rede de segurança do multiquery.
-    if (error instanceof UpstreamError && error.status === 400) throw error
+    return { linhas: null, erro: error instanceof UpstreamError ? error.status : 0 }
+  }
+}
+
+/**
+ * DUAS CHAMADAS SIMPLES, em paralelo, no mesmo endpoint `/v4/games` que o resto
+ * da function usa.
+ *
+ * POR QUE DUAS. O `search` da IGDB ordena por semelhança de string, não por
+ * relevância para gente — e numa franquia grande isso é fatal: pedindo as N
+ * primeiras, os títulos que a pessoa procura podem nem estar no lote, e aí
+ * nenhuma reordenação os recupera. A segunda consulta é substring burra
+ * ordenada por avaliações, e é ela que garante os campeões da franquia.
+ *
+ * Era um `multiquery` — um endpoint e uma sintaxe que eu NÃO consegui verificar
+ * (a documentação da IGDB é inacessível do ambiente onde este código é escrito),
+ * e que, se falhasse, caía em silêncio no caminho antigo. Trocar por duas
+ * chamadas comuns custa uma requisição a mais contra o limite da IGDB e elimina
+ * uma classe inteira de falha invisível. Com o cache de 60s, a conta fecha.
+ */
+async function buscaIgdb(safe: string, fields: string): Promise<unknown> {
+  const [relevancia, popularidade] = await Promise.all([
+    // Casa nome alternativo, acento e ordem de palavras.
+    tentar(`search "${safe}"; ${fields} limit ${CONFIG.igdbPool};`),
+    // Substring burra ordenada por avaliações: é esta que garante que os
+    // campeões da franquia estejam no lote, independente da relevância.
+    tentar(
+      `where name ~ *"${safe}"*; ${fields} sort total_rating_count desc; limit ${CONFIG.igdbPool};`,
+    ),
+  ])
+
+  // As duas falharam: 400 sobe para o chamador trocar o campo de coleção; o
+  // resto vira indisponibilidade normal.
+  if (relevancia.erro && popularidade.erro) {
+    diag({ erros: [relevancia.erro, popularidade.erro] })
+    const status =
+      relevancia.erro === 400 || popularidade.erro === 400 ? 400 : relevancia.erro
+    throw new UpstreamError(status || 503)
   }
 
-  const found = await askIgdb(`search "${safe}"; ${fields} limit ${CONFIG.igdbPool};`)
+  const juntos = mergeById([relevancia.linhas, popularidade.linhas])
+
+  // AS DUAS consultas separadas, e o resultado final. Se `pop` traz Breath of
+  // the Wild e `fim` não, o problema é a junção; se `pop` já não traz, é a
+  // consulta. Uma só amostra não distinguiria as duas.
   diag({
-    caminho: 'search',
-    linhas: Array.isArray(found) ? found.length : -1,
-    ...amostra(found),
+    campo: IGDB_COLLECTION_FIELDS[colecaoEscolhida] || '(nenhum)',
+    erros: [relevancia.erro, popularidade.erro],
+    rel: {
+      n: Array.isArray(relevancia.linhas) ? relevancia.linhas.length : -1,
+      ...amostra(relevancia.linhas),
+    },
+    pop: {
+      n: Array.isArray(popularidade.linhas) ? popularidade.linhas.length : -1,
+      ...amostra(popularidade.linhas),
+    },
+    fim: { n: juntos.length, ...amostra(juntos) },
   })
-  if (Array.isArray(found) && found.length > 0) return byPopularity(found)
 
-  // Último recurso, para PALAVRA INCOMPLETA: o `search` exige palavras
-  // inteiras ("starcr" não acha "StarCraft"), e a tela busca a cada tecla.
-  try {
-    return await askIgdb(
-      `where name ~ *"${safe}"*; ${fields} sort total_rating_count desc; limit ${CONFIG.limit};`,
-    )
-  } catch {
-    return found
-  }
+  return juntos
 }
 
 async function searchIgdb(query: string): Promise<unknown> {
   const safe = escapeApicalypse(query)
   if (safe.length < CONFIG.minQuery) return []
+  ultimoDiag = []
 
   // Desce a lista de candidatos a campo de coleção enquanto a IGDB recusar o
   // nome. Só o 400 faz descer: 429 e 503 são a fonte ocupada ou fora do ar, e
@@ -556,7 +558,14 @@ Deno.serve(async (req: Request) => {
       ? `${source}:imdb:${imdbId}`
       : `${source}:q:${query.toLowerCase()}`
   const cached = cacheGet(key)
-  if (cached !== undefined) return json(200, { results: cached })
+  if (cached !== undefined)
+    return json(200, {
+      results: cached,
+      // O diagnóstico acompanha o cache. Sem isto, repetir a mesma busca dentro
+      // de 60s devolveria a resposta sem a sonda — e "sumiu" seria lido como
+      // "consertou". SONDA TEMPORÁRIA, sai com o resto.
+      ...(diagCache.has(key) ? { diag: diagCache.get(key) } : {}),
+    })
 
   try {
     const results = detailId
@@ -570,7 +579,11 @@ Deno.serve(async (req: Request) => {
           : await searchTmdb(query)
 
     cacheSet(key, results)
-    return json(200, { results })
+    // SONDA TEMPORÁRIA (ver `diag`). Só na busca de jogos, e só enquanto o
+    // caso do "zelda" não estiver fechado.
+    const temDiag = source === 'igdb' && ultimoDiag.length > 0
+    if (temDiag) diagCache.set(key, ultimoDiag)
+    return json(200, { results, ...(temDiag ? { diag: ultimoDiag } : {}) })
   } catch (error) {
     if (error instanceof UpstreamError) {
       const mapped = mapUpstream(error.status)

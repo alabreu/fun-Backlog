@@ -17,6 +17,19 @@ import {
  */
 export const MEDIA_FUNCTION_PATH = '/functions/v1/media'
 
+/**
+ * SONDA TEMPORÁRIA — remover assim que a busca de jogos for diagnosticada.
+ *
+ * A Edge Function escreve o diagnóstico dela em `console.log`, e o acesso a
+ * logs disponível aqui devolve só as requisições, não a saída do código. Sem
+ * isto, a única forma de saber o que a IGDB respondeu seria abrir o DevTools —
+ * que não existe no celular, que é onde o problema aparece.
+ *
+ * Então a function devolve o diagnóstico junto da resposta e a tela o mostra.
+ * Não guarda nada do usuário: caminho, contagens e presença de campo.
+ */
+export let lastMediaDiag: unknown = null
+
 export type MediaSource = 'igdb' | 'tmdb'
 
 interface MediaRequest {
@@ -61,7 +74,8 @@ export async function callMediaFunction<T>(
 
   if (!response.ok) throw new Error(`${request.source}-unavailable`)
 
-  const body = (await response.json()) as { results?: T }
+  const body = (await response.json()) as { results?: T; diag?: unknown }
+  if (body?.diag !== undefined) lastMediaDiag = body.diag
   if (body?.results === undefined) throw new Error(`${request.source}-unavailable`)
   return body.results
 }
