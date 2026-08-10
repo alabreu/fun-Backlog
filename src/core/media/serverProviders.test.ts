@@ -167,6 +167,65 @@ describe('mapeamento da TMDB', () => {
     expect(results).toHaveLength(SEARCH_LIMIT)
     expect(results.every((r) => r.mediaType === 'movie')).toBe(true)
   })
+
+  // Sem mídia pedida (a busca unificada da tela `+`) a chamada é a mista.
+  it('sem mídia pedida, não manda searchKind', async () => {
+    called.mockResolvedValue({ results: [] })
+    await tmdbProvider.search('duna')
+    expect(called).toHaveBeenCalledWith(
+      expect.objectContaining({ searchKind: undefined }),
+      undefined,
+    )
+  })
+
+  // Com mídia pedida a busca é do tipo — e a resposta desse endpoint NÃO traz
+  // `media_type` em cada item, então o mapeamento depende do tipo que a gente
+  // mandou. Sem isso a estante voltaria vazia.
+  it('com série pedida, busca em /search/tv e mapeia sem media_type', async () => {
+    called.mockResolvedValue({
+      results: [{ id: 1399, name: 'Game of Thrones', first_air_date: '2011-04-17' }],
+    })
+
+    const results = await tmdbProvider.search('game of thrones', {
+      mediaType: 'series',
+    })
+
+    expect(called).toHaveBeenCalledWith(
+      expect.objectContaining({ searchKind: 'tv' }),
+      undefined,
+    )
+    expect(results).toEqual([
+      {
+        provider: 'tmdb',
+        externalId: '1399',
+        mediaType: 'series',
+        title: 'Game of Thrones',
+        coverUrl: undefined,
+        year: 2011,
+        subtitle: undefined,
+      },
+    ])
+  })
+
+  it('com filme pedido, busca em /search/movie', async () => {
+    called.mockResolvedValue({ results: [] })
+    await tmdbProvider.search('duna', { mediaType: 'movie' })
+    expect(called).toHaveBeenCalledWith(
+      expect.objectContaining({ searchKind: 'movie' }),
+      undefined,
+    )
+  })
+
+  // Mídia que a TMDB não cobre não pode virar `/search/anime`: o valor entra na
+  // URL da fonte.
+  it('mídia que não é dela cai no multi', async () => {
+    called.mockResolvedValue({ results: [] })
+    await tmdbProvider.search('bebop', { mediaType: 'anime' })
+    expect(called).toHaveBeenCalledWith(
+      expect.objectContaining({ searchKind: undefined }),
+      undefined,
+    )
+  })
 })
 
 describe('em cartaz', () => {

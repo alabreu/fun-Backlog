@@ -29,6 +29,12 @@ interface MediaRequest {
   detailId?: string
   /** A TMDB separa filme de série já na URL, então o tipo vai junto. */
   detailKind?: 'movie' | 'tv'
+  /**
+   * Restringe a BUSCA a um tipo (`/search/tv`, `/search/movie`). Ausente = a
+   * busca mista do `/search/multi`. Quem manda é a estante, que já sabe o tipo;
+   * a busca unificada não manda.
+   */
+  searchKind?: 'movie' | 'tv'
 }
 
 /**

@@ -200,6 +200,16 @@ export interface ProviderOptions {
    * provider.
    */
   region?: string
+  /**
+   * A ÚNICA mídia que a tela quer, quando ela quer uma só — é a estante, que
+   * já sabe se é de filme ou de série. Ausente é a busca unificada da tela `+`.
+   *
+   * Só interessa a provider que cobre mais de uma mídia (hoje só a TMDB, com
+   * filme e série). Para ele isto não é filtro cosmético: sem o campo a busca
+   * da TMDB é o `/search/multi`, e as vinte vagas da resposta vêm disputadas
+   * pelos dois tipos — numa estante de séries, metade da lista era filme.
+   */
+  mediaType?: MediaType
 }
 
 export interface MediaProvider {

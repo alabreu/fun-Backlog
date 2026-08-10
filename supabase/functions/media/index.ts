@@ -464,10 +464,21 @@ async function tmdbGet(path: string, params: Record<string, string>) {
   return await response.json()
 }
 
-async function searchTmdb(query: string): Promise<unknown> {
-  // `multi` traz filme e série na mesma chamada (e pessoas, que o cliente
-  // descarta) — uma requisição em vez de duas para a mesma digitação.
-  return await tmdbGet('/search/multi', {
+async function searchTmdb(
+  query: string,
+  kind?: 'tv' | 'movie',
+): Promise<unknown> {
+  // COM `kind`, a busca é do tipo. Quem pede é a estante, que já sabe se é de
+  // filme ou de série: aí as 20 vagas da resposta são todas do que a pessoa
+  // está olhando, em vez de disputadas por filme, série e pessoa.
+  //
+  // Sem `kind`, `multi` — ele traz filme e série na mesma chamada (e pessoas,
+  // que o cliente descarta), que é uma requisição em vez de duas para a mesma
+  // digitação na busca unificada.
+  //
+  // Cuidado ao mexer: a resposta do `/search/tv` e do `/search/movie` NÃO traz
+  // `media_type` em cada item — quem chamou é que sabe o tipo.
+  return await tmdbGet(kind ? `/search/${kind}` : '/search/multi', {
     query,
     include_adult: 'false',
   })
@@ -581,6 +592,7 @@ Deno.serve(async (req: Request) => {
     imdbId?: unknown
     detailId?: unknown
     detailKind?: unknown
+    searchKind?: unknown
   }
   try {
     body = await req.json()
@@ -597,6 +609,12 @@ Deno.serve(async (req: Request) => {
   const detailId = typeof body?.detailId === 'string' ? body.detailId.trim() : ''
   // Só os dois caminhos que a TMDB tem: qualquer outra coisa iria para a URL.
   const detailKind = body?.detailKind === 'tv' ? 'tv' : 'movie'
+  // A busca por tipo é OPCIONAL — ausente cai no `multi`. Lista fechada pelo
+  // mesmo motivo do `detailKind`: este valor vira caminho de URL.
+  const searchKind =
+    body?.searchKind === 'tv' || body?.searchKind === 'movie'
+      ? body.searchKind
+      : undefined
 
   if (detailId) {
     // Id da fonte é sempre numérico nas duas. Barrar aqui é o que impede o
@@ -615,7 +633,10 @@ Deno.serve(async (req: Request) => {
     ? `${source}:d:${detailKind}:${detailId}`
     : imdbId
       ? `${source}:imdb:${imdbId}`
-      : `${source}:q:${query.toLowerCase()}`
+      // O TIPO ENTRA NA CHAVE. Sem ele, a busca de "succession" na estante de
+      // séries e a mesma palavra na busca unificada dividiriam a entrada, e
+      // quem chegasse depois receberia a resposta do endpoint errado.
+      : `${source}:q:${searchKind ?? 'multi'}:${query.toLowerCase()}`
   const cached = cacheGet(key)
   if (cached !== undefined) return json(200, { results: cached })
 
@@ -628,7 +649,7 @@ Deno.serve(async (req: Request) => {
         ? await findByImdb(imdbId)
         : source === 'igdb'
           ? await searchIgdb(query)
-          : await searchTmdb(query)
+          : await searchTmdb(query, searchKind)
 
     cacheSet(key, results)
     return json(200, { results })

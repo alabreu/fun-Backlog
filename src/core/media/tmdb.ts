@@ -333,16 +333,30 @@ export const tmdbProvider: MediaProvider = {
   mediaTypes: ['movie', 'series'],
   requiresServer: true,
 
-  async search(query, { signal } = {}) {
+  async search(query, { signal, mediaType } = {}) {
+    // A ESTANTE PEDE UM TIPO SÓ, e aí a busca é do tipo: `/search/tv` ou
+    // `/search/movie` em vez do `/search/multi`. As vinte vagas da resposta
+    // passam a ser todas do que a pessoa está olhando — no `multi` elas vinham
+    // disputadas por filme, série e até pessoa, e uma estante de séries
+    // mostrava seis séries e catorze intrusos.
+    //
+    // Sem `mediaType` (a busca unificada da tela `+`) continua no `multi`: ali
+    // os dois tipos são o ponto, e uma chamada só serve os dois.
+    const searchKind =
+      mediaType === 'series' ? 'tv' : mediaType === 'movie' ? 'movie' : undefined
+
     const body = await callMediaFunction<{ results?: TmdbResult[] }>(
-      { source: 'tmdb', query },
+      { source: 'tmdb', query, searchKind },
       signal,
     )
     const results = body?.results
     if (!Array.isArray(results)) throw new Error('tmdb-unavailable')
 
     return results
-      .map((r) => mapTmdbResult(r))
+      // `/search/tv` e `/search/movie` NÃO mandam `media_type` em cada item — o
+      // tipo está no endereço que a gente escolheu. Sem o `expected` aqui, o
+      // mapeamento devolveria null para todos e a busca voltaria vazia.
+      .map((r) => mapTmdbResult(r, searchKind))
       .filter((r): r is MediaSearchResult => r !== null)
       // A TMDB devolve 20 por página; o app mostra 12 por fonte. Cortar aqui, e
       // não no servidor, porque `person` só sai depois do mapeamento.

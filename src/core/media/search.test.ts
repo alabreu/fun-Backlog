@@ -157,6 +157,40 @@ describe('searchAll', () => {
     expect(groups.map((g) => g.mediaType)).toEqual(['movie', 'book'])
   })
 
+  // A REGRESSÃO QUE MOTIVOU O CONSERTO. Pedir série trazia os filmes da mesma
+  // fonte de carona, e como a estante achata os grupos numa lista só com filme
+  // antes de série, a série exata que a pessoa digitou ia parar embaixo de uma
+  // dúzia de filmes homônimos.
+  it('pedir uma mídia devolve só ela, mesmo de fonte que cobre duas', async () => {
+    PROVIDERS.push(
+      stubProvider({
+        id: 'tmdb',
+        mediaTypes: ['movie', 'series'],
+        search: async () => [
+          result({ mediaType: 'series', provider: 'tmdb', externalId: 's', title: 'Succession' }),
+          result({ mediaType: 'movie', provider: 'tmdb', externalId: 'm', title: 'Succession' }),
+        ],
+      }),
+    )
+
+    const { groups } = await searchAll('succession', { mediaType: 'series' })
+    expect(groups.map((g) => g.mediaType)).toEqual(['series'])
+    expect(groups[0].results.map((r) => r.externalId)).toEqual(['s'])
+  })
+
+  // O outro lado do mesmo contrato: a fonte precisa RECEBER o tipo para pedir a
+  // busca certa à API, senão o corte de 20 resultados já vem disputado.
+  it('repassa a mídia pedida ao provider', async () => {
+    const search = vi.fn(async () => [result({ mediaType: 'series' })])
+    PROVIDERS.push(stubProvider({ mediaTypes: ['movie', 'series'], search }))
+
+    await searchAll('succession', { mediaType: 'series' })
+    expect(search).toHaveBeenCalledWith(
+      'succession',
+      expect.objectContaining({ mediaType: 'series' }),
+    )
+  })
+
   it('uma fonte fora do ar não derruba as outras', async () => {
     PROVIDERS.push(
       stubProvider({ id: 'ok' }),
@@ -376,7 +410,7 @@ describe('sortByFranchise', () => {
 
   // O caso que motivou tudo: buscar "zelda" trazia a franquia intercalada por
   // popularidade, com um intruso no meio.
-  it('junta a franquia e a ordena por lançamento, sem rebaixar ninguém', () => {
+  it('junta a franquia e a ordena do mais novo, sem rebaixar ninguém', () => {
     const ordenado = sortByFranchise([
       jogo('Breath of the Wild', 2017, 'The Legend of Zelda'),
       jogo('Um jogo qualquer', 2010),
@@ -386,11 +420,31 @@ describe('sortByFranchise', () => {
 
     expect(ordenado.map((r) => r.title)).toEqual([
       // A franquia herda a posição do seu melhor colocado (BOTW estava em 1º),
-      // e dentro dela vale a cronologia.
-      'Ocarina of Time',
+      // ele abre o grupo, e o resto desce do mais novo para o mais velho.
       'Breath of the Wild',
       'Tears of the Kingdom',
+      'Ocarina of Time',
       'Um jogo qualquer',
+    ])
+  })
+
+  // A razão de o melhor colocado abrir o grupo. Sem essa regra, inverter a
+  // cronologia devolveria o problema que a inversão veio consertar: o especial
+  // recente passaria na frente da obra que a pessoa digitou.
+  it('o melhor colocado abre a franquia, mesmo sendo o mais velho', () => {
+    const serie = (title: string, year: number) =>
+      result({ mediaType: 'series', provider: 'tmdb', externalId: title, title, year })
+
+    const ordenado = sortByFranchise([
+      serie('Game of Thrones', 2011),
+      serie('Game of Thrones: The Last Watch', 2019),
+      serie('Game of Thrones: The Story So Far', 2017),
+    ])
+
+    expect(ordenado.map((r) => r.title)).toEqual([
+      'Game of Thrones',
+      'Game of Thrones: The Last Watch',
+      'Game of Thrones: The Story So Far',
     ])
   })
 
@@ -418,9 +472,9 @@ describe('sortByFranchise', () => {
     ])
 
     expect(ordenado.map((r) => r.title)).toEqual([
-      'The Legend of Zelda: Ocarina of Time',
       'The Legend of Zelda: Breath of the Wild',
       'The Legend of Zelda: Tears of the Kingdom',
+      'The Legend of Zelda: Ocarina of Time',
       'Super Mario Odyssey',
     ])
   })
@@ -433,7 +487,9 @@ describe('sortByFranchise', () => {
       jogo('The Legend of Zelda: Breath of the Wild', 2017),
       jogo('The Legend of Zelda', 1986),
     ])
-    expect(ordenado.map((r) => r.year)).toEqual([1986, 2017])
+    // Estão no mesmo grupo — é isto que o teste guarda. A ordem entre eles é a
+    // das regras: BOTW veio em 1º na fonte, então abre a família.
+    expect(ordenado.map((r) => r.year)).toEqual([2017, 1986])
   })
 
   // Casar pelo prefixo não pode virar casar por qualquer coisa: o hífen sem
@@ -451,6 +507,8 @@ describe('sortByFranchise', () => {
     )
   })
 
+  // Com a ordem invertida este caso fica mais delicado: um `Infinity` ingênuo
+  // para "sem ano" mandaria a obra sem data para o TOPO do grupo.
   it('obra sem ano vai para o fim do próprio grupo, não para o começo', () => {
     const ordenado = sortByFranchise([
       jogo('Sem data', undefined, 'Saga'),
@@ -458,8 +516,23 @@ describe('sortByFranchise', () => {
       jogo('Primeiro', 1999, 'Saga'),
     ])
     expect(ordenado.map((r) => r.title)).toEqual([
-      'Primeiro',
+      // "Sem data" veio em 1º na fonte, então abre o grupo pela regra do melhor
+      // colocado. Entre os outros dois, o mais novo primeiro.
+      'Sem data',
       'Segundo',
+      'Primeiro',
+    ])
+  })
+
+  it('sem ano e sem ser o melhor colocado, vai mesmo para o fim', () => {
+    const ordenado = sortByFranchise([
+      jogo('Segundo', 2005, 'Saga'),
+      jogo('Sem data', undefined, 'Saga'),
+      jogo('Primeiro', 1999, 'Saga'),
+    ])
+    expect(ordenado.map((r) => r.title)).toEqual([
+      'Segundo',
+      'Primeiro',
       'Sem data',
     ])
   })
@@ -474,10 +547,10 @@ describe('sortByFranchise', () => {
       jogo('Doom 1993', 1993, 'Doom'),
     ])
     expect(ordenado.map((r) => r.title)).toEqual([
-      'Halo 1',
       'Halo 3',
-      'Doom 1993',
+      'Halo 1',
       'Doom 2016',
+      'Doom 1993',
     ])
   })
 })

@@ -129,9 +129,16 @@ export function dedupe(results: MediaSearchResult[]): MediaSearchResult[] {
  *    popularidade continua no topo — a mudança não rebaixa nada, só puxa os
  *    parentes para junto. É o que impede o conserto de estragar a busca que já
  *    funcionava.
- * 2. Dentro da franquia, ordem de LANÇAMENTO. É como as pessoas guardam uma
- *    série na cabeça, e é a única ordem em que "o próximo que eu não joguei"
- *    tem significado. Sem ano vai para o fim do grupo, não para o começo.
+ * 2. E o melhor colocado ABRE a franquia. Não é enfeite da regra 1: sem isto a
+ *    inversão da regra 3 devolveria o problema que ela veio consertar — buscar
+ *    "Game of Thrones" traria o especial de 2019 antes da série de 2011, que é
+ *    a obra que a pessoa digitou. Quem a fonte considerou mais relevante fica
+ *    na frente; o resto se ordena entre si.
+ * 3. Dentro da franquia, DO MAIS NOVO PARA O MAIS VELHO. A ordem era a
+ *    cronológica (2026-08-10): ler a saga do começo. Num backlog o que se
+ *    procura é quase sempre o lançamento recente, e a cronologia deixava o
+ *    título novo no fim de uma franquia longa. Sem ano vai para o fim do
+ *    grupo, não para o começo.
  *
  * Obra que não casa com ninguém é um grupo de uma só, e por isso não sai do
  * lugar. Quem decide o grupo é `familyKey` — e é ELE que faz isto valer para
@@ -187,11 +194,16 @@ export function sortByFranchise(
       const grupo =
         (melhorPosicao.get(a.k) ?? 0) - (melhorPosicao.get(b.k) ?? 0)
       if (grupo !== 0) return grupo
-      // Mesmo grupo: cronologia. Sem ano fica por último, e entre dois sem ano
-      // vale a ordem de chegada.
-      const anoA = a.r.year ?? Infinity
-      const anoB = b.r.year ?? Infinity
-      return anoA === anoB ? a.i - b.i : anoA - anoB
+      // Mesmo grupo: quem abriu a família continua abrindo.
+      const cabecaA = a.i === melhorPosicao.get(a.k)
+      const cabecaB = b.i === melhorPosicao.get(b.k)
+      if (cabecaA !== cabecaB) return cabecaA ? -1 : 1
+      // O resto, do mais novo para o mais velho. `-Infinity` para quem não tem
+      // ano é o que mantém essa obra no FIM mesmo com a ordem invertida; entre
+      // duas sem ano vale a ordem de chegada.
+      const anoA = a.r.year ?? -Infinity
+      const anoB = b.r.year ?? -Infinity
+      return anoA === anoB ? a.i - b.i : anoB - anoA
     })
     .map((x) => x.r)
 }
@@ -252,7 +264,7 @@ export async function searchAll(
   const settled = await Promise.all(
     eligible.map(async (provider) => {
       try {
-        return await provider.search(trimmed, { signal, region })
+        return await provider.search(trimmed, { signal, region, mediaType })
       } catch (error) {
         // Cancelamento não é falha: quem digitou de novo abortou de propósito.
         if (!(error instanceof DOMException && error.name === 'AbortError'))
@@ -272,8 +284,17 @@ export async function searchAll(
   // `enabled` manda nas duas coisas: quem aparece e em que ordem. Um resultado
   // de mídia desligada que veio de carona num provider compartilhado (a série
   // que a TMDB devolveu para quem só quer filmes) é descartado aqui.
+  //
+  // E `mediaType` PODA O RESULTADO, não só a lista de fontes chamadas. Sem esta
+  // linha ele era só um filtro de providers: a estante de séries chamava a
+  // TMDB, que cobre filme e série, e os filmes entravam de carona. Como a
+  // estante achata todos os grupos numa lista só e `GROUP_ORDER` põe filme
+  // antes de série, TODO filme aparecia antes de QUALQUER série — buscar
+  // "Succession" enterrava a série exata embaixo de uma dúzia de filmes
+  // homônimos. O provider já pede um tipo só à fonte; isto é a garantia de que
+  // um provider que ignore o pedido não desfaça o conserto.
   const groups = enabled
-    .filter((type) => byType.has(type))
+    .filter((type) => (!mediaType || type === mediaType) && byType.has(type))
     .map((type) => ({
       mediaType: type,
       results: sortByFranchise(dedupe(byType.get(type) as MediaSearchResult[])),
