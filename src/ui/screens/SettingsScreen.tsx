@@ -15,7 +15,6 @@ import { useNicknameStore } from '@core/state/nicknameStore'
 import { useThemeStore } from '@core/state/themeStore'
 import { LOCKED_THEME, THEMES, type Theme } from '@core/theme'
 import { Card, NavRow, Screen, ScreenBody, SectionTitle } from '@ui/design'
-import { MergeSeasonsRow } from '@ui/components/MergeSeasonsRow'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -119,10 +118,6 @@ export function SettingsScreen() {
           trailing={String(enabled.length)}
           onClick={() => navigate('/categorias')}
         />
-
-        {/* Some sozinha quando não há dois animes na estante — ver o
-            componente. Ação de manutenção, feita uma vez. */}
-        <MergeSeasonsRow />
 
         <SectionTitle className="mb-2 mt-8">
           {t('settings.aboutLabel')}

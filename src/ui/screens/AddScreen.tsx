@@ -386,18 +386,9 @@ export function AddScreen() {
                             <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
                               {result.title}
                             </span>
-                            {(result.year ||
-                              result.subtitle ||
-                              result.seasonCount) && (
+                            {(result.year || result.subtitle) && (
                               <span className="line-clamp-1 block text-label text-muted">
-                                {[
-                                  result.year,
-                                  result.seasonCount &&
-                                    t('add.seasonCount', {
-                                      count: result.seasonCount,
-                                    }),
-                                  result.subtitle,
-                                ]
+                                {[result.year, result.subtitle]
                                   .filter(Boolean)
                                   .join(' · ')}
                               </span>

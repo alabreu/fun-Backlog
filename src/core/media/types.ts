@@ -37,16 +37,6 @@ export interface MediaSearchResult {
    * caso comum, e a ordenação simplesmente não mexe em quem não tem.
    */
   franchise?: string
-  /**
-   * Quantas TEMPORADAS este card representa, quando ele é mais de uma obra da
-   * fonte fundida numa só (o caso do anime — ver `core/media/franchise.ts`).
-   *
-   * Existe porque sem ele a fusão fica invisível: quem busca "Attack on Titan"
-   * veria um card e teria de adivinhar se aquilo é a franquia inteira ou só a
-   * primeira temporada. Ausente = a fonte já entregava uma obra só, e não há o
-   * que dizer.
-   */
-  seasonCount?: number
 }
 
 /**
@@ -175,9 +165,10 @@ export interface MediaDetail {
    * confiável. Ausente ou vazio = a seção não aparece, que é a resposta honesta
    * quando não há o que mostrar.
    *
-   * NÃO inclui as entradas que já viraram temporada desta mesma obra — em anime
-   * elas foram absorvidas na régua (ver `core/media/franchise.ts`), e listá-las
-   * aqui ofereceria abrir separadamente o que acabou de ser fundido.
+   * INCLUI as sequências. Houve uma versão em que temporadas de anime eram
+   * fundidas numa obra só e por isso saíam daqui; ela foi revertida (decisão
+   * 18), e "Attack on Titan Season 2" voltou a ser obra própria — ir de uma
+   * temporada para a seguinte é justamente o uso da seção.
    */
   related?: MediaSearchResult[]
 }

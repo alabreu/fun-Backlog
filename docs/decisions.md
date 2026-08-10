@@ -856,91 +856,62 @@ conserta.
 
 ---
 
-## 18. Anime: temporada não é obra, e toda obra tem franquia
+## 18. Unificar temporadas de anime: tentado e REVERTIDO
 
-**09/08/2026.** Duas coisas que compartilham uma busca, e por isso andaram
-juntas.
+**09/08/2026, no mesmo dia.** Está aqui inteiro de propósito: a ideia é boa, a
+tentativa foi honesta, e o motivo de ter falhado é o que impede alguém de
+refazê-la igual.
 
-### As temporadas viram uma obra
+### O que se tentou
 
-O AniList cataloga cada temporada como obra separada porque a INDÚSTRIA faz
-isso: no Japão cada cour é uma produção própria. Buscar "Attack on Titan"
-devolvia seis cards que são uma história, mais um OVA e uma paródia chibi que
-não são.
+O AniList cataloga cada temporada como obra separada porque a indústria faz
+isso. Buscar "Attack on Titan" devolvia seis cards que são uma história. A
+tentativa foi usar o grafo de relações da fonte: fundir o que estivesse ligado
+por `SEQUEL`/`PREQUEL` numa obra só, com uma régua de progresso contínua, e
+deixar `SIDE_STORY`, `SPIN_OFF`, `SUMMARY` e companhia de fora.
 
-**Só `SEQUEL` e `PREQUEL` fundem.** As duas dizem "a mesma história,
-continuando", que é o que uma temporada é. `SIDE_STORY`, `SPIN_OFF`, `SUMMARY`,
-`ALTERNATIVE`, `CHARACTER` e `ADAPTATION` descrevem uma obra DIFERENTE que
-divide universo — e `OTHER`, pelo próprio manual do AniList, é o que se usa
-quando não se sabe. Fundir pelo desconhecido é chutar.
+Funcionou nos testes e no navegador. Durou algumas horas em uso real.
 
-A cadeia vira a mesma tabela de temporadas que a TMDB entrega, e por isso o
-slider, o "T3 E12" e a régua contínua funcionam sem uma linha de mudança na
-tela. É o que a interface `MediaProvider` promete: o resto do app não sabe de
-onde veio o dado.
+### Por que caiu
 
-**Duas estratégias porque são dois custos.** A busca agrupa com as arestas que
-já tem em mãos (uma consulta, union-find sobre a página); a ficha caminha a
-cadeia de verdade, em RODADAS — aliases de GraphQL pedem toda a fronteira de
-uma vez, e Attack on Titan aberto pela segunda temporada resolve em três idas
-em vez de cinco. Aliases e não um filtro de lista do schema: aliases são
-GraphQL puro, e o AniList é inalcançável de dentro do ambiente de dev para
-verificar qualquer coisa mais específica.
+**Evangelion virou uma obra de cinco "temporadas" que incluíam FILMES.** "Death
+& Rebirth" e "The End of Evangelion" estão ligados à série como sequência — o
+que é verdade narrativamente — e viraram degraus de uma régua de episódios.
 
-O custo do agrupamento barato: uma temporada que não voltou na mesma página não
-entra na soma. Quem conserta é a ficha.
+Esse foi erro de implementação, não da fonte: a consulta já pedia o campo
+`format` de cada relação (TV, MOVIE, OVA, SPECIAL) e o código **nunca o usava**.
+Filtrar por formato consertaria este caso.
 
-### O carrossel de franquia
+**"Death Parade" apareceu no carrossel de "Death Note"**, que não têm relação
+nenhuma. Este não foi diagnosticado: exigiria consultar o grafo do AniList, e o
+endpoint deles é bloqueado pela política de egresso do ambiente onde este código
+é escrito.
 
-No fim da ficha, depois das anotações — o lugar é o argumento: não é sobre a
-obra aberta, é sobre o que existe ao redor dela, e quem rolou até ali está no
-modo de vagar.
+### A razão de reverter em vez de consertar
 
-**Franquia declarada pela fonte, e não "parecidos".** A seção promete "isto é do
-mesmo mundo", e recomendação de algoritmo não sustenta a frase. Sai de
-`relations` (AniList), `franchises` (IGDB) e `belongs_to_collection` (TMDB).
-Série e livro não ganham nada e a seção some: a TMDB não modela franquia para
-TV e as fontes de livro não têm série confiável. Seção vazia com título seria
-pior.
+O `format` provavelmente conserta Evangelion. Não foi por isso que caiu.
 
-Tocar troca a obra do MESMO painel, sem empilhar um segundo sheet. Não há
-"voltar" — uma pilha dentro de um sheet pede botão próprio e uma história para
-o Escape, e o ganho é pequeno perto de fechar e tocar de novo.
+O que decidiu foi a **assimetria de custo**. A unificação mexe em PROGRESSO:
+quando erra, reescreve a régua da obra em silêncio, e a pessoa só descobre
+olhando. O carrossel mexe em curiosidade: quando erra, custa uma olhada.
 
-### Fundir o que já estava catalogado
+Somado a isso: dois erros na primeira hora de uso real, e nenhuma forma de
+validar o grafo daqui. Consertar seria consertar no escuro, e os próximos erros
+seriam descobertos do mesmo jeito — em produção, no progresso de alguém.
 
-A unificação chegou depois de a estante ter conteúdo. Sem uma ação retroativa,
-quem já tinha "Season 2" e "Season 3" ficaria com dois cards para sempre
-enquanto o novo entrava unificado — dois modelos na mesma estante é pior que
-qualquer um dos dois.
+### O que ficou
 
-Mora em **Configurações**, e não num aviso automático: a detecção custa rede, e
-cobrar isso de toda abertura da estante para uma ação feita uma vez na vida é o
-custo que ninguém vê e todo mundo paga.
+O **carrossel de franquia** sobreviveu, e ficou melhor: sem a fusão, as
+sequências voltam a ser obras próprias e aparecem nele, que é como se navega de
+uma temporada para a seguinte.
 
-**Pergunta antes, com os títulos na tela.** Apaga itens e cria um no lugar, sem
-volta. Uma contagem ("2 franquias") não bastaria: a pessoa precisa reconhecer os
-títulos para perceber se o grafo agrupou errado. O que é preservado está em
-`planMerge`, com teste: progresso somado (limitado ao tamanho real de cada
-temporada), nota mais alta e não média, anotações com o título de origem como
-cabeçalho, data de entrada mais antiga, tags unidas. Cria antes de apagar — se a
-rede cair no meio, o pior caso é uma obra duplicada, e não uma estante sem as
-duas.
+O que foi apagado (`franchise.ts`, `mergeSeasons.ts`, a linha "Juntar
+temporadas" em Configurações) está no git, na sequência de commits deste dia.
+Uma segunda tentativa começa de lá — com o filtro de `format`, e só quando der
+para verificar o grafo antes em vez de descobrir depois.
 
-**A soma do progresso é uma aproximação assumida.** Ela acerta o caso comum
-(anteriores concluídas, a última em andamento) e erra quem parou no episódio 5
-da primeira e viu a segunda inteira. Não existe número honesto para isso: a
-régua é uma linha, e essa pessoa não está num ponto dela.
-
-### O que vai errar
-
-O grafo do AniList é editado por usuários. **Alguma franquia vai agrupar
-errado** — não é hipótese, é estatística. Foi por isso que o carrossel veio
-primeiro: lá um erro é uma capa estranha numa lista; na régua seria o seu
-progresso. Não existe ainda um "separar desta franquia"; se doer, é o próximo
-passo.
-
----
+**Nada foi perdido.** A ação de fusão, que era a única parte que apagava itens,
+nunca chegou a ser usada.
 
 ## 19. "Onde assistir" sai do anime
 

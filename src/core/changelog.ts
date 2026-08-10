@@ -42,19 +42,19 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: '2026-08-09',
     emoji: '🧩',
     title: {
-      pt: 'Franquias: uma obra em vez de seis',
-      en: 'Franchises: one work instead of six',
+      pt: 'Da mesma franquia',
+      en: 'From the same franchise',
     },
     items: {
       pt: [
-        'Temporadas de anime viram UMA obra. Buscar "Attack on Titan" devolvia seis cards que são a mesma história — agora é um, com a régua indo do primeiro ao último episódio da franquia. OVA, spin-off e paródia continuam separados, porque não são temporada.',
-        'Toda obra ganhou "Da mesma franquia" no fim da ficha: os outros jogos da série, os outros filmes da saga, os spin-offs do anime. Serve tanto para reencontrar quanto para descobrir o que você não sabia que existia.',
-        'Já tinha temporadas catalogadas soltas? Configurações → Juntar temporadas de anime. Ele mostra o que encontrou e só junta depois que você confirmar.',
+        'Toda obra ganhou "Da mesma franquia" no fim da ficha: os outros jogos da série, os outros filmes da saga, as temporadas e spin-offs do anime. Serve tanto para reencontrar quanto para descobrir o que você não sabia que existia.',
+        'Tocar num deles troca a obra do mesmo painel, e o que já está na sua estante vem marcado.',
+        'Série e livro não têm a seção: as fontes delas não sabem dizer o que é franquia, e preferimos não inventar.',
       ],
       en: [
-        'Anime seasons become ONE work. Searching "Attack on Titan" returned six cards that are the same story — now it is one, with the ruler running from the first episode of the franchise to the last. OVAs, spin-offs and parodies stay separate, because they are not seasons.',
-        'Every work gained a "From the same franchise" section at the end: the other games in the series, the other films in the saga, the anime spin-offs. It serves both finding again and finding out.',
-        'Already had seasons catalogued separately? Settings → Merge anime seasons. It shows what it found and only merges after you confirm.',
+        'Every work gained a "From the same franchise" section at the end: the other games in the series, the other films in the saga, the seasons and spin-offs of the anime. It serves both finding again and finding out.',
+        'Tapping one swaps the work in the same panel, and anything already on your shelf comes marked.',
+        'Series and books do not get the section: their sources cannot say what a franchise is, and we would rather not invent one.',
       ],
     },
   },

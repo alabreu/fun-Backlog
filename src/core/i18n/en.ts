@@ -86,7 +86,6 @@ export const en: Record<keyof typeof pt, string> = {
   'add.manualTitlePlaceholder': 'Name of the game, movie, book…',
   'add.manualMediaLabel': 'Medium',
   'add.manualSubmit': 'Add to shelf',
-  'add.seasonCount': '{count} seasons',
   'add.pickStatus': 'Add as',
   'add.pickProgress': 'Where are you?',
   'add.orPickStatus': 'Or',
@@ -178,17 +177,6 @@ export const en: Record<keyof typeof pt, string> = {
 
   // Menu
 
-  // Juntar temporadas de anime (ação retroativa em Configurações).
-  // `seasons.` e não `merge.`: aquele prefixo já é da migração
-  // convidado→conta, e dois assuntos no mesmo namespace viram colisão.
-  'seasons.title': 'Merge anime seasons',
-  'seasons.searching': 'Looking…',
-  'seasons.nothing': 'Nothing to merge: your anime are already whole works.',
-  'seasons.failed': 'Could not reach AniList. Try again.',
-  'seasons.body': 'We found {count} franchise(s) catalogued in pieces. Merging deletes the items below and creates one in their place — there is no undo.',
-  'seasons.result': 'Lands on {current} of {total} episodes.',
-  'seasons.confirm': 'Merge',
-  'seasons.merging': 'Merging…',
   'menu.feedback': 'Send feedback',
   'menu.language': 'Language & region',
   'menu.news': "What's new",
