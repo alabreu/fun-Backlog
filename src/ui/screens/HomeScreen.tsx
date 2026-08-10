@@ -24,6 +24,7 @@ import {
   Badge,
   Button,
   Cover,
+  CoverMark,
   IconButton,
   NavRow,
   Rail,
@@ -275,6 +276,7 @@ function ItemCard({
           glow
           lazy={!eager}
         />
+        {item.favorite && <CoverMark label={t('item.favorite')} />}
         {/* A UNIDADE VEM DA MÍDIA, e não do que está gravado no item. Parece a
             mesma coisa e não é: um jogo antigo tem `unit: 'hour'` guardado, de
             antes de o campo de horas sair (decisão 21), e pedir o rótulo dessa

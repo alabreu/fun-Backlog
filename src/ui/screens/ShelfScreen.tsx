@@ -21,6 +21,7 @@ import {
   Cover,
   CoverAction,
   CoverGrid,
+  CoverMark,
   IconButton,
   Input,
   Screen,
@@ -291,10 +292,13 @@ export function ShelfScreen() {
                 <CoverGrid>
                   {found.map((item, index) => (
                     <li key={item.id}>
+                      {/* `relative` porque o `CoverMark` se ancora nele — sem
+                          isso o coração procura o ancestral posicionado mais
+                          próximo e vai parar no canto da TELA. */}
                       <button
                         type="button"
                         onClick={() => setSelected(item)}
-                        className="w-full text-left transition active:scale-95"
+                        className="relative w-full text-left transition active:scale-95"
                       >
                         {/* Sem o badge de status sobre a capa: o título da
                             seção já diz o estado de todas elas, e repetir a
@@ -306,6 +310,9 @@ export function ShelfScreen() {
                           media={item.mediaType}
                           lazy={index > 5}
                         />
+                        {item.favorite && (
+                          <CoverMark label={t('item.favorite')} />
+                        )}
                         <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
                           {item.title}
                         </span>

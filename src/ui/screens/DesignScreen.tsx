@@ -13,6 +13,7 @@ import {
   Skeleton,
   Cover,
   CoverGrid,
+  CoverMark,
   NavRow,
   PlatformIcon,
   PLATFORM_TEXT,
@@ -697,6 +698,24 @@ export function DesignScreen() {
             Escape fecha, Tab circula dentro do sheet, e o foco volta a este botão
             ao fechar.
           </p>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">CoverMark</SectionTitle>
+          <p className="mb-3 text-body text-muted">
+            O coração de favorita, no canto da capa. Contorno preto a 8% para
+            não se dissolver sobre pôster claro — e vale saber que 8% é muito
+            leve: sobre branco ele quase não aparece, e quem carrega o contraste
+            continua sendo a cor do coração.
+          </p>
+          <CoverGrid className="mb-3">
+            {MEDIA_TYPES.slice(0, 3).map((type) => (
+              <li key={type} className="relative">
+                <Cover title={type} media={type} />
+                <CoverMark label="Favorita" />
+              </li>
+            ))}
+          </CoverGrid>
         </section>
 
         <section>
