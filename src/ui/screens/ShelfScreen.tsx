@@ -94,10 +94,18 @@ export function ShelfScreen() {
   const [pendingAdd, setPendingAdd] = useState<MediaSearchResult | null>(null)
   const [query, setQuery] = useState('')
   const [onlyFavorites, setOnlyFavorites] = useState(false)
-  // A pilha de franquia cujo painel está aberto. Guarda a CHAVE e não a pilha:
-  // assim a lista dentro do painel acompanha o item mudando (progresso, nota)
-  // em vez de congelar no que existia quando você tocou.
-  const [pilhaKey, setPilhaKey] = useState<string | null>(null)
+  // A coleção que o painel mostra, e se ele está à mostra — DOIS campos, e o
+  // segundo é o que faz a animação de saída ter conteúdo. Zerando a chave ao
+  // fechar, o painel esvaziava antes de terminar de descer e o que deslizava
+  // para baixo era uma folha em branco.
+  //
+  // Guarda a CHAVE e não a pilha: assim a lista dentro do painel acompanha o
+  // item mudando (progresso, favorita) em vez de congelar no que existia
+  // quando você tocou.
+  const [pilhaAberta, setPilhaAberta] = useState<{
+    key: string
+    open: boolean
+  } | null>(null)
   // Um instante só por montagem. É ele que decide o que já saiu, e precisa ser
   // estável enquanto a tela está aberta: recalculado a cada render, um item na
   // fronteira da estreia poderia trocar de seção no meio de uma rolagem.
@@ -197,8 +205,8 @@ export function ShelfScreen() {
     () =>
       sections
         .flatMap((s) => s.entries)
-        .find((e) => e.kind === 'stack' && e.key === pilhaKey),
-    [sections, pilhaKey],
+        .find((e) => e.kind === 'stack' && e.key === pilhaAberta?.key),
+    [sections, pilhaAberta?.key],
   )
 
   // A estante INTEIRA, e não o recorte: o botão não pode sumir por causa do
@@ -372,7 +380,7 @@ export function ShelfScreen() {
                             name: entry.name,
                             count: String(entry.items.length),
                           })}
-                          onClick={() => setPilhaKey(entry.key)}
+                          onClick={() => setPilhaAberta({ key: entry.key, open: true })}
                         />
                       </li>
                     ),
@@ -489,15 +497,20 @@ export function ShelfScreen() {
           é o "voltar" sem pilha de navegação (escolha do usuário, 10/08/2026).
           Tocando numa capa solta da estante, `pilhaKey` é nulo e fechar leva
           direto ao grid, como sempre foi. */}
-      {pilha?.kind === 'stack' && (
-        <StackSheet
-          name={pilha.name}
-          items={pilha.items}
-          open={!openSubject}
-          onClose={() => setPilhaKey(null)}
-          onOpenItem={setSelected}
-        />
-      )}
+      {/* SEMPRE MONTADO, como o `ItemSheet` logo abaixo — e não é detalhe de
+          estilo. A entrada do painel é uma transition de CSS entre dois
+          estados; montando o componente já aberto, não existe quadro anterior
+          de onde animar e ele aparecia instantaneamente, enquanto o painel da
+          obra deslizava normalmente. */}
+      <StackSheet
+        name={pilha?.kind === 'stack' ? pilha.name : ''}
+        items={pilha?.kind === 'stack' ? pilha.items : []}
+        open={Boolean(pilhaAberta?.open) && !openSubject}
+        onClose={() =>
+          setPilhaAberta((atual) => (atual ? { ...atual, open: false } : null))
+        }
+        onOpenItem={setSelected}
+      />
 
       <ItemSheet subject={openSubject} onClose={() => setSelected(null)} />
     </Screen>
