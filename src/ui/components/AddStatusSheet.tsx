@@ -111,18 +111,18 @@ export function AddStatusSheet({
     ? statusFromProgress(visto, total, 'backlog')
     : 'backlog'
 
-  function escolher(status: ItemStatus) {
+  /**
+   * Cria o item e fecha o painel.
+   *
+   * `ondeEstou` vem por parâmetro, e não do estado: soltar a régua chama isto
+   * no MESMO tick em que grava a posição, e ler `visto` ali devolveria o valor
+   * anterior — a obra entraria um passo atrás de onde o dedo parou.
+   */
+  function escolher(status: ItemStatus, ondeEstou = visto) {
     if (!result) return
     onPick(result, {
       status,
-      // O progresso acompanha o estado escolhido: "concluída" pelos chips
-      // entra cheia, e não no zero.
-      progress: temRegua
-        ? {
-            current: status === 'done' ? total! : status === derivado ? visto : 0,
-            total: total!,
-          }
-        : undefined,
+      progress: temRegua ? { current: ondeEstou, total: total! } : undefined,
     })
   }
 
@@ -175,7 +175,17 @@ export function AddStatusSheet({
                 format={makeProgressFormat(t, result.mediaType, seasons)}
                 seasonLabel={(season) => t('item.seasonShort', { season })}
                 typeLabel={t('item.typeExact')}
-                onCommit={(v) => setPosicao({ chave, visto: v })}
+                // SOLTAR A RÉGUA JÁ ADICIONA (correção de 09/08/2026). Antes
+                // ela só guardava a posição e ainda era preciso achar
+                // "Adicionar" — e dizer "terminei" e depois confirmar que se
+                // quer adicionar é pedir a mesma coisa duas vezes. O painel
+                // abriu porque o + foi tocado: a intenção de adicionar já está
+                // dada, e o que falta é só ONDE. Responder isso é a resposta
+                // inteira, exatamente como tocar num chip já era.
+                onCommit={(v) => {
+                  setPosicao({ chave, visto: v })
+                  escolher(statusFromProgress(v, total, 'backlog'), v)
+                }}
               />
               {/* O estado que a posição implica, escrito. Sem isto a régua
                   decidiria em silêncio em qual estante a obra vai cair. */}

@@ -825,6 +825,27 @@ cor funcionava nos dois lados: à esquerda do polegar a barra é clara, à direi
 o sintoma. Um buraco lê como interrupção da barra independente da cor que a
 barra tem ali.
 
+### Soltar a régua no painel do `+` já adiciona (correção, 09/08/2026)
+
+A régua ali só guardava a posição: para a obra entrar na estante ainda era
+preciso achar o botão "Adicionar". Ou seja, dizer "terminei esta série" e depois
+confirmar que se quer mesmo adicioná-la — a mesma coisa perguntada duas vezes.
+
+O painel abriu porque o `+` foi tocado. A intenção de adicionar já está dada; o
+que falta é só ONDE. Responder isso é a resposta inteira, exatamente como tocar
+num chip sempre foi. Soltar a régua (ou digitar no balão, ou tocar num marco de
+temporada) cria o item com o estado que a posição implica e fecha o painel.
+
+O botão "Adicionar" fica: é como se adiciona SEM tocar na régua, ou seja, na
+fila. E os chips "Pausado"/"Abandonado" pararam de zerar a posição — não que
+importe hoje (a régua fecha o painel antes de eles ficarem alcançáveis), mas
+código que descarta um dado em silêncio é uma armadilha esperando a próxima
+mudança.
+
+**Custo conhecido:** no teclado, cada seta é um commit, então a primeira seta
+adiciona e fecha. Quem navega por teclado tem o balão como caminho exato —
+Tab até ele, Enter, digitar o número. Não é o melhor dos mundos, e fica anotado.
+
 ### O que fica torto por um tempo
 
 Item gravado como "assistindo" com progresso zero — estado que existia antes
