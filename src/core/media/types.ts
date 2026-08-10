@@ -32,6 +32,18 @@ export interface MediaSearchResult {
    * buscar ficha nenhuma.
    */
   releaseDate?: string
+  /**
+   * O QUE A OBRA É dentro da franquia: temporada, OVA, filme, especial.
+   *
+   * Só o anime tem isso, e é uma diferença de mundo real — uma franquia de
+   * anime mistura temporada com OVA e filme, e saber qual é qual é o que
+   * permite ler a coleção. Filme, jogo e livro não têm equivalente, e ali o
+   * campo simplesmente não vem.
+   *
+   * Cru da fonte (`TV`, `OVA`, `MOVIE`…) e traduzido só na tela: o núcleo não
+   * decide vocabulário de interface.
+   */
+  format?: string
   /** Uma linha de contexto para desempatar homônimos na lista. */
   subtitle?: string
   /**
@@ -141,6 +153,8 @@ export interface MediaDetail {
    * busca guardado, e numa obra anunciada a data é justamente o que muda.
    */
   releaseDate?: string
+  /** Ver `MediaSearchResult.format`. */
+  format?: string
   synopsis?: string
   genres?: string[]
   facts?: MediaFact[]

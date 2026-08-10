@@ -16,6 +16,7 @@ import {
 } from '@core/media/search'
 import { findByImdbId } from '@core/media/tmdb'
 import type { MediaSearchResult } from '@core/media/types'
+import { groupResultsByFranchise } from '@core/media/collection'
 import { useRegionStore } from '@core/state/regionStore'
 import {
   AddStatusSheet,
@@ -30,6 +31,7 @@ import {
   Cover,
   CoverAction,
   CoverGrid,
+  CoverStack,
   Field,
   Input,
   MediaDot,
@@ -39,6 +41,7 @@ import {
   Toast,
 } from '@ui/design'
 import { ManualAddSheet } from '@ui/components/ManualAddSheet'
+import { SearchStackSheet } from '@ui/components/SearchStackSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useItems } from '@ui/hooks/useItems'
 import { useFlash } from '@ui/hooks/useFlash'
@@ -76,6 +79,12 @@ export function AddScreen() {
   const [searching, setSearching] = useState(false)
   const [flash, setFlash] = useFlash()
   const [manualOpen, setManualOpen] = useState(false)
+  // A coleção aberta. Dois campos pelo mesmo motivo da estante: zerando a chave
+  // ao fechar, o painel esvazia antes de terminar de descer.
+  const [pilhaAberta, setPilhaAberta] = useState<{
+    key: string
+    open: boolean
+  } | null>(null)
   const [selected, setSelected] = useState<SheetSubject | null>(null)
   // A obra cujo + foi tocado, esperando a pessoa dizer COMO ela entra.
   const [pendingAdd, setPendingAdd] = useState<MediaSearchResult | null>(null)
@@ -95,6 +104,17 @@ export function AddScreen() {
   const trimmed = query.trim()
   const active = trimmed.length >= 2
   const shown = active ? outcome : EMPTY
+
+  // A pilha aberta, procurada em TODOS os grupos: a chave é única por família,
+  // e refazer o agrupamento aqui é o que mantém a lista viva quando o resultado
+  // da busca muda embaixo do painel.
+  const pilha = useMemo(
+    () =>
+      shown.groups
+        .flatMap((g) => groupResultsByFranchise(g.results))
+        .find((e) => e.kind === 'stack' && e.key === pilhaAberta?.key),
+    [shown, pilhaAberta?.key],
+  )
 
   // Link colado: derivado, não estado. O que a pessoa digitou já É a resposta.
   const link = useMemo(() => parseMediaLink(trimmed), [trimmed])
@@ -363,13 +383,37 @@ export function AddScreen() {
                 <SectionTitle media={group.mediaType} className="mb-2">
                   {t(mediaLabelKey(group.mediaType))}
                 </SectionTitle>
+                {/* PILHA DE FRANQUIA, igual à estante (10/08/2026): um
+                    testador não achou a obra que procurava porque a lista vinha
+                    entupida de temporadas da mesma série. A pilha nasce na
+                    posição do melhor colocado e veste a capa dele, então o mais
+                    relevante continua à vista — some o entulho. */}
                 <CoverGrid>
-                  {group.results.map((result) => {
+                  {groupResultsByFranchise(group.results).map((entry) => {
+                    if (entry.kind === 'stack')
+                      return (
+                        <li key={entry.key}>
+                          <CoverStack
+                            src={entry.results[0].coverUrl}
+                            name={entry.name}
+                            count={entry.results.length}
+                            media={group.mediaType}
+                            label={t('shelf.stack', {
+                              name: entry.name,
+                              count: String(entry.results.length),
+                            })}
+                            onClick={() =>
+                              setPilhaAberta({ key: entry.key, open: true })
+                            }
+                          />
+                        </li>
+                      )
+                    const result = entry.result
                     const mine = alreadyIn.get(
                       `${result.provider}:${result.externalId}`,
                     )
                     return (
-                      <li key={`${result.provider}:${result.externalId}`}>
+                      <li key={entry.key}>
                         {/* Dois irmãos, não um dentro do outro: botão dentro
                             de botão é HTML inválido. O container posicionado
                             é o que deixa o +/- flutuar sobre a capa. */}
@@ -447,6 +491,21 @@ export function AddScreen() {
         result={pendingAdd}
         onClose={() => setPendingAdd(null)}
         onPick={(result, choice) => void addResult(result, choice)}
+      />
+
+      {/* UM PAINEL POR VEZ: abrindo uma obra da coleção, esta sai de cena e a
+          ficha entra; fechando a ficha, a coleção volta. Mesma regra da
+          estante, e o motivo é o mesmo — sheet empilhado em celular são duas
+          camadas, dois Escape e dois arrastes. */}
+      <SearchStackSheet
+        name={pilha?.kind === 'stack' ? pilha.name : ''}
+        results={pilha?.kind === 'stack' ? pilha.results : []}
+        items={items}
+        open={Boolean(pilhaAberta?.open) && !selected}
+        onClose={() =>
+          setPilhaAberta((atual) => (atual ? { ...atual, open: false } : null))
+        }
+        onOpenResult={setSelected}
       />
 
       <ItemSheet

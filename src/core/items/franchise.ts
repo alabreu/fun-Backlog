@@ -1,4 +1,9 @@
-import { familyPrefix, normalizeTitle, stripSequelMarkers } from '@core/title'
+import {
+  familyPrefix,
+  groupByFamily,
+  normalizeTitle,
+  stripSequelMarkers,
+} from '@core/title'
 import type { Item } from './types'
 
 /**
@@ -78,37 +83,14 @@ export function groupByFranchise(
   items: Item[],
   minimo: number = STACK_MIN,
 ): ShelfEntry[] {
-  const familias = new Map<string, Item[]>()
-  for (const item of items) {
-    const chave = shelfFamilyKey(item)
-    const atual = familias.get(chave)
-    if (atual) atual.push(item)
-    else familias.set(chave, [item])
-  }
-
-  const entradas: ShelfEntry[] = []
-  const jaSaiu = new Set<string>()
-
-  for (const item of items) {
-    const chave = shelfFamilyKey(item)
-    const familia = familias.get(chave) as Item[]
-
-    // Título que normaliza para nada (um item chamado "???") não pode virar
-    // família com os outros sem nome: cada um fica sozinho.
-    if (familia.length < minimo || chave === '') {
-      entradas.push({ kind: 'item', key: item.id, item })
-      continue
-    }
-
-    if (jaSaiu.has(chave)) continue
-    jaSaiu.add(chave)
-    entradas.push({
-      kind: 'stack',
-      key: `stack:${chave}`,
-      name: shelfFamilyName(familia[0]),
-      items: familia,
-    })
-  }
-
-  return entradas
+  return groupByFamily(items, shelfFamilyKey, minimo).map((e) =>
+    e.kind === 'one'
+      ? { kind: 'item', key: e.item.id, item: e.item }
+      : {
+          kind: 'stack',
+          key: `stack:${e.key}`,
+          name: shelfFamilyName(e.members[0]),
+          items: e.members,
+        },
+  )
 }

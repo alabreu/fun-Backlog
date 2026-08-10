@@ -1,4 +1,7 @@
+import { STACK_MIN } from '@core/items/franchise'
 import type { Item } from '@core/items/types'
+import { groupByFamily } from '@core/title'
+import { familyKey, familyName } from './search'
 import type { MediaSearchResult } from './types'
 
 /**
@@ -67,4 +70,68 @@ export function sortByCollection(
     .map((r, i) => ({ r, i, peso: PESO[collectionState(r, items)] }))
     .sort((a, b) => (a.peso === b.peso ? a.i - b.i : a.peso - b.peso))
     .map((x) => x.r)
+}
+
+/**
+ * A PILHA DE FRANQUIA NA BUSCA — as mesmas regras da estante, do outro lado.
+ *
+ * Chegou depois (10/08/2026) e por um motivo medido em gente: um testador não
+ * conseguiu achar uma obra porque a lista de resultados vinha entupida de
+ * temporadas da mesma série. Na estante a pilha arruma a prateleira; aqui ela
+ * limpa a resposta.
+ *
+ * A ORDEM DE ENTRADA É PRESERVADA e a pilha nasce na posição do melhor
+ * colocado, então o que a fonte considerou mais relevante continua no topo — é
+ * o que impede o agrupamento de esconder justamente o que a pessoa digitou. O
+ * nome e a capa da pilha são os desse melhor colocado (ver `sortByFranchise`,
+ * que já o traz para a frente da família).
+ */
+export type ResultEntry =
+  | { kind: 'result'; key: string; result: MediaSearchResult }
+  | { kind: 'stack'; key: string; name: string; results: MediaSearchResult[] }
+
+export function groupResultsByFranchise(
+  results: MediaSearchResult[],
+  minimo: number = STACK_MIN,
+): ResultEntry[] {
+  const idDe = (r: MediaSearchResult) => `${r.provider}:${r.externalId}`
+  return groupByFamily(results, familyKey, minimo).map((e) =>
+    e.kind === 'one'
+      ? { kind: 'result', key: idDe(e.item), result: e.item }
+      : {
+          kind: 'stack',
+          key: `stack:${e.key}`,
+          name: familyName(e.members[0]),
+          results: e.members,
+        },
+  )
+}
+
+/**
+ * ORDEM CRESCENTE DE LANÇAMENTO — a ordem de ler uma coleção (escolha do
+ * usuário, 10/08/2026).
+ *
+ * Vale só DENTRO do painel de uma franquia, e é o contrário da lista de
+ * resultados, que continua do mais novo para o mais velho. A diferença não é
+ * incoerência: na lista a pergunta é "o que saiu de novo?", e dentro da coleção
+ * é "por onde eu começo?".
+ *
+ * Sem data vai para o FIM, e o ano serve de reserva quando a data cheia falta —
+ * a maioria dos resultados tem ano e nem toda fonte dá o dia.
+ */
+export function sortByRelease<T extends { releaseDate?: string; year?: number }>(
+  obras: T[],
+): T[] {
+  const quando = (o: T) =>
+    o.releaseDate ? Date.parse(o.releaseDate) : o.year ? Date.UTC(o.year, 0, 1) : NaN
+  return [...obras]
+    .map((o, i) => ({ o, i, t: quando(o) }))
+    .sort((a, b) => {
+      const semA = Number.isNaN(a.t)
+      const semB = Number.isNaN(b.t)
+      if (semA !== semB) return semA ? 1 : -1
+      if (semA) return a.i - b.i
+      return a.t === b.t ? a.i - b.i : a.t - b.t
+    })
+    .map((x) => x.o)
 }

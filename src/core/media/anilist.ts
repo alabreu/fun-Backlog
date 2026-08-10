@@ -43,6 +43,7 @@ const QUERY = `
       media(search: $search, type: ANIME, sort: SEARCH_MATCH) {
         id
         episodes
+        format
         seasonYear
         startDate { year month day }
         title { romaji english }
@@ -73,6 +74,8 @@ interface AniListMedia extends AniListRelations {
   id: number
   episodes: number | null
   seasonYear: number | null
+  /** `TV` | `TV_SHORT` | `MOVIE` | `SPECIAL` | `OVA` | `ONA` | `MUSIC`. */
+  format?: string | null
   /** Ano, mês e dia ANUNCIADOS, cada um podendo faltar — ver `isoDate`. */
   startDate?: {
     year?: number | null
@@ -131,16 +134,7 @@ export function relatedFrom(medias: AniListRelations[]): MediaSearchResult[] {
   return [...porId.values()]
 }
 
-/**
- * A data do AniList vira `YYYY-MM-DD` — e SÓ quando os três campos existem.
- *
- * O AniList devolve os três separados e deixa qualquer um nulo: uma temporada
- * anunciada para "2027" tem ano e mais nada. Completar o que falta com 1º de
- * janeiro seria inventar um dia que a fonte não afirmou, e esse dia inventado
- * decidiria de que lado da linha "já saiu?" a obra cai — em janeiro, todo ano.
- * Sem os três, a obra fica sem data e cai na fila normal, que é o palpite certo
- * para desconhecido.
- */
+/** O AniList devolve ano, mês e dia separados, e deixa qualquer um nulo. */
 type AniListDate =
   | { year?: number | null; month?: number | null; day?: number | null }
   | null
@@ -148,6 +142,14 @@ type AniListDate =
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
+/**
+ * A data completa, e SÓ quando os três campos existem.
+ *
+ * Completar o que falta seria inventar um dia que a fonte não afirmou, e esse
+ * dia decidiria de que lado da linha "já saiu?" a obra cai. Para o caso em que
+ * inventar se justifica — a fonte afirmando que a obra não saiu — existe o
+ * `isoDateAnnounced` abaixo.
+ */
 function isoDate(d: AniListDate): string | undefined {
   if (!d?.year || !d.month || !d.day) return undefined
   return `${d.year}-${pad(d.month)}-${pad(d.day)}`
@@ -197,6 +199,7 @@ export function mapAniListMedia(media: AniListMedia): MediaSearchResult | null {
     year: media.seasonYear ?? media.startDate?.year ?? undefined,
     total: media.episodes ?? undefined,
     releaseDate: isoDate(media.startDate),
+    format: media.format ?? undefined,
     subtitle:
       media.title?.english && media.title?.romaji !== media.title?.english
         ? (media.title.romaji ?? undefined)
@@ -277,6 +280,7 @@ const DETAIL_QUERY = `
     Media(id: $id, type: ANIME) {
       id
       episodes
+      format
       duration
       status
       seasonYear

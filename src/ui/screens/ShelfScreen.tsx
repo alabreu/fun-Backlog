@@ -20,6 +20,7 @@ import {
   type Item,
   type MediaType,
 } from '@core/items/types'
+import { groupResultsByFranchise } from '@core/media/collection'
 import { hasProviderFor } from '@core/media/search'
 import type { MediaSearchResult } from '@core/media/types'
 import {
@@ -40,7 +41,8 @@ import {
   type AddChoice,
 } from '@ui/components/AddStatusSheet'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
-import { StackSheet } from '@ui/components/StackSheet'
+import { SearchStackSheet } from '@ui/components/SearchStackSheet'
+import { ShelfStackSheet } from '@ui/components/ShelfStackSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useSectionState } from '@ui/hooks/useSectionState'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
@@ -103,6 +105,11 @@ export function ShelfScreen() {
   // item mudando (progresso, favorita) em vez de congelar no que existia
   // quando você tocou.
   const [pilhaAberta, setPilhaAberta] = useState<{
+    key: string
+    open: boolean
+  } | null>(null)
+  // A mesma coisa para a pilha dos RESULTADOS DA FONTE, que é outra lista.
+  const [pilhaBuscaAberta, setPilhaBuscaAberta] = useState<{
     key: string
     open: boolean
   } | null>(null)
@@ -242,6 +249,14 @@ export function ShelfScreen() {
         .flatMap((g) => g.results)
         .filter((r) => !mine.has(`${r.provider}:${r.externalId}`)),
     [outcome, mine],
+  )
+
+  const pilhaBusca = useMemo(
+    () =>
+      groupResultsByFranchise(fresh).find(
+        (e) => e.kind === 'stack' && e.key === pilhaBuscaAberta?.key,
+      ),
+    [fresh, pilhaBuscaAberta?.key],
   )
 
   const openSubject =
@@ -440,39 +455,64 @@ export function ShelfScreen() {
                   : t('add.noResults', { query: trimmed })
             }
           >
+            {/* PILHA AQUI TAMBÉM (10/08/2026), e por um motivo medido em
+                gente: um testador não achou a obra que procurava porque a lista
+                vinha entupida de temporadas da mesma série. Como a pilha nasce
+                na posição do melhor colocado e veste a capa dele, o que a fonte
+                achou mais relevante continua à vista — o que sai da frente são
+                as temporadas. */}
             <CoverGrid>
-                {fresh.map((result) => (
-                  <li key={`${result.provider}:${result.externalId}`}>
+              {groupResultsByFranchise(fresh).map((entry, index) =>
+                entry.kind === 'stack' ? (
+                  <li key={entry.key}>
+                    <CoverStack
+                      src={entry.results[0].coverUrl}
+                      name={entry.name}
+                      count={entry.results.length}
+                      media={mediaType}
+                      lazy={index > 5}
+                      label={t('shelf.stack', {
+                        name: entry.name,
+                        count: String(entry.results.length),
+                      })}
+                      onClick={() =>
+                        setPilhaBuscaAberta({ key: entry.key, open: true })
+                      }
+                    />
+                  </li>
+                ) : (
+                  <li key={entry.key}>
                     {/* Irmãos, não aninhados: botão dentro de botão é HTML
                         inválido e o leitor de tela anuncia um só. */}
                     <div className="relative">
                       <button
                         type="button"
-                        onClick={() => setSelected(result)}
+                        onClick={() => setSelected(entry.result)}
                         className="w-full text-left transition active:scale-95"
                       >
                         <Cover
-                          src={result.coverUrl}
-                          title={result.title}
-                          media={result.mediaType}
+                          src={entry.result.coverUrl}
+                          title={entry.result.title}
+                          media={entry.result.mediaType}
                         />
                         <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
-                          {result.title}
+                          {entry.result.title}
                         </span>
-                        {result.year && (
+                        {entry.result.year && (
                           <span className="line-clamp-1 block text-label text-muted">
-                            {result.year}
+                            {entry.result.year}
                           </span>
                         )}
                       </button>
                       <CoverAction
                         added={false}
                         label={t('catalog.add')}
-                        onClick={() => setPendingAdd(result)}
+                        onClick={() => setPendingAdd(entry.result)}
                       />
                     </div>
                   </li>
-                ))}
+                ),
+              )}
             </CoverGrid>
           </Section>
         )}
@@ -502,7 +542,7 @@ export function ShelfScreen() {
           estados; montando o componente já aberto, não existe quadro anterior
           de onde animar e ele aparecia instantaneamente, enquanto o painel da
           obra deslizava normalmente. */}
-      <StackSheet
+      <ShelfStackSheet
         name={pilha?.kind === 'stack' ? pilha.name : ''}
         items={pilha?.kind === 'stack' ? pilha.items : []}
         open={Boolean(pilhaAberta?.open) && !openSubject}
@@ -510,6 +550,21 @@ export function ShelfScreen() {
           setPilhaAberta((atual) => (atual ? { ...atual, open: false } : null))
         }
         onOpenItem={setSelected}
+      />
+
+      {/* A coleção da BUSCA, o irmão do de cima. Mesma regra de um painel por
+          vez, e a mesma memória: fechar a obra devolve a lista da franquia. */}
+      <SearchStackSheet
+        name={pilhaBusca?.kind === 'stack' ? pilhaBusca.name : ''}
+        results={pilhaBusca?.kind === 'stack' ? pilhaBusca.results : []}
+        items={items}
+        open={Boolean(pilhaBuscaAberta?.open) && !openSubject}
+        onClose={() =>
+          setPilhaBuscaAberta((atual) =>
+            atual ? { ...atual, open: false } : null,
+          )
+        }
+        onOpenResult={setSelected}
       />
 
       <ItemSheet subject={openSubject} onClose={() => setSelected(null)} />

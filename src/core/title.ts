@@ -80,6 +80,59 @@ const MARCADOR_TEMPORADA =
 /** Número solto no fim, precedido de espaço. */
 const NUMERO_FINAL = /\s+\d+\s*$/
 
+/**
+ * Uma célula de uma lista agrupada por família: ou uma obra sozinha, ou o grupo.
+ *
+ * Genérico porque os dois lados agrupam coisas diferentes — a estante agrupa
+ * `Item`, a busca agrupa `MediaSearchResult` — e a REGRA de agrupar é a mesma.
+ * Ter duas cópias dela era garantir que uma divergisse da outra no primeiro
+ * ajuste, e o sintoma seria a busca e a estante discordando sobre o que é a
+ * mesma franquia.
+ */
+export type FamilyEntry<T> =
+  | { kind: 'one'; key: string; item: T }
+  | { kind: 'family'; key: string; members: T[] }
+
+/**
+ * Agrupa por família PRESERVANDO A ORDEM DE ENTRADA.
+ *
+ * O grupo nasce na posição do seu primeiro membro, e quem não alcança o limiar
+ * fica exatamente onde estava — as duas coisas juntas são o que faz agrupar não
+ * bagunçar uma lista já ordenada (por popularidade na busca, por status e
+ * favorita na estante).
+ *
+ * Chave vazia (título que normaliza para nada) nunca agrupa: cada obra fica
+ * sozinha, senão todas as sem-nome cairiam num balde só.
+ */
+export function groupByFamily<T>(
+  items: T[],
+  keyOf: (item: T) => string,
+  minimo: number,
+): FamilyEntry<T>[] {
+  const familias = new Map<string, T[]>()
+  for (const item of items) {
+    const chave = keyOf(item)
+    const atual = familias.get(chave)
+    if (atual) atual.push(item)
+    else familias.set(chave, [item])
+  }
+
+  const entradas: FamilyEntry<T>[] = []
+  const jaSaiu = new Set<string>()
+  for (const item of items) {
+    const chave = keyOf(item)
+    const familia = familias.get(chave) as T[]
+    if (chave === '' || familia.length < minimo) {
+      entradas.push({ kind: 'one', key: chave, item })
+      continue
+    }
+    if (jaSaiu.has(chave)) continue
+    jaSaiu.add(chave)
+    entradas.push({ kind: 'family', key: chave, members: familia })
+  }
+  return entradas
+}
+
 export function stripSequelMarkers(title: string): string {
   let atual = title.trim()
   for (;;) {

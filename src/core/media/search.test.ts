@@ -495,7 +495,12 @@ describe('sortByFranchise', () => {
   // Casar pelo prefixo não pode virar casar por qualquer coisa: o hífen sem
   // espaço faz parte do nome, não separa subtítulo.
   it('não parte um nome composto por hífen', () => {
-    expect(familyKey(jogo('Spider-Man 2', 2023))).toBe('spider man 2')
+    // O que este teste guarda é o HÍFEN: "Spider-Man" não pode virar a família
+    // "Spider". O `2` some porque a chave da busca passou a ser a mesma da
+    // estante, e lá número solto no fim conta como sequência (10/08/2026) —
+    // "Spider-Man 2" e "Spider-Man" são a mesma franquia.
+    expect(familyKey(jogo('Spider-Man 2', 2023))).toBe('spider man')
+    expect(familyKey(jogo('Spider-Man', 2018))).toBe('spider man')
     expect(familyKey(jogo('Marvel - Spider-Man', 2018))).toBe('marvel')
   })
 

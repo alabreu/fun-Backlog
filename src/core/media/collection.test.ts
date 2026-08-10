@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { Item, ItemStatus } from '@core/items/types'
-import { collectionState, sortByCollection } from './collection'
+import {
+  collectionState,
+  groupResultsByFranchise,
+  sortByCollection,
+  sortByRelease,
+} from './collection'
 import type { MediaSearchResult } from './types'
 
 const obra = (externalId: string): MediaSearchResult => ({
@@ -73,5 +78,79 @@ describe('ordem do carrossel', () => {
       '2',
       '3',
     ])
+  })
+})
+
+describe('pilha de franquia na busca', () => {
+  const obra = (title: string, over: Partial<MediaSearchResult> = {}) => ({
+    provider: 'anilist',
+    externalId: title,
+    mediaType: 'anime' as const,
+    title,
+    ...over,
+  })
+
+  it('agrupa a franquia e deixa o resto no lugar', () => {
+    const entradas = groupResultsByFranchise([
+      obra('Outra coisa'),
+      obra('Dandadan'),
+      obra('Dandadan 2nd Season'),
+    ])
+    expect(entradas.map((e) => (e.kind === 'stack' ? e.name : e.result.title))).toEqual([
+      'Outra coisa',
+      'Dandadan',
+    ])
+  })
+
+  // A mesma chave da estante — antes a busca ignorava sufixo de temporada e as
+  // duas telas discordavam sobre o que é a mesma franquia.
+  it('usa a mesma regra de família da estante', () => {
+    const entradas = groupResultsByFranchise([
+      obra('Attack on Titan'),
+      obra('Attack on Titan Season 2'),
+      obra('Attack on Titan Final Season THE FINAL CHAPTERS Special 1'),
+    ])
+    expect(entradas).toHaveLength(1)
+  })
+
+  it('obra sozinha não vira pilha', () => {
+    const entradas = groupResultsByFranchise([obra('Frieren'), obra('PLUTO')])
+    expect(entradas.every((e) => e.kind === 'result')).toBe(true)
+  })
+})
+
+describe('ordem crescente de lançamento', () => {
+  const obra = (title: string, releaseDate?: string, year?: number) => ({
+    title,
+    releaseDate,
+    year,
+  })
+
+  it('do mais velho para o mais novo', () => {
+    expect(
+      sortByRelease([
+        obra('c', '2024-01-01'),
+        obra('a', '2013-04-07'),
+        obra('b', '2019-04-29'),
+      ]).map((o) => o.title),
+    ).toEqual(['a', 'b', 'c'])
+  })
+
+  it('o ano serve de reserva quando falta a data cheia', () => {
+    expect(
+      sortByRelease([obra('novo', undefined, 2024), obra('velho', '2013-04-07')]).map(
+        (o) => o.title,
+      ),
+    ).toEqual(['velho', 'novo'])
+  })
+
+  it('sem data nenhuma vai para o fim, na ordem que chegou', () => {
+    expect(
+      sortByRelease([
+        obra('sem data 1'),
+        obra('com data', '2020-01-01'),
+        obra('sem data 2'),
+      ]).map((o) => o.title),
+    ).toEqual(['com data', 'sem data 1', 'sem data 2'])
   })
 })

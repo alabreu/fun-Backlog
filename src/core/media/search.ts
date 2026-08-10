@@ -1,5 +1,5 @@
 import type { MediaType } from '@core/items/types'
-import { familyPrefix, normalizeTitle } from '@core/title'
+import { familyPrefix, normalizeTitle, stripSequelMarkers } from '@core/title'
 import { anilistProvider } from './anilist'
 import { googleBooksProvider } from './googlebooks'
 import { igdbProvider } from './igdb'
@@ -141,16 +141,22 @@ export function dedupe(results: MediaSearchResult[]): MediaSearchResult[] {
  * com o campo preenchido e outra que só tem o título casam entre si, em vez de
  * formarem dois grupos com o mesmo nome.
  *
- * NÃO normaliza sufixo de temporada, ao contrário da chave da estante
- * (`core/items/franchise.ts`). É diferença deliberada, não descuido: aqui a
- * chave decide a ORDEM de uma lista de resultados, e agrupar temporada com
- * temporada mudaria o que a busca devolve hoje — o pedido (10/08/2026) foi
- * agrupar franquia na estante, não na busca. Unificar as duas chaves, se um dia
- * for o certo, é trocar esta linha pela da estante.
+ * NORMALIZA SUFIXO DE TEMPORADA, igual à chave da estante
+ * (`shelfFamilyKey`). Nasceu sem isso, quando agrupar era pedido só para a
+ * estante — e a diferença tinha um custo escondido: as duas telas discordavam
+ * sobre o que é a mesma franquia, então "Dandadan 2nd Season" ficava junto do
+ * "Dandadan" na estante e solto na busca. Com a pilha chegando também à busca
+ * (10/08/2026), manter duas regras seria garantir que uma divergisse da outra.
  */
 export function familyKey(result: MediaSearchResult): string {
   if (result.franchise) return normalizeTitle(result.franchise)
-  return normalizeTitle(familyPrefix(result.title))
+  return normalizeTitle(stripSequelMarkers(familyPrefix(result.title)))
+}
+
+/** O nome da família como ele aparece na tela — sem normalizar, que é a versão
+ *  para comparar, não para ler. */
+export function familyName(result: MediaSearchResult): string {
+  return result.franchise ?? stripSequelMarkers(familyPrefix(result.title))
 }
 
 export function sortByFranchise(

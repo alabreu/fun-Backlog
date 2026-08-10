@@ -52,6 +52,13 @@ export const en: Record<keyof typeof pt, string> = {
   'status.book.active': 'Reading',
   'status.book.done': 'Read',
 
+  'format.ova': 'OVA',
+  'format.ona': 'ONA',
+  'format.movie': 'Film',
+  'format.special': 'Special',
+  'format.short': 'Short',
+  'format.music': 'Music video',
+
   // Catalogue (the shelf)
   'catalog.add': 'Add',
   'catalog.filterAll': 'All',

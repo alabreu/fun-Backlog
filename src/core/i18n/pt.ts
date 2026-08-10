@@ -53,6 +53,17 @@ export const pt = {
   'status.book.active': 'Lendo',
   'status.book.done': 'Lido',
 
+  // O que a obra É dentro da franquia. Só o anime distingue isso; nas outras
+  // mídias o rótulo simplesmente não aparece. TEMPORADA NÃO TEM RÓTULO: ela é o
+  // caso comum, e marcá-la deixaria a lista inteira marcada — a ausência é que
+  // diz "é uma temporada normal", como a capa sem marca no carrossel.
+  'format.ova': 'OVA',
+  'format.ona': 'ONA',
+  'format.movie': 'Filme',
+  'format.special': 'Especial',
+  'format.short': 'Curta',
+  'format.music': 'Clipe',
+
   // Catálogo (a estante)
   'catalog.add': 'Adicionar',
   'catalog.filterAll': 'Tudo',
