@@ -37,6 +37,8 @@ export const pt = {
   'media.book': 'Livros',
 
   // Status — universais e, onde a palavra muda, por mídia
+  // A obra ainda não existe: está na fila, mas não dá para fazer nada com ela.
+  'status.unreleased': 'Não lançados',
   'status.backlog': 'Na fila',
   'status.paused': 'Pausado',
   'status.abandoned': 'Abandonado',

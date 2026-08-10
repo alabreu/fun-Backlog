@@ -1,0 +1,31 @@
+-- QUANDO A OBRA SAI — a data que faz "Não lançados" existir na estante.
+--
+-- Uma temporada anunciada entra na fila meses antes de existir, e ali ela ocupa
+-- o mesmo lugar de algo que dá para começar hoje. O painel da obra já sabia
+-- disso (ele esconde progresso e "assistido" para obra que não estreou), mas
+-- sabia porque BUSCA a ficha da fonte ao abrir. A estante não busca ficha
+-- nenhuma — seriam dezenas de requisições para desenhar um grid —, então sem
+-- esta coluna ela não tem como separar as duas coisas.
+--
+-- É DATA E NÃO BOOLEANO, e essa é a decisão que importa aqui. Um `unreleased`
+-- apodrece: no dia da estreia a obra continuaria marcada até alguém abri-la de
+-- novo. Com a data, quem responde "já saiu?" é a comparação com o relógio no
+-- momento de desenhar — a obra migra para "Na fila" sozinha, sem toque e sem
+-- requisição. É o mesmo desenho da função `releasesInFuture`, que já recebe o
+-- "agora" por parâmetro exatamente por isso.
+--
+-- ANULÁVEL de propósito: "a fonte não sabe a data" NÃO é "já lançou". Tratar os
+-- dois igual jogaria toda obra sem data em uma das duas seções por engano, e o
+-- erro seria invisível. Nulo aqui significa desconhecido, e desconhecido fica
+-- na fila normal — que é o palpite certo, porque a esmagadora maioria do que
+-- está catalogado já existe.
+--
+-- SEM policy nova: as políticas de `items` da migração 0004 valem por LINHA e
+-- não por coluna — quem já podia ler e escrever a linha passa a ler e escrever
+-- esta coluna junto. Coluna nova numa tabela com RLS ligado não abre porta.
+--
+-- SEM índice: ninguém consulta por esta coluna. A estante já carrega os itens
+-- do usuário e faz a separação em memória, então um índice aqui seria escrita a
+-- mais em todo insert para responder uma pergunta que ninguém faz ao banco.
+alter table public.items
+  add column if not exists releases_at timestamptz;

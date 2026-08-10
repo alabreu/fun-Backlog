@@ -7,9 +7,13 @@ import {
   datesForStatus,
   mediaLabelKey,
   progressUnitFor,
-  shelfSections,
-  statusLabelKey,
 } from '@core/items/status'
+import {
+  hidesWhenEmpty,
+  sectionLabelKey,
+  sectionOf,
+  shelfSectionKeys,
+} from '@core/items/sections'
 import {
   ITEM_STATUSES,
   MEDIA_TYPES,
@@ -41,6 +45,7 @@ import { useSectionState } from '@ui/hooks/useSectionState'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
 import { useFlash } from '@ui/hooks/useFlash'
 import { useItems } from '@ui/hooks/useItems'
+import { useReleaseBackfill } from '@ui/hooks/useReleaseBackfill'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
 function isMediaType(value: string | undefined): value is MediaType {
@@ -81,7 +86,7 @@ function isMediaType(value: string | undefined): value is MediaType {
 export function ShelfScreen() {
   const { t } = useTranslation()
   const { media } = useParams()
-  const { items, error, add, enabled, signedIn } = useItems()
+  const { items, error, add, update, enabled, signedIn } = useItems()
 
   const [selected, setSelected] = useState<SheetSubject | null>(null)
   // A obra cujo + foi tocado, esperando a pessoa dizer COMO ela entra.
@@ -91,6 +96,10 @@ export function ShelfScreen() {
   // As pilhas de franquia que a pessoa abriu, por chave de família. Estado da
   // TELA, não do item: agrupar é uma leitura da lista, e nada disso é gravado.
   const [abertas, setAbertas] = useState<ReadonlySet<string>>(new Set())
+  // Um instante só por montagem. É ele que decide o que já saiu, e precisa ser
+  // estável enquanto a tela está aberta: recalculado a cada render, um item na
+  // fronteira da estreia poderia trocar de seção no meio de uma rolagem.
+  const [agora] = useState(() => Date.now())
 
   const alternarPilha = (chave: string) =>
     setAbertas((atual) => {
@@ -112,6 +121,11 @@ export function ShelfScreen() {
     signedIn,
     enabled: Boolean(mediaType),
   })
+
+  // Descobre a data de estreia do que está na fila sem ela — é o que preenche
+  // "Não lançados" para quem já tinha estante antes da coluna existir. Ver os
+  // freios no próprio hook.
+  useReleaseBackfill(items, mediaType, update, signedIn)
 
   const { isOpen, toggle } = useSectionState(mediaType)
   const [flash, setFlash] = useFlash()
@@ -141,7 +155,7 @@ export function ShelfScreen() {
   // procuro", e a resposta certa é só o que casa.
   const sections = useMemo(() => {
     if (!mediaType) return []
-    const canonicas = shelfSections(mediaType)
+    const canonicas = shelfSectionKeys(mediaType)
     // NENHUM ITEM FICA ESCONDIDO. Filme perdeu "assistindo" e "pausado"
     // (decisão 16), e um filme gravado num deles antes disso não tem mais
     // seção — ficaria invisível na estante, com o dado intacto no banco e
@@ -153,14 +167,21 @@ export function ShelfScreen() {
     return [...canonicas, ...orfaos]
       .map((value) => ({
         status: value,
-        items: visible.filter((i) => i.status === value),
+        items: visible.filter((i) => sectionOf(i, agora) === value),
       }))
       // SEÇÃO VAZIA SOME quando há um recorte em curso — busca OU filtro de
       // favoritas. Em repouso ela informa ("não tenho nada pausado"); dentro de
       // um recorte ela vira ruído, porque a pergunta deixou de ser "como está
       // minha estante" e passou a ser "onde está o que eu quero".
-      .filter(({ items: found }) => (!trimmed && !onlyFavorites) || found.length > 0)
-  }, [mediaType, visible, trimmed, onlyFavorites])
+      //
+      // "Não lançados" é a exceção e some SEMPRE que está vazia: ali o vazio é
+      // o estado normal de quase toda estante (ver `hidesWhenEmpty`).
+      .filter(
+        ({ status: value, items: found }) =>
+          found.length > 0 ||
+          (!hidesWhenEmpty(value) && !trimmed && !onlyFavorites),
+      )
+  }, [mediaType, visible, trimmed, onlyFavorites, agora])
 
   // COM RECORTE EM CURSO, AS PILHAS SE DESFAZEM. É o mesmo raciocínio que já
   // faz a seção vazia sumir na busca: a pergunta deixou de ser "como está minha
@@ -226,6 +247,7 @@ export function ShelfScreen() {
         title: result.title,
         coverUrl: result.coverUrl,
         externalIds: { [result.provider]: result.externalId },
+        releasesAt: result.releaseDate,
         status,
         ...datesForStatus(status, {}, new Date().toISOString()),
         // O progresso vem do painel: ele já buscou a ficha e sabe o total
@@ -298,7 +320,7 @@ export function ShelfScreen() {
             {sections.map(({ status: value, items: found }) => (
               <Section
                 key={value}
-                title={t(statusLabelKey(value, mediaType))}
+                title={t(sectionLabelKey(value, mediaType))}
                 count={found.length}
                 // Buscando, a seção só existe porque tem acerto: fica aberta
                 // e sem seta. Ver `collapsible` em `Section`.

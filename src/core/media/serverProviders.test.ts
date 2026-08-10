@@ -42,6 +42,8 @@ describe('mapeamento da IGDB', () => {
       title: 'The Witcher 3: Wild Hunt',
       coverUrl: igdbCoverUrl('co1wyy'),
       year: 2015,
+      releaseDate: '2015-05-19',
+      franchise: undefined,
       subtitle: 'PC, PS4',
     })
   })
@@ -102,6 +104,7 @@ describe('mapeamento da TMDB', () => {
       title: 'Duna: Parte Dois',
       coverUrl: tmdbPosterUrl('/abc.jpg'),
       year: 2024,
+      releaseDate: '2024-02-27',
       subtitle: 'Dune: Part Two',
     })
   })
@@ -202,6 +205,7 @@ describe('mapeamento da TMDB', () => {
         title: 'Game of Thrones',
         coverUrl: undefined,
         year: 2011,
+        releaseDate: '2011-04-17',
         subtitle: undefined,
       },
     ])

@@ -194,6 +194,7 @@ export function AddScreen() {
         title: result.title,
         coverUrl: result.coverUrl,
         externalIds: { [result.provider]: result.externalId },
+        releasesAt: result.releaseDate,
         status,
         ...datesForStatus(status, {}, new Date().toISOString()),
         // O progresso vem do painel: ele já buscou a ficha e sabe o total

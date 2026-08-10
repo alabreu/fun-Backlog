@@ -22,6 +22,16 @@ export interface MediaSearchResult {
   year?: number
   /** Total de episódios / páginas, quando o provider souber. */
   total?: number
+  /**
+   * A DATA de lançamento (ISO `YYYY-MM-DD`), quando a fonte souber — o `year`
+   * acima é derivado dela e continua sendo o que a lista mostra.
+   *
+   * Existe porque "já saiu?" não se responde com ano: uma temporada que estreia
+   * em dezembro tem o mesmo ano de uma que estreou em janeiro. É esta data que
+   * o item guarda (`Item.releasesAt`) para a estante separar "Não lançados" sem
+   * buscar ficha nenhuma.
+   */
+  releaseDate?: string
   /** Uma linha de contexto para desempatar homônimos na lista. */
   subtitle?: string
   /**
@@ -123,6 +133,14 @@ export interface MediaDetail {
   originalTitle?: string
   coverUrl?: string
   year?: number
+  /**
+   * A DATA de lançamento (ISO `YYYY-MM-DD`) — a mesma de `MediaSearchResult`.
+   *
+   * Repetida aqui, e não herdada, porque é DELA que sai o valor gravado no item
+   * quando a ficha é aberta: a ficha é sempre mais nova que o resultado de
+   * busca guardado, e numa obra anunciada a data é justamente o que muda.
+   */
+  releaseDate?: string
   synopsis?: string
   genres?: string[]
   facts?: MediaFact[]

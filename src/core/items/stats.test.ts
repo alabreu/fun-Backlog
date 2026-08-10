@@ -322,3 +322,29 @@ describe('suggestFromBacklog', () => {
     expect(suggestFromBacklog([], dia)).toEqual([])
   })
 })
+
+describe('a fila não sugere o que não estreou', () => {
+  const hoje = new Date('2026-08-10T12:00:00.000Z')
+  const naFila = (id: string, releasesAt?: string): Item => ({
+    id,
+    mediaType: 'anime',
+    title: id,
+    externalIds: {},
+    status: 'backlog',
+    tags: [],
+    addedAt: '2026-01-01T00:00:00.000Z',
+    releasesAt,
+  })
+
+  it('deixa de fora a obra anunciada', () => {
+    const sugeridas = suggestFromBacklog(
+      [naFila('já saiu'), naFila('ainda não', '2026-12-01')],
+      hoje,
+    )
+    expect(sugeridas.map((i) => i.id)).toEqual(['já saiu'])
+  })
+
+  it('sem data continua entrando — desconhecido não é "não lançado"', () => {
+    expect(suggestFromBacklog([naFila('sem data')], hoje)).toHaveLength(1)
+  })
+})

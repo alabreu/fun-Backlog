@@ -88,6 +88,11 @@ export function mapTmdbResult(
     title,
     coverUrl: result.poster_path ? tmdbPosterUrl(result.poster_path) : undefined,
     year: year && !Number.isNaN(year) ? year : undefined,
+    // A TMDB manda `YYYY-MM-DD`. Exijo os 10 caracteres: ela também manda
+    // string vazia para data desconhecida, e um "2026" solto viraria uma data
+    // que o `Date.parse` lê como 1º de janeiro — inventando um dia que a fonte
+    // não afirmou.
+    releaseDate: date && date.length === 10 ? date : undefined,
     // O título original só ajuda quando difere do traduzido — repetir "Duna"
     // embaixo de "Duna" gasta uma linha para não dizer nada.
     subtitle: original && original !== title ? original : undefined,

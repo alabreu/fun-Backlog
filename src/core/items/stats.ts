@@ -1,3 +1,4 @@
+import { releasesInFuture } from '@core/media/release'
 import { dayNumber } from '@core/greeting'
 import type { Item, MediaType } from './types'
 
@@ -170,7 +171,16 @@ export function suggestFromBacklog(
   date: Date,
   limit = 4,
 ): Item[] {
-  const queue = items.filter((i) => i.status === 'backlog')
+  // OBRA QUE NÃO ESTREOU NÃO É SUGESTÃO. A frase que acompanha o carrossel é
+  // "da sua fila, para você começar hoje", e oferecer uma temporada anunciada
+  // para o ano que vem é o app prometendo o impossível. Era um defeito que já
+  // existia e que só agora dá para consertar: até a migração 0007 o item não
+  // guardava a data de estreia.
+  const queue = items.filter(
+    (i) =>
+      i.status === 'backlog' &&
+      !releasesInFuture(Date.parse(i.releasesAt ?? ''), date.getTime()),
+  )
   if (queue.length <= limit) return queue
 
   // Janela deslizante sobre a fila ordenada: no dia seguinte ela anda, então a

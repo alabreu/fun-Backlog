@@ -66,6 +66,18 @@ export interface Item {
   favorite?: boolean
   notes?: string
   tags: string[]
+  /**
+   * Quando a obra sai — o que faz a seção "Não lançados" existir.
+   *
+   * DATA E NÃO BOOLEANO: um sinalizador apodrece no dia da estreia, e a obra
+   * ficaria marcada até alguém abri-la de novo. Comparando com o relógio na
+   * hora de desenhar, ela migra para a fila sozinha.
+   *
+   * AUSENTE É DESCONHECIDO, e desconhecido conta como JÁ LANÇADO — a esmagadora
+   * maioria do que se cataloga já existe, e o contrário jogaria toda obra sem
+   * data numa seção onde ela não pode ser tocada.
+   */
+  releasesAt?: string
   addedAt: string
   startedAt?: string
   completedAt?: string

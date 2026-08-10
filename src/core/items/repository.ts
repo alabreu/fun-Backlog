@@ -116,6 +116,7 @@ interface ItemRow {
   favorite: boolean | null
   notes: string | null
   tags: string[] | null
+  releases_at: string | null
   added_at: string
   started_at: string | null
   completed_at: string | null
@@ -135,6 +136,7 @@ function fromRow(row: ItemRow): Item {
     favorite: row.favorite ?? undefined,
     notes: row.notes ?? undefined,
     tags: row.tags ?? [],
+    releasesAt: row.releases_at ?? undefined,
     addedAt: row.added_at,
     startedAt: row.started_at ?? undefined,
     completedAt: row.completed_at ?? undefined,
@@ -180,6 +182,9 @@ export function toRow(
   if ('favorite' in patch) row.favorite = patch.favorite ?? false
   if ('notes' in patch) row.notes = patch.notes ?? null
   if ('tags' in patch) row.tags = patch.tags
+  // Mesmo cuidado do `favorite` acima: a coluna nasce na migração 0007, e
+  // mandá-la sempre faria todo update falhar num banco que ainda não a tem.
+  if ('releasesAt' in patch) row.releases_at = patch.releasesAt ?? null
   // Só na criação (a migração convidado→conta manda a data original); num
   // update comum `addedAt` nunca vem, e a coluna fica com o default do banco.
   if ('addedAt' in patch) row.added_at = patch.addedAt

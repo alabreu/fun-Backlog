@@ -29,6 +29,7 @@ const RELATIONS_FULL = `
         type
         episodes
         seasonYear
+        startDate { year month day }
         title { romaji english }
         coverImage { large }
       }
@@ -43,6 +44,7 @@ const QUERY = `
         id
         episodes
         seasonYear
+        startDate { year month day }
         title { romaji english }
         coverImage { large }
       }
@@ -55,6 +57,8 @@ interface AniListRelationNode {
   type?: string | null
   episodes?: number | null
   seasonYear?: number | null
+  /** Ano, mês e dia ANUNCIADOS. Qualquer um pode faltar. */
+  startDate?: { year?: number | null; month?: number | null; day?: number | null } | null
   title?: { romaji?: string | null; english?: string | null } | null
   coverImage?: { large?: string | null } | null
 }
@@ -69,6 +73,12 @@ interface AniListMedia extends AniListRelations {
   id: number
   episodes: number | null
   seasonYear: number | null
+  /** Ano, mês e dia ANUNCIADOS, cada um podendo faltar — ver `isoDate`. */
+  startDate?: {
+    year?: number | null
+    month?: number | null
+    day?: number | null
+  } | null
   title: { romaji: string | null; english: string | null } | null
   coverImage: { large: string | null } | null
 }
@@ -108,6 +118,7 @@ export function relatedFrom(medias: AniListRelations[]): MediaSearchResult[] {
         id: node.id,
         episodes: node.episodes ?? null,
         seasonYear: node.seasonYear ?? null,
+        startDate: node.startDate ?? null,
         title: {
           romaji: node.title?.romaji ?? null,
           english: node.title?.english ?? null,
@@ -118,6 +129,24 @@ export function relatedFrom(medias: AniListRelations[]): MediaSearchResult[] {
     }
 
   return [...porId.values()]
+}
+
+/**
+ * A data do AniList vira `YYYY-MM-DD` — e SÓ quando os três campos existem.
+ *
+ * O AniList devolve os três separados e deixa qualquer um nulo: uma temporada
+ * anunciada para "2027" tem ano e mais nada. Completar o que falta com 1º de
+ * janeiro seria inventar um dia que a fonte não afirmou, e esse dia inventado
+ * decidiria de que lado da linha "já saiu?" a obra cai — em janeiro, todo ano.
+ * Sem os três, a obra fica sem data e cai na fila normal, que é o palpite certo
+ * para desconhecido.
+ */
+function isoDate(
+  d: { year?: number | null; month?: number | null; day?: number | null } | null | undefined,
+): string | undefined {
+  if (!d?.year || !d.month || !d.day) return undefined
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.year}-${pad(d.month)}-${pad(d.day)}`
 }
 
 /** Exportado para teste: o mapeamento é a parte que quebra quando a API muda. */
@@ -131,8 +160,9 @@ export function mapAniListMedia(media: AniListMedia): MediaSearchResult | null {
     mediaType: 'anime',
     title,
     coverUrl: media.coverImage?.large ?? undefined,
-    year: media.seasonYear ?? undefined,
+    year: media.seasonYear ?? media.startDate?.year ?? undefined,
     total: media.episodes ?? undefined,
+    releaseDate: isoDate(media.startDate),
     subtitle:
       media.title?.english && media.title?.romaji !== media.title?.english
         ? (media.title.romaji ?? undefined)
@@ -216,7 +246,7 @@ const DETAIL_QUERY = `
       duration
       status
       seasonYear
-      startDate { year }
+      startDate { year month day }
       genres
       averageScore
       description(asHtml: false)
@@ -232,10 +262,9 @@ interface AniListDetail extends AniListMedia {
   duration?: number | null
   /** `FINISHED` | `RELEASING` | `NOT_YET_RELEASED` | `CANCELLED` | `HIATUS`. */
   status?: string | null
-  /** O ano ANUNCIADO. Numa temporada que ainda não estreou, `seasonYear` é
-   *  null e este é o único ano que existe — sem ele a ficha aparecia sem ano
-   *  nenhum no cabeçalho. */
-  startDate?: { year?: number | null } | null
+  // `startDate` vem de `AniListMedia`: numa temporada que ainda não estreou,
+  // `seasonYear` é null e o ano dela é o único que existe — sem ele a ficha
+  // aparecia sem ano nenhum no cabeçalho.
   genres?: string[] | null
   averageScore?: number | null
   description?: string | null

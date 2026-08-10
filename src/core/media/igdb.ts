@@ -70,6 +70,11 @@ export function mapIgdbGame(game: IgdbGame): MediaSearchResult | null {
     year: game.first_release_date
       ? new Date(game.first_release_date * 1000).getUTCFullYear()
       : undefined,
+    // A IGDB dá o instante exato, então aqui a data é sempre completa — sem o
+    // caso do AniList, onde só o ano costuma vir.
+    releaseDate: game.first_release_date
+      ? new Date(game.first_release_date * 1000).toISOString().slice(0, 10)
+      : undefined,
     subtitle: platforms.length > 0 ? platforms.join(', ') : undefined,
     // Lê o primeiro dos quatro campos que vier (ver `IgdbGame`). Ausente não é
     // problema: `familyKey` cai no título, e "The Legend of Zelda: Ocarina of

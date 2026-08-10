@@ -37,6 +37,7 @@ export const en: Record<keyof typeof pt, string> = {
   'media.book': 'Books',
 
   // Status — universal, and per medium where the word changes
+  'status.unreleased': 'Not out yet',
   'status.backlog': 'In the queue',
   'status.paused': 'Paused',
   'status.abandoned': 'Dropped',

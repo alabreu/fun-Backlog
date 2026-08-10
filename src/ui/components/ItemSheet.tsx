@@ -215,6 +215,16 @@ function Detail({
       if (controller.signal.aborted) return
       setDetail(found)
       setLoadingDetail(false)
+      // A DATA DE ESTREIA APROVEITA A CARONA. A ficha acabou de chegar e ela
+      // sabe quando a obra sai; a estante precisa desse dado para separar "Não
+      // lançados" e não pode buscar ficha nenhuma. Gravar aqui não custa
+      // requisição, e é o que faz um item antigo — catalogado antes da coluna
+      // existir — se corrigir só por ser aberto uma vez.
+      //
+      // Só escreve quando MUDA: sem essa comparação, toda abertura de ficha
+      // viraria um UPDATE.
+      if (found?.releaseDate && matched && matched.releasesAt !== found.releaseDate)
+        void update(matched.id, { releasesAt: found.releaseDate })
     })
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -250,6 +260,9 @@ function Detail({
           [fromSearch.provider]: detail?.externalId ?? fromSearch.externalId,
         },
         progress: unit && total ? { unit, current: 0, total } : undefined,
+        // A ficha ganha do resultado: ela é mais nova, e numa obra anunciada a
+        // data é justamente o que muda.
+        releasesAt: detail?.releaseDate ?? fromSearch.releaseDate,
       })
     } catch {
       setFailed(true)

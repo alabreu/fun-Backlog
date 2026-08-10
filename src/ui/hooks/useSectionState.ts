@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { storageKey } from '@core/config'
+import type { ShelfSectionKey } from '@core/items/sections'
 import { ITEM_STATUSES, type ItemStatus, type MediaType } from '@core/items/types'
 
 const KEY = storageKey('shelf-sections')
@@ -26,7 +27,7 @@ const KEY = storageKey('shelf-sections')
  * privado, cota cheia), e uma seção que reabre é bem menos grave que uma tela
  * que não abre.
  */
-type Choices = Partial<Record<MediaType, Partial<Record<ItemStatus, boolean>>>>
+type Choices = Partial<Record<MediaType, Partial<Record<ShelfSectionKey, boolean>>>>
 
 /**
  * Aceita a forma ANTIGA (lista de seções fechadas) além da atual. A chave já
@@ -43,13 +44,15 @@ function read(): Choices {
     const out: Choices = {}
     for (const [media, value] of Object.entries(parsed)) {
       if (Array.isArray(value)) {
-        const escolhas: Partial<Record<ItemStatus, boolean>> = {}
+        const escolhas: Partial<Record<ShelfSectionKey, boolean>> = {}
+        // A forma antiga só podia conter STATUS — "não lançados" nem existia
+        // quando ela foi escrita —, então a lista aceita continua sendo essa.
         for (const status of value)
           if (ITEM_STATUSES.includes(status as ItemStatus))
             escolhas[status as ItemStatus] = false
         out[media as MediaType] = escolhas
       } else if (value && typeof value === 'object') {
-        out[media as MediaType] = value as Partial<Record<ItemStatus, boolean>>
+        out[media as MediaType] = value as Partial<Record<ShelfSectionKey, boolean>>
       }
     }
     return out
@@ -78,12 +81,12 @@ export function useSectionState(mediaType: MediaType | undefined) {
 
   /** Aberta? A escolha da pessoa ganha; sem escolha, quem decide é o conteúdo. */
   const isOpen = useCallback(
-    (status: ItemStatus, count: number) => choices[status] ?? count > 0,
+    (status: ShelfSectionKey, count: number) => choices[status] ?? count > 0,
     [choices],
   )
 
   const toggle = useCallback(
-    (status: ItemStatus, count: number) => {
+    (status: ShelfSectionKey, count: number) => {
       if (!mediaType) return
       setAll((current) => {
         const forMedia = current[mediaType] ?? {}
