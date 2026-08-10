@@ -99,9 +99,22 @@ export function CoverStack({
       </span>
 
       {/* A capa por cima das folhas, no fluxo normal — é ela que dá a altura da
-          célula, então não pode ser absoluta. */}
+          célula, então não pode ser absoluta.
+
+          ABERTA, A PILHA LARGA A ARTE (escolha do usuário, 10/08/2026). Fechada
+          ela veste a capa da primeira obra; aberta, essa mesma obra aparece na
+          célula ao lado, e duas capas idênticas vizinhas leem como item
+          repetido. Sem `src` a `Cover` cai no próprio fallback — o tint da
+          mídia com a inicial —, e aí a diferença não é sutil: uma é arte, a
+          outra é claramente um marcador de coleção. */}
       <span className="relative block">
-        <Cover src={src} title={name} media={media} lazy={lazy} />
+        <Cover
+          src={expanded ? undefined : src}
+          title={name}
+          media={media}
+          lazy={lazy}
+          ringMedia={expanded ? media : undefined}
+        />
         {/* O selo é DECORATIVO nos dois estados: o nome acessível do botão já
             diz quantas obras são e se aquilo abre ou fecha. */}
         <Badge tone="onCover" aria-hidden className="absolute bottom-1.5 right-1.5">

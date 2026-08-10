@@ -729,9 +729,12 @@ export function DesignScreen() {
             mesmo formato do selo de progresso. Só agrupa dentro de um status: a
             espinha da estante é o estado da obra, e uma pilha que atravessasse
             teria de morar em duas seções ao mesmo tempo. Toque a segunda para
-            ver o estado ABERTO — sem folhas e com seta no lugar do contador,
-            porque aberta ela fica ao lado das próprias obras e precisa não ler
-            como uma delas.
+            ver o estado ABERTO: ela larga a arte e vira o tint da mídia com a
+            inicial, porque aberta ela fica ao lado da própria obra de capa e
+            duas capas idênticas vizinhas leem como item repetido. O contorno na
+            cor da mídia (<code>ringMedia</code>) vai nela e em todas as obras
+            do grupo — é o que responde "quais destas são da coleção que eu
+            abri", já que elas dividem a fileira com as obras soltas da seção.
           </p>
           <CoverGrid className="mb-3">
             <li>

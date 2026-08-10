@@ -121,6 +121,34 @@ export const MEDIA_GLOW: Record<MediaType, string> = {
   book: 'from-media-book/29',
 }
 
+/**
+ * O CONTORNO que amarra as obras de uma coleção aberta.
+ *
+ * TERCEIRA exceção deliberada à regra 2 do topo ("nada disso encosta nas
+ * capas"), e a que mais precisa de justificativa, porque é literalmente uma
+ * borda em volta da arte — o que a regra descreve ao proibir.
+ *
+ * O que a salva é ser TEMPORÁRIA e RARA. A regra existe porque cinco cores de
+ * marca em volta de doze capas viram poluição permanente; este contorno só
+ * aparece enquanto uma pilha está aberta, em quatro ou cinco capas, e some no
+ * toque seguinte. Ele não decora a arte: ele responde "quais destas são as da
+ * coleção que eu acabei de abrir", que é uma pergunta que a arte não responde e
+ * a posição no grid também não — as obras da pilha ficam lado a lado com as
+ * soltas da mesma seção.
+ *
+ * E ele não carrega informação sozinho (WCAG 1.4.1): o nome de cada obra está
+ * escrito embaixo dela, e quem usa leitor de tela tem a pilha anunciando quantas
+ * obras são. Para quem não distingue as cores, sobra a mesma tela de sempre mais
+ * um contorno neutro — nada é perdido.
+ */
+export const MEDIA_RING: Record<MediaType, string> = {
+  game: 'ring-media-game',
+  movie: 'ring-media-movie',
+  series: 'ring-media-series',
+  anime: 'ring-media-anime',
+  book: 'ring-media-book',
+}
+
 /** A inicial desenhada sobre o tint. */
 export const MEDIA_INITIAL: Record<MediaType, string> = {
   game: 'text-media-game/70',

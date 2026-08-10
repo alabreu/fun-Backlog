@@ -362,6 +362,7 @@ export function ShelfScreen() {
                               key={item.id}
                               item={item}
                               lazy={false}
+                              inStack
                               onOpen={() => setSelected(item)}
                             />
                           ))
@@ -485,10 +486,13 @@ function ItemCell({
   item,
   lazy,
   onOpen,
+  inStack = false,
 }: {
   item: Item
   lazy: boolean
   onOpen: () => void
+  /** Faz parte da pilha que está aberta — ganha o contorno que amarra o grupo. */
+  inStack?: boolean
 }) {
   const { t } = useTranslation()
   return (
@@ -509,6 +513,7 @@ function ItemCell({
           title={item.title}
           media={item.mediaType}
           lazy={lazy}
+          ringMedia={inStack ? item.mediaType : undefined}
         />
         {item.favorite && <CoverMark label={t('item.favorite')} />}
         <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
