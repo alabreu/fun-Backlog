@@ -441,7 +441,7 @@ export function ShelfScreen() {
             que eles tinham soltos aqui. */}
         {searchingExternal && (
           <Section
-            className="mt-6 pb-8"
+            className="mt-6"
             title={t('shelf.notOnShelf')}
             count={fresh.length}
             collapsible={false}

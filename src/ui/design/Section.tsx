@@ -94,7 +94,15 @@ export function Section({
   )
 
   return (
-    <section className={className}>
+    // O RESPIRO ENTRE SEÇÕES MORA AQUI, na `section`, e não no bloco de
+    // conteúdo — que é onde ele estava. A diferença aparece na seção FECHADA:
+    // sem conteúdo renderizado, o respiro de lá simplesmente não existia, e
+    // duas seções recolhidas ficavam mais coladas que duas abertas. Na
+    // `section` ele vale nos dois estados.
+    //
+    // 24px aqui + 8px do cabeçalho de baixo = 32px entre uma seção e a
+    // seguinte (escolha do usuário, 10/08/2026, medido na tela).
+    <section className={`pb-6 ${className}`}>
       {/* O título é um `h2` nos DOIS modos: é o que deixa quem usa leitor de
           tela pular de seção em seção. Colapsável, o botão vai DENTRO dele —
           é o padrão de acordeão da WAI-ARIA, e não o contrário. */}
@@ -105,7 +113,7 @@ export function Section({
             aria-expanded={open}
             aria-controls={id}
             onClick={onToggle}
-            className="flex w-full items-center gap-3 py-2.5 text-left"
+            className="flex w-full items-center gap-3 py-2 text-left"
           >
             {nome}
             {contador}
@@ -119,7 +127,7 @@ export function Section({
             />
           </button>
         ) : (
-          <span className="flex w-full items-center gap-3 py-2.5">
+          <span className="flex w-full items-center gap-3 py-2">
             {nome}
             {contador}
           </span>
@@ -127,7 +135,7 @@ export function Section({
       </h2>
 
       {aberta && (
-        <div id={id} className="pb-2">
+        <div id={id}>
           {count > 0 ? (
             children
           ) : (
