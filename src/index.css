@@ -165,6 +165,21 @@
   --color-scrim: var(--palette-gray-950);
   --color-on-scrim: var(--palette-sand-50);
 
+  /* A MARCA da capa (`CoverMark`): um disco com o ícone dentro, no canto da
+     arte. É o irmão claro do `scrim`, e existe pela mesma razão que ele — o que
+     está atrás é a arte da obra, de qualquer cor, então o disco não pode
+     acompanhar o tema. BRANCO NOS DOIS, e é por isso que os `on-mark-*` abaixo
+     também não invertem: eles são sempre "sobre claro".
+
+     NÃO REPITA ESTES QUATRO nos blocos de tema escuro lá embaixo. O reflexo ao
+     mexer na paleta é copiar tudo para lá; aqui isso trocaria o vinho por rosa
+     claro sobre um disco que continua branco, e o ícone cairia de 6,3:1 para
+     2,7:1 — abaixo do mínimo da 1.4.11. O `check-contrast` pega. */
+  --color-mark: var(--palette-white);
+  --color-on-mark-favorite: var(--palette-rose-700);
+  --color-on-mark-done: var(--palette-green-700);
+  --color-on-mark-shelved: var(--palette-rose-700);
+
   /* --- Cor por mídia ---
      Serve para ESCANEAR: nas linhas das estantes, nos chips de filtro e nos
      cabeçalhos de grupo da busca, a cor chega antes da leitura.
@@ -520,60 +535,6 @@ body {
 .app-range::-moz-range-progress {
   height: 6px;
   background: transparent;
-}
-
-/**
- * O CONTORNO DO CORAÇÃO sobre a capa (`CoverMark`).
- *
- * TRAÇO BRANCO (escolha do usuário, 10/08/2026). O contorno existe porque a cor
- * do coração não basta sobre capa clara: `favorite` sobre branco dá 2,69:1, e a
- * WCAG 1.4.11 pede 3:1 de um objeto gráfico informativo. O branco resolve isso
- * para a esmagadora maioria das capas — pôster é foto, e foto é escura ou
- * colorida — e dá ao ícone o ar de adesivo colado sobre a arte.
- *
- * O CASO QUE ELE NÃO COBRE, escrito aqui para não ser redescoberto: capa quase
- * branca. Ali o traço some no fundo (1:1) e o coração volta aos 2,69:1 do
- * contra-exemplo acima. O traço preto a 42% que existia antes chegava a 3,03:1
- * justamente nesse caso, e falhava no oposto. Não há UMA cor que resolva os
- * dois: a saída de verdade seria contorno branco MAIS uma sombra escura sutil
- * por baixo, e isso é uma decisão de desenho, não de acessibilidade.
- *
- * Fica em CSS e não em classe do Tailwind porque `paint-order` não existe como
- * utilitário, e é ele que faz a coisa funcionar: sem ele o traço é desenhado
- * DEPOIS do preenchimento e engrossa o desenho por dentro, comendo o miolo de
- * um ícone de 18px.
- *
- * UMA RESSALVA sobre o alinhamento: traço em SVG é sempre CENTRADO no contorno.
- * Com `paint-order: stroke fill` o preenchimento cobre a metade de dentro e
- * sobra a de fora — ou seja, é "outside", não o "inside" pedido. Alinhamento
- * interno de verdade exigiria recortar cada glifo pela própria forma, e a
- * diferença visível entre os dois é de meio pixel.
- *
- * `vector-effect: non-scaling-stroke` NÃO É ENFEITE — sem ele não há contorno
- * nenhum, e foi assim que este ficou invisível na tela por um bom tempo apesar
- * de todo o cálculo de contraste acima estar certo. `stroke-width` em SVG é
- * medido em UNIDADES DO viewBox, não em pixels de tela: o ícone do Phosphor tem
- * `viewBox="0 0 256 256"` desenhado em 18px, uma redução de 14,2×, então
- * `1.5px` virava 0,11px de traço de verdade. O `px` na declaração engana — ele
- * é lido como "1.5 unidades". Com `non-scaling-stroke` a espessura passa a ser
- * contada na tela, e 2px viram 2px.
- *
- * 2px e não 1.5px porque metade do traço fica debaixo do preenchimento (ver a
- * ressalva acima): o que sobra à mostra é 1px, que é o fio mais fino que ainda
- * se lê num ícone de 18px em tela de alta densidade.
- */
-.app-cover-mark {
-  paint-order: stroke fill;
-  /* O primitivo, e não o token semântico: este branco é branco mesmo, e não o
-     "papel" do tema — ele não pode virar preto quando o tema clarear, senão o
-     contorno inverte de sentido sobre uma capa que não mudou. */
-  stroke: var(--palette-white);
-  stroke-width: 2px;
-  stroke-linejoin: round;
-}
-
-.app-cover-mark * {
-  vector-effect: non-scaling-stroke;
 }
 
 /* A BARRA DE VERDADE. Mesma altura e mesmo raio da trilha nativa, e a parada do

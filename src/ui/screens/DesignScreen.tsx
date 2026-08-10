@@ -728,10 +728,12 @@ export function DesignScreen() {
         <section>
           <SectionTitle className="mb-2">CoverMark</SectionTitle>
           <p className="mb-3 text-body text-muted">
-            O coração de favorita, no canto da capa. O contorno preto a 42% é
-            medido, não escolhido: é onde ele alcança 3:1 sobre um pôster
-            branco, que é o mínimo da WCAG para objeto gráfico. A cor do próprio
-            coração dá 2,69:1 e não passa sozinha.
+            O coração de favorita, no canto da capa. O ícone fica dentro de um
+            disco branco porque a arte atrás é imprevisível: contorno escuro
+            some em pôster escuro, contorno claro some em pôster claro. O disco
+            troca o fundo por um conhecido, e aí o contraste vira conta fechada
+            — <code>on-mark-favorite</code> sobre <code>mark</code> dá 6,29:1,
+            contra os 2,69:1 do coração direto sobre branco.
           </p>
           <CoverGrid className="mb-3">
             {(

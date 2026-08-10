@@ -18,9 +18,25 @@ import { BookmarkSimple, CheckCircle, Heart } from '@phosphor-icons/react'
  *
  * Ao mudar a proporção da `Cover`, mude aqui junto — são a mesma caixa.
  *
- * O CONTORNO (`app-cover-mark`, em index.css) é o que segura o ícone sobre capa
- * clara — a cor sozinha dá 2,69:1 sobre branco e não alcança os 3:1 da WCAG
- * 1.4.11. A opacidade do traço está medida lá.
+ * O ÍCONE FICA DENTRO DE UM DISCO BRANCO (escolha do usuário, 10/08/2026). Isso
+ * resolve de vez um problema que dois contornos não resolveram: a arte da capa
+ * é imprevisível, e nenhuma cor de traço funciona sobre TODAS elas — traço
+ * escuro some em pôster escuro, traço claro some em pôster claro. O disco não
+ * depende do que está atrás: ele TROCA o fundo do ícone por um conhecido, e a
+ * partir daí o contraste é uma conta fechada (`on-mark-*` sobre `mark`, aferida
+ * no `check-contrast`).
+ *
+ * Por isso o ícone usa `on-mark-*` e não `favorite`/`success`/`accent`: o disco
+ * é branco NOS DOIS TEMAS, então a cor de dentro é sempre a variante "sobre
+ * claro". Com `text-favorite` o tema escuro traria o rosa claro (2,69:1 sobre
+ * branco) e o ícone ficaria lavado justamente onde o app passa a maior parte do
+ * tempo.
+ *
+ * A SOMBRA não é enfeite: é o que dá borda ao disco sobre capa quase branca,
+ * o único caso em que branco-sobre-branco voltaria a sumir.
+ *
+ * 28px de disco, o mesmo do `CoverAction` — os dois são fichas sobre a arte, em
+ * cantos opostos da mesma capa, e tamanhos diferentes só se notariam como erro.
  *
  * O ícone é DECORATIVO (`aria-hidden`) e o estado vai em texto no `label`: um
  * coração sozinho não diz nada para quem usa leitor de tela, e cor tampouco
@@ -43,9 +59,9 @@ const ICONS: Record<CoverMarkTone, typeof Heart> = {
 }
 
 const TONES: Record<CoverMarkTone, string> = {
-  favorite: 'text-favorite',
-  done: 'text-success',
-  shelved: 'text-accent',
+  favorite: 'text-on-mark-favorite',
+  done: 'text-on-mark-done',
+  shelved: 'text-on-mark-shelved',
 }
 
 export function CoverMark({
@@ -68,12 +84,12 @@ export function CoverMark({
   return (
     <span className="pointer-events-none absolute inset-x-0 top-0 aspect-[2/3]">
       {label && <span className="sr-only">{label}</span>}
-      <Icon
+      <span
         aria-hidden
-        size={18}
-        weight="fill"
-        className={`app-cover-mark absolute left-1.5 top-1.5 ${TONES[tone]}`}
-      />
+        className="absolute left-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-control bg-mark shadow-md"
+      >
+        <Icon size={16} weight="fill" className={TONES[tone]} />
+      </span>
     </span>
   )
 }

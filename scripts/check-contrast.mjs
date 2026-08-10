@@ -52,6 +52,15 @@ const PAIRS = [
   ['rating', 'bg', 3, 'estrela preenchida no fundo'],
   ['favorite', 'surface', 3, 'coração de favorita no sheet'],
   ['favorite', 'bg', 3, 'coração de favorita no fundo'],
+  // A MARCA DA CAPA (`CoverMark`) é um ícone dentro de um disco BRANCO nos dois
+  // temas, e é justamente por isso que ela precisa de par próprio: os tokens
+  // normais (`favorite`, `success`, `accent`) invertem com o tema e o disco
+  // não. Sem estas três linhas, copiar os `on-mark-*` para o bloco escuro na
+  // próxima troca de paleta passaria batido — e o ícone cairia para 2,7:1
+  // sobre o branco, abaixo do mínimo da 1.4.11 para objeto gráfico.
+  ['on-mark-favorite', 'mark', 3, 'coração no disco da capa'],
+  ['on-mark-done', 'mark', 3, 'concluída no disco da capa'],
+  ['on-mark-shelved', 'mark', 3, 'na estante no disco da capa'],
   ['on-inverse', 'inverse', 4.5, 'texto do toast (superfície invertida)'],
   // A SUPERFÍCIE do toast contra a página. Este par entrou depois de o toast
   // ficar invisível no tema escuro: `inverse` era escuro nos dois temas e dava
