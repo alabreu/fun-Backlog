@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import { Heart, MagnifyingGlass } from '@phosphor-icons/react'
 import { Navigate, useParams } from 'react-router'
 import { filterItems, sortForShelf } from '@core/items/filter'
 import { groupByFranchise } from '@core/items/franchise'
@@ -29,10 +28,9 @@ import {
   CoverGrid,
   CoverMark,
   CoverStack,
-  IconButton,
-  Input,
   Screen,
   ScreenBody,
+  SearchBar,
   Section,
   Toast,
 } from '@ui/design'
@@ -95,7 +93,6 @@ export function ShelfScreen() {
   // A obra cujo + foi tocado, esperando a pessoa dizer COMO ela entra.
   const [pendingAdd, setPendingAdd] = useState<MediaSearchResult | null>(null)
   const [query, setQuery] = useState('')
-  const [onlyFavorites, setOnlyFavorites] = useState(false)
   // A coleção que o painel mostra, e se ele está à mostra — DOIS campos, e o
   // segundo é o que faz a animação de saída ter conteúdo. Zerando a chave ao
   // fechar, o painel esvaziava antes de terminar de descer e o que deslizava
@@ -143,22 +140,16 @@ export function ShelfScreen() {
   const visible = useMemo(
     () =>
       mediaType
-        ? sortForShelf(
-            filterItems(items, {
-              mediaType,
-              query: trimmed,
-              favorite: onlyFavorites || undefined,
-            }),
-          )
+        ? sortForShelf(filterItems(items, { mediaType, query: trimmed }))
         : [],
-    [items, mediaType, trimmed, onlyFavorites],
+    [items, mediaType, trimmed],
   )
 
-  // COM RECORTE EM CURSO, AS PILHAS SE DESFAZEM. É o mesmo raciocínio que já
-  // faz a seção vazia sumir na busca: a pergunta deixou de ser "como está minha
+  // COM BUSCA EM CURSO, AS PILHAS SE DESFAZEM. É o mesmo raciocínio que já faz
+  // a seção vazia sumir na busca: a pergunta deixou de ser "como está minha
   // estante" e passou a ser "onde está o que eu procuro" — e uma pilha
   // escondendo justamente o acerto seria o pior desfecho possível.
-  const agrupando = !trimmed && !onlyFavorites
+  const agrupando = !trimmed
 
   // Os itens já filtrados, agrupados por status e na ordem de seções da mídia.
   // A contagem que aparece no título é a DESTE recorte, não a da estante
@@ -191,19 +182,18 @@ export function ShelfScreen() {
             : found.map((item) => ({ kind: 'item' as const, key: item.id, item })),
         }
       })
-      // SEÇÃO VAZIA SOME quando há um recorte em curso — busca OU filtro de
-      // favoritas. Em repouso ela informa ("não tenho nada pausado"); dentro de
-      // um recorte ela vira ruído, porque a pergunta deixou de ser "como está
-      // minha estante" e passou a ser "onde está o que eu quero".
+      // SEÇÃO VAZIA SOME durante a busca. Em repouso ela informa ("não tenho
+      // nada pausado"); dentro de uma busca ela vira ruído, porque a pergunta
+      // deixou de ser "como está minha estante" e passou a ser "onde está o
+      // que eu quero".
       //
       // "Não lançados" é a exceção e some SEMPRE que está vazia: ali o vazio é
       // o estado normal de quase toda estante (ver `hidesWhenEmpty`).
       .filter(
         ({ status: value, items: found }) =>
-          found.length > 0 ||
-          (!hidesWhenEmpty(value) && !trimmed && !onlyFavorites),
+          found.length > 0 || (!hidesWhenEmpty(value) && !trimmed),
       )
-  }, [mediaType, visible, trimmed, onlyFavorites, agora, agrupando])
+  }, [mediaType, visible, trimmed, agora, agrupando])
 
   // A PILHA ABERTA, derivada da chave: se o item mudar (progresso, favorita),
   // a lista dentro do painel muda junto. Some sozinha se a franquia deixar de
@@ -214,15 +204,6 @@ export function ShelfScreen() {
         .flatMap((s) => s.entries)
         .find((e) => e.kind === 'stack' && e.key === pilhaAberta?.key),
     [sections, pilhaAberta?.key],
-  )
-
-  // A estante INTEIRA, e não o recorte: o botão não pode sumir por causa do
-  // próprio filtro que ele ligou.
-  const temFavorita = useMemo(
-    () =>
-      Boolean(mediaType) &&
-      items.some((i) => i.mediaType === mediaType && i.favorite),
-    [items, mediaType],
   )
 
   const total = useMemo(
@@ -305,45 +286,7 @@ export function ShelfScreen() {
     <Screen media={mediaType}>
       <ScreenHeader title={t(mediaLabelKey(mediaType))} />
 
-      <ScreenBody as="main">
-        {/* O campo fica SEMPRE, inclusive na estante vazia: sem o botão
-            flutuante, ele é o único caminho para pôr a primeira obra aqui. */}
-        <div className="mb-3 flex items-center gap-2">
-          <div className="relative min-w-0 flex-1">
-            <MagnifyingGlass
-              size={18}
-              weight="bold"
-              aria-hidden
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted"
-            />
-            <Input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label={t('shelf.searchPlaceholder')}
-              placeholder={t('shelf.searchPlaceholder')}
-              className="pl-11"
-            />
-          </div>
-          {/* SÓ QUANDO HÁ FAVORITA. Um filtro que só pode devolver estante
-              vazia não é um filtro, é uma armadilha — e enquanto ninguém tocou
-              num coração ele não teria como explicar o que faz.
-
-              O coração fica PREENCHIDO nos dois estados: ele é o rótulo do
-              filtro, não o estado dele. Quem diz se está ligado é o
-              preenchimento do botão (ver `pressed` no `IconButton`), que é o
-              mesmo sinal do chip selecionado no resto do app. */}
-          {temFavorita && (
-            <IconButton
-              aria-label={t('shelf.onlyFavorites')}
-              pressed={onlyFavorites}
-              onClick={() => setOnlyFavorites((v) => !v)}
-            >
-              <Heart size={18} weight="fill" />
-            </IconButton>
-          )}
-        </div>
-
+      <ScreenBody as="main" bottomBar>
         {error && (
           <p role="alert" className="mb-3 text-body text-danger">
             {t('catalog.loadError')}
@@ -517,6 +460,20 @@ export function ShelfScreen() {
           </Section>
         )}
       </ScreenBody>
+
+      {/* A BUSCA FLUTUA NO RODAPÉ (escolha do usuário, 10/08/2026). Ela fica
+          SEMPRE, inclusive na estante vazia: sem botão flutuante, é o único
+          caminho para pôr a primeira obra aqui.
+
+          Fora do `ScreenBody` de propósito — dentro dele a barra rolaria junto
+          com as capas. Aqui ela é filha do `Screen`, que é o retângulo em que
+          ela se ancora. */}
+      <SearchBar
+        value={query}
+        onChange={setQuery}
+        label={t('shelf.searchPlaceholder')}
+        clearLabel={t('shelf.clearSearch')}
+      />
 
       {/* Só ERRO chega aqui: o sucesso se mostra sozinho, com a obra
           aparecendo na seção que a pessoa acabou de escolher. */}

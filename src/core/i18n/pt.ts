@@ -18,8 +18,8 @@ export const pt = {
   'home.emptyAction': 'Adicionar o primeiro',
 
   // Estante de uma mídia
-  'shelf.onlyFavorites': 'Mostrar só as favoritas',
   'shelf.searchPlaceholder': 'Buscar nesta estante ou adicionar',
+  'shelf.clearSearch': 'Limpar a busca',
   'shelf.notOnShelf': 'Fora da sua estante',
   'shelf.sectionEmpty': 'Nada aqui',
   // A pilha de franquia. O nome acessível diz as três coisas que a capa com um

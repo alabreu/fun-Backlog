@@ -26,6 +26,7 @@ import {
   Input,
   Screen,
   ScreenBody,
+  SearchBar,
   SectionTitle,
   Reorderable,
   SeasonSlider,
@@ -150,6 +151,7 @@ const SERIES: { nome: string; seasons: SeasonInfo[] }[] = [
 export function DesignScreen() {
   const [chip, setChip] = useState('a')
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [busca, setBusca] = useState('')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [toastOpen, setToastOpen] = useState(false)
   const [theme, setTheme] = useState<Theme>('system')
@@ -426,6 +428,28 @@ export function DesignScreen() {
             <Field label="Área de texto">
               {(id) => <Textarea id={id} rows={3} placeholder="Textarea" />}
             </Field>
+          </div>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">Busca flutuante</SectionTitle>
+          {/* A barra se ancora no ancestral posicionado — na estante é o
+              `Screen`. Aqui é esta caixa, com altura própria e umas capas
+              atrás para dar de ver o `backdrop-blur` fazendo efeito. */}
+          <div className="relative h-40 overflow-hidden rounded-card bg-surface">
+            <div className="flex gap-2 p-3">
+              {MEDIA_TYPES.slice(0, 4).map((m) => (
+                <div key={m} className="w-20">
+                  <Cover title={m} media={m} />
+                </div>
+              ))}
+            </div>
+            <SearchBar
+              value={busca}
+              onChange={setBusca}
+              label="Buscar nesta estante ou adicionar"
+              clearLabel="Limpar a busca"
+            />
           </div>
         </section>
 

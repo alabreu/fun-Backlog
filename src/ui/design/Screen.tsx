@@ -46,6 +46,13 @@ export interface ScreenBodyProps {
   className?: string
   /** Centraliza o conteúdo — telas de estado vazio / confirmação. */
   centered?: boolean
+  /**
+   * Há uma `SearchBar` flutuando no rodapé desta tela: o respiro do fim cresce
+   * para caber a barra. Sem isto as últimas capas ficam DEBAIXO dela — e como
+   * ela é translúcida, dá para ver que existe conteúdo ali e não dá para
+   * alcançá-lo, que é pior do que não ver.
+   */
+  bottomBar?: boolean
   as?: 'div' | 'main' | 'form'
   onSubmit?: (e: React.FormEvent) => void
   role?: string
@@ -55,6 +62,7 @@ export function ScreenBody({
   children,
   className = '',
   centered = false,
+  bottomBar = false,
   as: Tag = 'div',
   ...rest
 }: ScreenBodyProps) {
@@ -68,7 +76,14 @@ export function ScreenBody({
             // fora dele. Sem esses 4px, um input colado no topo aparece com a
             // borda decepada pelo cabeçalho assim que recebe foco — que foi
             // exatamente o que aconteceu na busca da estante.
-            `min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pb-8 pt-1 ${className}`
+            //
+            // O respiro do fim vem ANTES do `className` de quem chama, para
+            // continuar sendo sobrescrevível — mas com barra flutuante ele é
+            // medido: 24px de campo + 24px de folga em volta + 32px do respiro
+            // normal.
+            `min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter pt-1 ${
+              bottomBar ? 'pb-28' : 'pb-8'
+            } ${className}`
       }
       {...rest}
     >
