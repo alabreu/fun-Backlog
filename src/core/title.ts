@@ -47,32 +47,48 @@ export function familyPrefix(title: string): string {
 }
 
 /**
- * Tira o sufixo de TEMPORADA do fim do título: "Attack on Titan Season 2" e
- * "Dandadan 2nd Season" viram a mesma família do título sem sufixo.
+ * Reduz o título ao NOME DA SÉRIE, tirando o que só diz "qual desta série".
  *
- * Existe por causa do anime, onde a temporada quase nunca é subtítulo depois
- * dos dois pontos — ela é uma palavra colada no fim, e por isso `familyPrefix`
- * sozinho devolvia uma família por temporada.
+ * Duas regras, e as duas nasceram de caso real na estante (10/08/2026):
  *
- * A LISTA É FECHADA E EXPLÍCITA, de propósito. A tentação é cortar qualquer
- * número no fim ("Spider-Man 2", "Final Fantasy VII"), e aí o alcance vira
- * imprevisível: passa a agrupar sequência com original em toda mídia, o que é
- * uma decisão de produto bem maior do que "temporadas do mesmo anime". Só casa
- * o que diz a palavra: `Season`, `Temporada`, `Part`, `Cour`.
+ * 1. CORTA NO PRIMEIRO MARCADOR de temporada, não no fim. A primeira versão
+ *    só tirava sufixo, e por isso "Attack on Titan Final Season THE FINAL
+ *    CHAPTERS Special 1" escapava inteiro: as palavras estão no MEIO, seguidas
+ *    de mais título. Cortando dali para a frente, ele volta a ser "Attack on
+ *    Titan" — e "Harry Potter and the Deathly Hallows Part 1" também.
  *
- * Por isso também "Dune: Part Two" não é afetado — a palavra vem por extenso,
- * e de qualquer forma o prefixo já resolve aquele caso.
+ * 2. TIRA NÚMERO SOLTO NO FIM. "JUJUTSU KAISEN 0" é a mesma série que "JUJUTSU
+ *    KAISEN", e "Spider-Man 2" é a mesma que "Spider-Man". Isto é decisão de
+ *    produto, não detalhe técnico: vale para TODAS as mídias, então a estante
+ *    de jogos passa a empilhar sequência numerada junto do original. Foi
+ *    escolhido assim de propósito — agrupar franquia é o pedido, e uma
+ *    sequência numerada é o caso mais óbvio de franquia que existe.
  *
- * Em laço porque "X Season 2 Part 2" existe; o `break` quando nada muda é o que
- * garante que o laço termina mesmo se um padrão casar com string vazia.
+ * O que ela NÃO faz, e é o que a mantém previsível: só corta número precedido
+ * de ESPAÇO, então "1917" e "Se7en" ficam inteiros; e o marcador de temporada
+ * exige a palavra com o número junto (`Season 4`, `Part 2`) ou uma forma
+ * específica (`Final Season`), então não dispara por acaso no meio de um nome.
+ *
+ * "Dune: Part Two" segue intocado — o número vem por extenso, e o prefixo antes
+ * dos dois pontos já resolvia aquele caso.
+ *
+ * Em laço porque as duas regras se alimentam ("X Season 2" → "X", e "X 2" → "X").
  */
-const SUFIXO_TEMPORADA =
-  /\s+(?:(?:the\s+)?final\s+season|season\s+\d+|\d+(?:st|nd|rd|th)\s+season|(?:part|cour)\s+\d+|temporada\s+\d+|\d+ª?\s+temporada)\s*$/i
+const MARCADOR_TEMPORADA =
+  /\s+(?:(?:the\s+)?final\s+season|season\s+\d+|\d+(?:st|nd|rd|th)\s+season|(?:part|cour)\s+\d+|temporada\s+\d+|\d+ª?\s+temporada)\b/i
 
-export function stripSeasonSuffix(title: string): string {
+/** Número solto no fim, precedido de espaço. */
+const NUMERO_FINAL = /\s+\d+\s*$/
+
+export function stripSequelMarkers(title: string): string {
   let atual = title.trim()
   for (;;) {
-    const cortado = atual.replace(SUFIXO_TEMPORADA, '').trim()
+    // Fatia, e não `replace`: o corte leva TUDO que vem depois do marcador, e
+    // não só o marcador em si.
+    const marcador = atual.search(MARCADOR_TEMPORADA)
+    const cortado = (marcador >= 0 ? atual.slice(0, marcador) : atual)
+      .replace(NUMERO_FINAL, '')
+      .trim()
     // Cortar TUDO não é cortar: um título que é só "Season 2" continua sendo o
     // nome daquela obra, e devolver string vazia a jogaria num balde com todas
     // as outras sem nome.

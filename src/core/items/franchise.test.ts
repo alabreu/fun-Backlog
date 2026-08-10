@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { stripSeasonSuffix } from '@core/title'
+import { stripSequelMarkers } from '@core/title'
 import { groupByFranchise, shelfFamilyKey, shelfFamilyName } from './franchise'
 import type { Item } from './types'
 
@@ -16,33 +16,57 @@ function item(title: string, over: Partial<Item> = {}): Item {
   }
 }
 
-describe('sufixo de temporada', () => {
+describe('marcadores de sequência', () => {
   it('corta as formas que o anime usa', () => {
-    expect(stripSeasonSuffix('Attack on Titan Season 2')).toBe('Attack on Titan')
-    expect(stripSeasonSuffix('Dandadan 2nd Season')).toBe('Dandadan')
-    expect(stripSeasonSuffix('Vinland Saga Season 2')).toBe('Vinland Saga')
-    expect(stripSeasonSuffix('Bleach Part 2')).toBe('Bleach')
-    expect(stripSeasonSuffix('Frieren 2ª Temporada')).toBe('Frieren')
-    expect(stripSeasonSuffix('Frieren Temporada 2')).toBe('Frieren')
+    expect(stripSequelMarkers('Attack on Titan Season 2')).toBe('Attack on Titan')
+    expect(stripSequelMarkers('Dandadan 2nd Season')).toBe('Dandadan')
+    expect(stripSequelMarkers('Vinland Saga Season 2')).toBe('Vinland Saga')
+    expect(stripSequelMarkers('Bleach Part 2')).toBe('Bleach')
+    expect(stripSequelMarkers('Frieren 2ª Temporada')).toBe('Frieren')
+    expect(stripSequelMarkers('Frieren Temporada 2')).toBe('Frieren')
   })
 
   it('corta empilhado', () => {
-    expect(stripSeasonSuffix('Attack on Titan Season 4 Part 2')).toBe(
+    expect(stripSequelMarkers('Attack on Titan Season 4 Part 2')).toBe(
       'Attack on Titan',
     )
   })
 
-  // O limite deliberado da regra: ela casa a PALAVRA, nunca um número solto.
-  // Cortar número no fim agruparia sequência com original em toda mídia, que é
-  // uma decisão de produto bem maior do que "temporadas do mesmo anime".
-  it('não toca em número que não diz temporada', () => {
-    expect(stripSeasonSuffix('Spider-Man 2')).toBe('Spider-Man 2')
-    expect(stripSeasonSuffix('Final Fantasy VII')).toBe('Final Fantasy VII')
-    expect(stripSeasonSuffix('Dune: Part Two')).toBe('Dune: Part Two')
+  // O CASO QUE ESCAPAVA: o marcador está no MEIO do título, seguido de mais
+  // título. A primeira versão só tirava sufixo e devolvia a linha inteira, e por
+  // isso este especial aparecia solto ao lado da própria pilha na estante.
+  it('corta a partir do marcador, mesmo com título depois dele', () => {
+    expect(
+      stripSequelMarkers('Attack on Titan Final Season THE FINAL CHAPTERS Special 1'),
+    ).toBe('Attack on Titan')
+    expect(
+      stripSequelMarkers('Harry Potter and the Deathly Hallows Part 1'),
+    ).toBe('Harry Potter and the Deathly Hallows')
   })
 
-  it('não devolve string vazia quando o título inteiro é o sufixo', () => {
-    expect(stripSeasonSuffix('Season 2')).toBe('Season 2')
+  // Decisão de produto (10/08/2026), e ela vale para TODA mídia: sequência
+  // numerada é a franquia mais óbvia que existe.
+  it('corta número solto no fim', () => {
+    expect(stripSequelMarkers('JUJUTSU KAISEN 0')).toBe('JUJUTSU KAISEN')
+    expect(stripSequelMarkers('Spider-Man 2')).toBe('Spider-Man')
+    expect(stripSequelMarkers('Blade Runner 2049')).toBe('Blade Runner')
+  })
+
+  // O que segura o alcance da regra acima: o número precisa vir depois de um
+  // ESPAÇO. Sem isso, um título que É um número perderia o nome.
+  it('não toca em número colado nem em algarismo romano', () => {
+    expect(stripSequelMarkers('1917')).toBe('1917')
+    expect(stripSequelMarkers('Se7en')).toBe('Se7en')
+    expect(stripSequelMarkers('Final Fantasy VII')).toBe('Final Fantasy VII')
+    expect(stripSequelMarkers('Dune: Part Two')).toBe('Dune: Part Two')
+  })
+
+  // A invariante que importa: reduzir um título a NADA o jogaria num balde com
+  // todos os outros sem nome, e aí obras sem relação nenhuma empilhariam.
+  // Títulos degenerados existem pouco, mas o balde seria silencioso.
+  it('nunca devolve vazio', () => {
+    for (const t of ['Season 2', 'Part 3', '2', '1917', '   7   '])
+      expect(stripSequelMarkers(t).length).toBeGreaterThan(0)
   })
 })
 
@@ -50,6 +74,18 @@ describe('família da estante', () => {
   it('junta temporada com a obra base', () => {
     expect(shelfFamilyKey(item('Dandadan'))).toBe(
       shelfFamilyKey(item('Dandadan 2nd Season')),
+    )
+  })
+
+  // Os dois casos que a estante mostrou soltos ao lado das próprias pilhas.
+  it('junta os casos reais da estante de anime', () => {
+    expect(
+      shelfFamilyKey(
+        item('Attack on Titan Final Season THE FINAL CHAPTERS Special 1'),
+      ),
+    ).toBe(shelfFamilyKey(item('Attack on Titan')))
+    expect(shelfFamilyKey(item('JUJUTSU KAISEN 0'))).toBe(
+      shelfFamilyKey(item('JUJUTSU KAISEN')),
     )
   })
 

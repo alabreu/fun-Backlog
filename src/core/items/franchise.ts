@@ -1,4 +1,4 @@
-import { familyPrefix, normalizeTitle, stripSeasonSuffix } from '@core/title'
+import { familyPrefix, normalizeTitle, stripSequelMarkers } from '@core/title'
 import type { Item } from './types'
 
 /**
@@ -33,13 +33,13 @@ import type { Item } from './types'
  * ele resolve a maioria.
  */
 export function shelfFamilyKey(item: Item): string {
-  return normalizeTitle(stripSeasonSuffix(familyPrefix(item.title)))
+  return normalizeTitle(stripSequelMarkers(familyPrefix(item.title)))
 }
 
 /** O nome da família como ele aparece na tela — sem normalizar, que é a versão
  *  para comparar, não para ler. */
 export function shelfFamilyName(item: Item): string {
-  return stripSeasonSuffix(familyPrefix(item.title))
+  return stripSequelMarkers(familyPrefix(item.title))
 }
 
 /**
