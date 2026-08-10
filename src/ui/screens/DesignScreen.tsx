@@ -347,6 +347,31 @@ export function DesignScreen() {
 
         <section>
           <SectionTitle className="mb-2">IconButton e Chip</SectionTitle>
+          <p className="mb-3 text-body text-muted">
+            Com <code>pressed</code> o IconButton vira INTERRUPTOR — estado que
+            fica, e não ação que acontece (o filtro de favoritas da estante).
+            Ligado é preenchido, não só colorido: cor sozinha não carrega estado
+            (WCAG 1.4.1). Sem a prop, nenhum <code>aria-pressed</code> é emitido.
+          </p>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <IconButton
+              aria-label="Interruptor desligado"
+              pressed={false}
+              onClick={() => setLigado((v) => !v)}
+            >
+              <Heart size={18} weight="fill" />
+            </IconButton>
+            <IconButton
+              aria-label="Interruptor ligado"
+              pressed
+              onClick={() => setLigado((v) => !v)}
+            >
+              <Heart size={18} weight="fill" />
+            </IconButton>
+            <IconButton aria-label="Ação comum">
+              <PaperPlaneRight size={18} weight="bold" />
+            </IconButton>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <IconButton aria-label="Exemplo de botão de ícone">
               <Heart size={20} weight="bold" />

@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-favoritas',
+    date: '2026-08-09',
+    emoji: '🩷',
+    title: {
+      pt: 'As favoritas na frente',
+      en: 'Favourites up front',
+    },
+    items: {
+      pt: [
+        'Dentro de cada seção da estante, as favoritas vêm primeiro. Dentro da seção, e não acima de tudo: uma favorita concluída não fura a fila do que você está vendo agora.',
+        'Ao lado da busca da estante apareceu um coração: toque e a estante mostra só as favoritas. As seções que ficam sem nada somem enquanto o filtro está ligado.',
+        'O botão só aparece nas estantes onde você já marcou alguma coisa.',
+      ],
+      en: [
+        'Inside each shelf section, favourites come first. Inside the section, not above everything: a finished favourite does not jump ahead of what you are watching now.',
+        'A heart appeared next to the shelf search: tap it and the shelf shows favourites only. Sections left with nothing disappear while the filter is on.',
+        'The button only shows up on shelves where you have marked something.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-horas-jogadas',
     date: '2026-08-09',
     emoji: '🎮',

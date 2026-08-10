@@ -1045,6 +1045,52 @@ gravado**. Assim o dado órfão simplesmente não desenha nada.
 
 ---
 
+## 22. Favorita primeiro, e um filtro só dela
+
+**09/08/2026, a pedido do usuário.** O coração já gravava o dado desde a
+migração `0005` e não fazia nada na estante. Duas coisas o puseram para
+trabalhar.
+
+### Primeiro DENTRO da seção, não acima de tudo
+
+A ordenação da estante ganhou um critério entre o status e a data: dentro de
+cada seção, favorita na frente.
+
+Dentro, e não acima de tudo, e a diferença é de significado. O coração diz
+"isto é meu", não "isto vem antes de tudo o que estou vendo" — são dois eixos
+diferentes, como a nota e a favorita já eram (decisão 9). Uma favorita
+concluída não pode furar a fila do que está em andamento: ela já acabou. O que
+ela ganha é a primeira fileira da própria seção, que é onde o olho bate
+primeiro, sem desmontar a ordem que a estante já tinha.
+
+### O filtro, ao lado da busca
+
+Um `IconButton` com `pressed` — variante nova no design system: interruptor em
+vez de ação, com `aria-pressed` emitido só quando a prop existe (um
+`aria-pressed="false"` num botão de "voltar" prometeria um estado que não há).
+
+**Ligado é PREENCHIDO, não só colorido.** Cor sozinha não carrega estado (WCAG
+1.4.1); invertendo fundo e texto, a diferença sobrevive ao daltonismo e à tela
+no sol. É o mesmo sinal do chip selecionado no resto do app.
+
+O coração dentro do botão fica preenchido nos DOIS estados: ele é o rótulo do
+filtro, não o estado dele.
+
+**O botão só existe quando há favorita nesta estante.** Um filtro que só pode
+devolver estante vazia não é filtro, é armadilha — e antes do primeiro coração
+ele não teria como explicar o que faz. A checagem olha a estante INTEIRA, e não
+o recorte, senão o botão sumiria por causa do próprio filtro que ligou.
+
+### Seção vazia some, mas só dentro de um recorte
+
+A estante em repouso mostra todas as seções, inclusive as vazias (decisão 13):
+ali "não tenho nada pausado" é informação. Dentro de um recorte — busca ou
+favoritas — ela vira ruído, porque a pergunta deixou de ser "como está minha
+estante" e passou a ser "onde está o que eu quero". A regra já existia para a
+busca; o filtro entrou na mesma condição.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A

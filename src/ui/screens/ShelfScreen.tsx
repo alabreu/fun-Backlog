@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { MagnifyingGlass } from '@phosphor-icons/react'
+import { Heart, MagnifyingGlass } from '@phosphor-icons/react'
 import { Navigate, useParams } from 'react-router'
 import { filterItems, sortForShelf } from '@core/items/filter'
 import {
@@ -21,6 +21,7 @@ import {
   Cover,
   CoverAction,
   CoverGrid,
+  IconButton,
   Input,
   Screen,
   ScreenBody,
@@ -83,6 +84,7 @@ export function ShelfScreen() {
   // A obra cujo + foi tocado, esperando a pessoa dizer COMO ela entra.
   const [pendingAdd, setPendingAdd] = useState<MediaSearchResult | null>(null)
   const [query, setQuery] = useState('')
+  const [onlyFavorites, setOnlyFavorites] = useState(false)
 
   // Mídia desligada vira mídia inexistente: quem chega em /estante/anime pelo
   // histórico do navegador ou por um link antigo volta para a home, em vez de
@@ -104,9 +106,15 @@ export function ShelfScreen() {
   const visible = useMemo(
     () =>
       mediaType
-        ? sortForShelf(filterItems(items, { mediaType, query: trimmed }))
+        ? sortForShelf(
+            filterItems(items, {
+              mediaType,
+              query: trimmed,
+              favorite: onlyFavorites || undefined,
+            }),
+          )
         : [],
-    [items, mediaType, trimmed],
+    [items, mediaType, trimmed, onlyFavorites],
   )
 
   // Os itens já filtrados, agrupados por status e na ordem de seções da mídia.
@@ -134,8 +142,21 @@ export function ShelfScreen() {
         status: value,
         items: visible.filter((i) => i.status === value),
       }))
-      .filter(({ items: found }) => !trimmed || found.length > 0)
-  }, [mediaType, visible, trimmed])
+      // SEÇÃO VAZIA SOME quando há um recorte em curso — busca OU filtro de
+      // favoritas. Em repouso ela informa ("não tenho nada pausado"); dentro de
+      // um recorte ela vira ruído, porque a pergunta deixou de ser "como está
+      // minha estante" e passou a ser "onde está o que eu quero".
+      .filter(({ items: found }) => (!trimmed && !onlyFavorites) || found.length > 0)
+  }, [mediaType, visible, trimmed, onlyFavorites])
+
+  // A estante INTEIRA, e não o recorte: o botão não pode sumir por causa do
+  // próprio filtro que ele ligou.
+  const temFavorita = useMemo(
+    () =>
+      Boolean(mediaType) &&
+      items.some((i) => i.mediaType === mediaType && i.favorite),
+    [items, mediaType],
+  )
 
   const total = useMemo(
     () =>
@@ -211,21 +232,40 @@ export function ShelfScreen() {
       <ScreenBody as="main">
         {/* O campo fica SEMPRE, inclusive na estante vazia: sem o botão
             flutuante, ele é o único caminho para pôr a primeira obra aqui. */}
-        <div className="relative mb-3">
-          <MagnifyingGlass
-            size={18}
-            weight="bold"
-            aria-hidden
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted"
-          />
-          <Input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            aria-label={t('shelf.searchPlaceholder')}
-            placeholder={t('shelf.searchPlaceholder')}
-            className="pl-11"
-          />
+        <div className="mb-3 flex items-center gap-2">
+          <div className="relative min-w-0 flex-1">
+            <MagnifyingGlass
+              size={18}
+              weight="bold"
+              aria-hidden
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted"
+            />
+            <Input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label={t('shelf.searchPlaceholder')}
+              placeholder={t('shelf.searchPlaceholder')}
+              className="pl-11"
+            />
+          </div>
+          {/* SÓ QUANDO HÁ FAVORITA. Um filtro que só pode devolver estante
+              vazia não é um filtro, é uma armadilha — e enquanto ninguém tocou
+              num coração ele não teria como explicar o que faz.
+
+              O coração fica PREENCHIDO nos dois estados: ele é o rótulo do
+              filtro, não o estado dele. Quem diz se está ligado é o
+              preenchimento do botão (ver `pressed` no `IconButton`), que é o
+              mesmo sinal do chip selecionado no resto do app. */}
+          {temFavorita && (
+            <IconButton
+              aria-label={t('shelf.onlyFavorites')}
+              pressed={onlyFavorites}
+              onClick={() => setOnlyFavorites((v) => !v)}
+            >
+              <Heart size={18} weight="fill" />
+            </IconButton>
+          )}
         </div>
 
         {error && (

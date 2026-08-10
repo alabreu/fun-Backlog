@@ -60,7 +60,6 @@ foi derrubado — conferido no banco; a `main` destravou e subiu).
 | 🟢 | Imports de biblioteca | **É aqui que as horas jogadas voltam** (decisão 21: o campo manual saiu porque ninguém sabe de cor quantas horas jogou — a Steam sabe). Steam (`GetOwnedGames`: biblioteca + horas jogadas; sem login — basta perfil público, ver decisão 8), Letterboxd (CSV), AniList (username). É **aqui** que um login de terceiro se paga, e não na IGDB (decisão 7): do outro lado existe uma biblioteca sua. Todos precisam de tela de revisão antes de commitar |
 | 🟢 | Visualização em lista compacta | Briefing feature 1, para quem tem backlog gigante |
 | 🟢 | Agrupar franquia na busca (visual) | A ordenação resolveu o caso base — testado com "zelda" em 09/08/2026: franquia junta, em ordem de lançamento, para toda mídia (campo da fonte + título antes dos dois pontos). O que resta é só o upgrade visual: cabeçalho de franquia ou card que abre a lista. Sem urgência |
-| 🟢 | Filtro de favoritas | O coração já grava o dado e a migração `0005` já tem o índice parcial. Falta decidir onde o filtro mora — na estante, na home, ou nas duas |
 | 🟢 | UI de tags | A coluna existe no schema desde a `0004` e nada na tela usa |
 | 🟢 | Ordenação configurável | A estante agora é por seções (decisão 13) e a ordem DELAS é fixa por mídia. Falta poder ordenar DENTRO da seção — hoje é por data de entrada, mais novo primeiro |
 | 🟢 | `status_detail` sem UI | "Platinado", "em dia": o campo existe no banco e nada o escreve |

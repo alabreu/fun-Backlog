@@ -18,6 +18,7 @@ export const pt = {
   'home.emptyAction': 'Adicionar o primeiro',
 
   // Estante de uma mídia
+  'shelf.onlyFavorites': 'Mostrar só as favoritas',
   'shelf.searchPlaceholder': 'Buscar nesta estante ou adicionar',
   'shelf.notOnShelf': 'Fora da sua estante',
   'shelf.sectionEmpty': 'Nada aqui',

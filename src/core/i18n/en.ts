@@ -20,6 +20,7 @@ export const en: Record<keyof typeof pt, string> = {
   'home.emptyAction': 'Add the first one',
 
   // A single medium's shelf
+  'shelf.onlyFavorites': 'Show favourites only',
   'shelf.searchPlaceholder': 'Search this shelf, or add',
   'shelf.notOnShelf': 'Not on your shelf',
   'shelf.sectionEmpty': 'Nothing here',

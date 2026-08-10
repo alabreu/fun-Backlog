@@ -50,6 +50,36 @@ describe('filterItems', () => {
   })
 })
 
+describe('filterItems — favoritas', () => {
+  const acervo = [
+    item({ title: 'querida', favorite: true }),
+    item({ title: 'comum' }),
+    item({ title: 'sem o campo' }),
+  ]
+
+  it('deixa passar só o que tem coração', () => {
+    expect(
+      filterItems(acervo, { favorite: true }).map((i) => i.title),
+    ).toEqual(['querida'])
+  })
+
+  // `false` e ausente são a mesma coisa: "não favoritas" não é um recorte
+  // que alguém pede.
+  it('sem o filtro, ninguém some', () => {
+    expect(filterItems(acervo, {})).toHaveLength(3)
+    expect(filterItems(acervo, { favorite: false })).toHaveLength(3)
+  })
+
+  it('combina com a busca por título', () => {
+    expect(
+      filterItems(
+        [...acervo, item({ title: 'querida também', favorite: true })],
+        { favorite: true, query: 'também' },
+      ).map((i) => i.title),
+    ).toEqual(['querida também'])
+  })
+})
+
 describe('sortForShelf', () => {
   it('põe o que está em andamento na frente e arquiva o que terminou', () => {
     const sorted = sortForShelf([
@@ -75,6 +105,32 @@ describe('sortForShelf', () => {
       item({ title: 'novo', addedAt: '2026-08-01T00:00:00.000Z' }),
     ])
     expect(sorted.map((i) => i.title)).toEqual(['novo', 'velho'])
+  })
+
+  it('favorita vem primeiro DENTRO da seção', () => {
+    const sorted = sortForShelf([
+      item({ title: 'comum novo', addedAt: '2026-08-01T00:00:00.000Z' }),
+      item({ title: 'favorita velha', addedAt: '2026-01-01T00:00:00.000Z', favorite: true }),
+      item({ title: 'comum velho', addedAt: '2026-02-01T00:00:00.000Z' }),
+    ])
+    expect(sorted.map((i) => i.title)).toEqual([
+      'favorita velha',
+      'comum novo',
+      'comum velho',
+    ])
+  })
+
+  // O coração diz "isto é meu", não "isto vem antes de tudo". Uma favorita
+  // concluída já acabou — ela não fura a fila do que está em andamento.
+  it('favorita NÃO fura a ordem entre seções', () => {
+    const sorted = sortForShelf([
+      item({ title: 'concluída favorita', status: 'done', favorite: true }),
+      item({ title: 'em andamento comum', status: 'active' }),
+    ])
+    expect(sorted.map((i) => i.title)).toEqual([
+      'em andamento comum',
+      'concluída favorita',
+    ])
   })
 
   it('não mexe no array original', () => {

@@ -10,6 +10,12 @@ export interface CatalogFilter {
   status?: ItemStatus
   /** Busca local por título, sem acento e sem caixa. */
   query?: string
+  /**
+   * Só as favoritas. `false` e ausente são a MESMA coisa — "não favoritas" não
+   * é um recorte que alguém pede, e um filtro de três estados obrigaria toda
+   * chamada a dizer qual dos dois "não" ela quer.
+   */
+  favorite?: boolean
 }
 
 /**
@@ -32,6 +38,7 @@ export function filterItems(items: Item[], filter: CatalogFilter): Item[] {
     if (filter.mediaType && item.mediaType !== filter.mediaType) return false
     if (filter.status && item.status !== filter.status) return false
     if (query && !normalize(item.title).includes(query)) return false
+    if (filter.favorite && !item.favorite) return false
     return true
   })
 }
@@ -54,6 +61,17 @@ export function sortForShelf(items: Item[]): Item[] {
   return [...items].sort((a, b) => {
     const byStatus = STATUS_WEIGHT[a.status] - STATUS_WEIGHT[b.status]
     if (byStatus !== 0) return byStatus
+
+    // FAVORITA PRIMEIRO, DENTRO DA SEÇÃO (escolha do usuário, 09/08/2026).
+    //
+    // Dentro, e não acima de tudo: o coração diz "isto é meu", não "isto vem
+    // antes de tudo o que estou vendo". Uma favorita concluída não pode furar
+    // a fila do que está em andamento — ela já acabou. O que ela ganha é a
+    // primeira fileira da própria seção, que é onde o olho bate primeiro sem
+    // desmontar a ordem que a estante já tinha.
+    const byFavorite = Number(Boolean(b.favorite)) - Number(Boolean(a.favorite))
+    if (byFavorite !== 0) return byFavorite
+
     return b.addedAt.localeCompare(a.addedAt)
   })
 }
