@@ -24,6 +24,8 @@ export const en: Record<keyof typeof pt, string> = {
   'shelf.searchPlaceholder': 'Search this shelf, or add',
   'shelf.notOnShelf': 'Not on your shelf',
   'shelf.sectionEmpty': 'Nothing here',
+  'shelf.stack': '{name}, {count} works. Open',
+  'shelf.stackOpen': '{name}, {count} works. Close',
   'shelf.emptyTitle': 'Nothing on this shelf yet',
   'shelf.emptyBody': 'Whatever you add of this medium shows up here.',
 

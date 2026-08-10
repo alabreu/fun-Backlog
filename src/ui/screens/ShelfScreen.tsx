@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Heart, MagnifyingGlass } from '@phosphor-icons/react'
 import { Navigate, useParams } from 'react-router'
 import { filterItems, sortForShelf } from '@core/items/filter'
+import { groupByFranchise } from '@core/items/franchise'
 import {
   datesForStatus,
   mediaLabelKey,
@@ -22,6 +23,7 @@ import {
   CoverAction,
   CoverGrid,
   CoverMark,
+  CoverStack,
   IconButton,
   Input,
   Screen,
@@ -86,6 +88,16 @@ export function ShelfScreen() {
   const [pendingAdd, setPendingAdd] = useState<MediaSearchResult | null>(null)
   const [query, setQuery] = useState('')
   const [onlyFavorites, setOnlyFavorites] = useState(false)
+  // As pilhas de franquia que a pessoa abriu, por chave de família. Estado da
+  // TELA, não do item: agrupar é uma leitura da lista, e nada disso é gravado.
+  const [abertas, setAbertas] = useState<ReadonlySet<string>>(new Set())
+
+  const alternarPilha = (chave: string) =>
+    setAbertas((atual) => {
+      const proximo = new Set(atual)
+      if (!proximo.delete(chave)) proximo.add(chave)
+      return proximo
+    })
 
   // Mídia desligada vira mídia inexistente: quem chega em /estante/anime pelo
   // histórico do navegador ou por um link antigo volta para a home, em vez de
@@ -149,6 +161,12 @@ export function ShelfScreen() {
       // minha estante" e passou a ser "onde está o que eu quero".
       .filter(({ items: found }) => (!trimmed && !onlyFavorites) || found.length > 0)
   }, [mediaType, visible, trimmed, onlyFavorites])
+
+  // COM RECORTE EM CURSO, AS PILHAS SE DESFAZEM. É o mesmo raciocínio que já
+  // faz a seção vazia sumir na busca: a pergunta deixou de ser "como está minha
+  // estante" e passou a ser "onde está o que eu procuro" — e uma pilha
+  // escondendo justamente o acerto seria o pior desfecho possível.
+  const agrupando = !trimmed && !onlyFavorites
 
   // A estante INTEIRA, e não o recorte: o botão não pode sumir por causa do
   // próprio filtro que ele ligou.
@@ -290,35 +308,66 @@ export function ShelfScreen() {
                 emptyLabel={t('shelf.sectionEmpty')}
               >
                 <CoverGrid>
-                  {found.map((item, index) => (
-                    <li key={item.id}>
-                      {/* `relative` porque o `CoverMark` se ancora nele — sem
-                          isso o coração procura o ancestral posicionado mais
-                          próximo e vai parar no canto da TELA. */}
-                      <button
-                        type="button"
-                        onClick={() => setSelected(item)}
-                        className="relative w-full text-left transition active:scale-95"
-                      >
-                        {/* Sem o badge de status sobre a capa: o título da
-                            seção já diz o estado de todas elas, e repetir a
-                            palavra em cada capa era ruído. É o título que
-                            cobre a WCAG 1.4.1 pelo traço colorido. */}
-                        <Cover
-                          src={item.coverUrl}
-                          title={item.title}
-                          media={item.mediaType}
+                  {(agrupando
+                    ? groupByFranchise(found)
+                    : found.map((item) => ({
+                        kind: 'item' as const,
+                        key: item.id,
+                        item,
+                      }))
+                  ).flatMap((entry, index) => {
+                    if (entry.kind === 'item')
+                      return [
+                        <ItemCell
+                          key={entry.key}
+                          item={entry.item}
                           lazy={index > 5}
+                          onOpen={() => setSelected(entry.item)}
+                        />,
+                      ]
+
+                    const aberta = abertas.has(entry.key)
+                    return [
+                      <li key={entry.key}>
+                        <CoverStack
+                          src={entry.items[0].coverUrl}
+                          name={entry.name}
+                          count={entry.items.length}
+                          media={mediaType}
+                          lazy={index > 5}
+                          expanded={aberta}
+                          // A FAMÍLIA INTEIRA, não só a capa de cima: senão
+                          // uma favorita agrupada sumia da estante. Na prática
+                          // `sortForShelf` já traz a favorita como primeira do
+                          // grupo, mas depender disso deixaria a marca à mercê
+                          // da ordenação.
+                          favoriteLabel={
+                            entry.items.some((i) => i.favorite)
+                              ? t('item.favorite')
+                              : undefined
+                          }
+                          label={t(aberta ? 'shelf.stackOpen' : 'shelf.stack', {
+                            name: entry.name,
+                            count: String(entry.items.length),
+                          })}
+                          onClick={() => alternarPilha(entry.key)}
                         />
-                        {item.favorite && (
-                          <CoverMark label={t('item.favorite')} />
-                        )}
-                        <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
-                          {item.title}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
+                      </li>,
+                      // ABERTA, A PILHA CONTINUA NA TELA e as obras vêm
+                      // DEPOIS dela. Trocar a pilha pelas obras deixaria a
+                      // pessoa sem nada para tocar para fechar de novo.
+                      ...(aberta
+                        ? entry.items.map((item) => (
+                            <ItemCell
+                              key={item.id}
+                              item={item}
+                              lazy={false}
+                              onOpen={() => setSelected(item)}
+                            />
+                          ))
+                        : []),
+                    ]
+                  })}
                 </CoverGrid>
               </Section>
             ))}
@@ -424,5 +473,48 @@ export function ShelfScreen() {
 
       <ItemSheet subject={openSubject} onClose={() => setSelected(null)} />
     </Screen>
+  )
+}
+
+/**
+ * A célula de uma obra da estante. Virou componente quando a pilha de franquia
+ * chegou: as obras aparecem soltas no grid E dentro de uma pilha aberta, e duas
+ * cópias do mesmo botão divergiriam no primeiro ajuste.
+ */
+function ItemCell({
+  item,
+  lazy,
+  onOpen,
+}: {
+  item: Item
+  lazy: boolean
+  onOpen: () => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <li>
+      {/* `relative` porque o `CoverMark` se ancora nele — sem isso o coração
+          procura o ancestral posicionado mais próximo e vai parar no canto da
+          TELA. */}
+      <button
+        type="button"
+        onClick={onOpen}
+        className="relative w-full text-left transition active:scale-95"
+      >
+        {/* Sem o badge de status sobre a capa: o título da seção já diz o
+            estado de todas elas, e repetir a palavra em cada capa era ruído. É
+            o título que cobre a WCAG 1.4.1 pelo traço colorido. */}
+        <Cover
+          src={item.coverUrl}
+          title={item.title}
+          media={item.mediaType}
+          lazy={lazy}
+        />
+        {item.favorite && <CoverMark label={t('item.favorite')} />}
+        <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
+          {item.title}
+        </span>
+      </button>
+    </li>
   )
 }

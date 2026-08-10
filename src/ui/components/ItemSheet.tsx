@@ -185,12 +185,13 @@ function Detail({
   // "Cannot access 'detail' before initialization" no primeiro render — o
   // TypeScript não vê, o navegador vê na hora.
   //
-  // Casa TAMBÉM pelo id da ficha, e não só pelo do resultado. Em anime os dois
-  // podem diferir: a ficha unifica as temporadas e devolve o id da PRIMEIRA
-  // (ver `core/media/franchise.ts`), que é o que o item guarda. Sem esta
-  // segunda comparação, abrir a franquia por um caminho que carregue o id de
-  // outra temporada mostraria "adicionar" para o que já é seu — e criaria o
-  // duplicado no toque seguinte.
+  // Casa TAMBÉM pelo id da ficha, e não só pelo do resultado. A segunda
+  // comparação nasceu com a unificação de temporadas que foi revertida
+  // (decisão 18), onde a ficha devolvia o id de uma temporada e o item
+  // guardava o de outra — hoje nenhum provider faz isso, e ela FICA como rede:
+  // sem ela, abrir uma obra por um caminho que carregue um id diferente do
+  // gravado mostraria "adicionar" para o que já é seu, e criaria o duplicado no
+  // toque seguinte.
   const matched =
     fromShelf ??
     (fromSearch &&

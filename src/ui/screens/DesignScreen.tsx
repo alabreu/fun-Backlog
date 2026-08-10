@@ -14,6 +14,7 @@ import {
   Cover,
   CoverGrid,
   CoverMark,
+  CoverStack,
   NavRow,
   PlatformIcon,
   PLATFORM_TEXT,
@@ -156,6 +157,7 @@ export function DesignScreen() {
   const [ligado, setLigado] = useState(true)
   const [nota, setNota] = useState<number | undefined>(3)
   const [favorita, setFavorita] = useState(true)
+  const [pilhaAberta, setPilhaAberta] = useState(false)
   const [ordem, setOrdem] = useState<MediaType[]>([...MEDIA_TYPES])
   // Protótipo do progresso por slider: um valor por série de exemplo.
   const [vistos, setVistos] = useState<number[]>([12, 34, 100])
@@ -703,10 +705,10 @@ export function DesignScreen() {
         <section>
           <SectionTitle className="mb-2">CoverMark</SectionTitle>
           <p className="mb-3 text-body text-muted">
-            O coração de favorita, no canto da capa. Contorno preto a 8% para
-            não se dissolver sobre pôster claro — e vale saber que 8% é muito
-            leve: sobre branco ele quase não aparece, e quem carrega o contraste
-            continua sendo a cor do coração.
+            O coração de favorita, no canto da capa. O contorno preto a 42% é
+            medido, não escolhido: é onde ele alcança 3:1 sobre um pôster
+            branco, que é o mínimo da WCAG para objeto gráfico. A cor do próprio
+            coração dá 2,69:1 e não passa sozinha.
           </p>
           <CoverGrid className="mb-3">
             {MEDIA_TYPES.slice(0, 3).map((type) => (
@@ -715,6 +717,44 @@ export function DesignScreen() {
                 <CoverMark label="Favorita" />
               </li>
             ))}
+          </CoverGrid>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">CoverStack</SectionTitle>
+          <p className="mb-3 text-body text-muted">
+            A franquia ocupando uma célula só do grid. As duas folhas atrás são
+            o que diz "tem mais coisa embaixo" — sem elas, uma capa com um
+            número no canto lê como contagem de episódios, no mesmo lugar e no
+            mesmo formato do selo de progresso. Só agrupa dentro de um status: a
+            espinha da estante é o estado da obra, e uma pilha que atravessasse
+            teria de morar em duas seções ao mesmo tempo. Toque a segunda para
+            ver o estado ABERTO — sem folhas e com seta no lugar do contador,
+            porque aberta ela fica ao lado das próprias obras e precisa não ler
+            como uma delas.
+          </p>
+          <CoverGrid className="mb-3">
+            <li>
+              <CoverStack
+                name="The Legend of Zelda"
+                count={6}
+                media="game"
+                label="The Legend of Zelda, 6 obras. Abrir"
+                expanded={false}
+                onClick={() => {}}
+              />
+            </li>
+            <li>
+              <CoverStack
+                name="Dandadan"
+                count={2}
+                media="anime"
+                label={`Dandadan, 2 obras. ${pilhaAberta ? 'Fechar' : 'Abrir'}`}
+                expanded={pilhaAberta}
+                onClick={() => setPilhaAberta((v) => !v)}
+                favoriteLabel="Favorita"
+              />
+            </li>
           </CoverGrid>
         </section>
 

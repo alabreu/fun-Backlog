@@ -1,4 +1,5 @@
 import type { MediaType } from '@core/items/types'
+import { familyPrefix, normalizeTitle } from '@core/title'
 import { anilistProvider } from './anilist'
 import { googleBooksProvider } from './googlebooks'
 import { igdbProvider } from './igdb'
@@ -77,24 +78,6 @@ export interface SearchOptions {
  * Obra sem ano fica com uma chave só dela — na dúvida, mostrar duas vezes é
  * menos grave que sumir com a que a pessoa procurava.
  */
-/**
- * O título reduzido ao que ele tem de conteúdo: sem caixa, sem acento e sem
- * pontuação. "O Senhor dos Anéis:" e "O senhor dos aneis" viram a mesma coisa,
- * que é o que a pessoa vê na tela.
- */
-function normalizeTitle(title: string): string {
-  return (
-    title
-      .toLowerCase()
-      .normalize('NFD')
-      // Tira o acento (a combinação que o NFD separou) e depois tudo que não
-      // for letra ou número.
-      .replace(/[̀-ͯ]/g, '')
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim()
-  )
-}
-
 export function dedupe(results: MediaSearchResult[]): MediaSearchResult[] {
   const seen = new Set<string>()
   const kept: MediaSearchResult[] = []
@@ -152,27 +135,22 @@ export function dedupe(results: MediaSearchResult[]): MediaSearchResult[] {
  *
  * 1. O campo da fonte (`franchise`), quando ela tem um. É o melhor: alguém
  *    catalogou.
- * 2. O TÍTULO ANTES DOS DOIS PONTOS. Não é gambiarra — é como a indústria
- *    nomeia: "The Legend of Zelda: Breath of the Wild", "Final Fantasy VII:
- *    Remake", "O Senhor dos Anéis: A Sociedade do Anel". O prefixo é
- *    literalmente o nome da série, escrito pelo próprio editor.
+ * 2. O título antes dos dois pontos (ver `familyPrefix`).
  *
- * Sem dois pontos, a chave é o título inteiro normalizado — e é isso que faz
- * "The Legend of Zelda" (1986, sem subtítulo) cair no MESMO grupo que "The
- * Legend of Zelda: Ocarina of Time". Um grupo de um só não move nada, então o
- * caso comum (título solto que não casa com ninguém) continua intocado.
+ * As duas passam pela MESMA normalização de propósito: assim uma obra que veio
+ * com o campo preenchido e outra que só tem o título casam entre si, em vez de
+ * formarem dois grupos com o mesmo nome.
  *
- * As duas fontes passam pela MESMA normalização de propósito: assim uma obra
- * que veio com o campo preenchido e outra que só tem o título casam entre si,
- * em vez de formarem dois grupos com o mesmo nome.
+ * NÃO normaliza sufixo de temporada, ao contrário da chave da estante
+ * (`core/items/franchise.ts`). É diferença deliberada, não descuido: aqui a
+ * chave decide a ORDEM de uma lista de resultados, e agrupar temporada com
+ * temporada mudaria o que a busca devolve hoje — o pedido (10/08/2026) foi
+ * agrupar franquia na estante, não na busca. Unificar as duas chaves, se um dia
+ * for o certo, é trocar esta linha pela da estante.
  */
 export function familyKey(result: MediaSearchResult): string {
   if (result.franchise) return normalizeTitle(result.franchise)
-
-  // Só os separadores que introduzem SUBTÍTULO. O hífen exige espaço dos dois
-  // lados: sem isso, "Spider-Man" viraria a família "Spider".
-  const prefixo = result.title.split(/\s*:\s*|\s+[–—-]\s+/)[0]
-  return normalizeTitle(prefixo.length >= 2 ? prefixo : result.title)
+  return normalizeTitle(familyPrefix(result.title))
 }
 
 export function sortByFranchise(
