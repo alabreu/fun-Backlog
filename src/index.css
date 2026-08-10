@@ -211,17 +211,30 @@
   /* --- Espaçamento: a margem lateral padrão das telas (px-gutter). --- */
   --spacing-gutter: 1rem;
 
-  /* --- Escala tipográfica semântica. --- */
+  /* --- Escala tipográfica semântica. ---
+     Declarada em ordem CRESCENTE de tamanho, e vale manter assim: é a única
+     forma de ver de relance que a escala não tem dois degraus no mesmo valor.
+
+     O TOPO SUBIU em 10/08/2026 (24→28 no da tela, 18→24 no de seção), a pedido
+     do usuário olhando a estante. Como são tokens semânticos, a mudança alcança
+     TUDO que tem aquele papel: a saudação da home e a inicial da capa sem arte
+     subiram junto com o título da tela, e os títulos de sheet, de diálogo e dos
+     estados vazios subiram junto com o de seção. É o preço — e o ponto — de ter
+     uma escala em vez de tamanhos soltos por tela.
+
+     `metric` PASSOU A SER MENOR que `title`, o que inverteu a ordem antiga. Não
+     é acidente a corrigir: os dois têm papéis diferentes (número de KPI × nome
+     de seção), e o KPI grande continua usando `display`. */
   --text-label: 0.6875rem; /* 11px: metadados, badges, headings de seção */
   --text-label--line-height: 1rem;
   --text-body: 0.875rem; /* 14px: corpo padrão */
   --text-body--line-height: 1.25rem;
-  --text-title: 1.125rem; /* 18px: título dentro da tela */
-  --text-title--line-height: 1.5rem;
   --text-metric: 1.25rem; /* 20px: números em destaque (KPIs) */
   --text-metric--line-height: 1.5rem;
-  --text-display: 1.5rem; /* 24px: título da tela */
-  --text-display--line-height: 1.75rem;
+  --text-title: 1.5rem; /* 24px: título dentro da tela */
+  --text-title--line-height: 2rem;
+  --text-display: 1.75rem; /* 28px: título da tela */
+  --text-display--line-height: 2rem;
   /* 16px, e o número é o ponto: o Safari do iOS DÁ ZOOM sozinho ao focar
      qualquer campo com fonte menor que 16px. A saída óbvia — `user-scalable=no`
      no viewport — está proibida (WCAG 1.4.4, ver ACCESSIBILITY.md), e com

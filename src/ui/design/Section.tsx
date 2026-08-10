@@ -12,7 +12,7 @@ import type { ReactNode } from 'react'
  *
  * O CABEÇALHO É UM BOTÃO, com o nome à esquerda e contador + seta à direita.
  *
- * O nome usa `text-title` (18px), um degrau abaixo do `text-display` (24px) do
+ * O nome usa `text-title` (24px), um degrau abaixo do `text-display` (28px) do
  * título da tela: a seção é subordinada ao título, e a diferença de tamanho é o
  * que diz isso sem precisar de recuo nem de linha divisória. Ele deixou de ser
  * caixa alta miúda em cinza — aquilo era um RÓTULO de seção, e isto aqui é um
