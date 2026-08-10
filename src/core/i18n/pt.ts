@@ -175,6 +175,18 @@ export const pt = {
   'fact.genres': 'Gêneros',
 
   // Menu (sheet do botão no topo direito)
+
+  // Juntar temporadas de anime (ação retroativa em Configurações).
+  // `seasons.` e não `merge.`: aquele prefixo já é da migração
+  // convidado→conta, e dois assuntos no mesmo namespace viram colisão.
+  'seasons.title': 'Juntar temporadas de anime',
+  'seasons.searching': 'Procurando…',
+  'seasons.nothing': 'Nada a juntar: seus animes já estão como obras inteiras.',
+  'seasons.failed': 'Não deu para consultar o AniList. Tente de novo.',
+  'seasons.body': 'Encontramos {count} franquia(s) catalogada(s) em pedaços. Juntar apaga os itens abaixo e cria um no lugar — não tem volta.',
+  'seasons.result': 'Fica em {current} de {total} episódios.',
+  'seasons.confirm': 'Juntar',
+  'seasons.merging': 'Juntando…',
   'menu.feedback': 'Enviar feedback',
   'menu.language': 'Idioma e região',
   'menu.news': 'Novidades',

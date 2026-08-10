@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-franquias',
+    date: '2026-08-09',
+    emoji: '🧩',
+    title: {
+      pt: 'Franquias: uma obra em vez de seis',
+      en: 'Franchises: one work instead of six',
+    },
+    items: {
+      pt: [
+        'Temporadas de anime viram UMA obra. Buscar "Attack on Titan" devolvia seis cards que são a mesma história — agora é um, com a régua indo do primeiro ao último episódio da franquia. OVA, spin-off e paródia continuam separados, porque não são temporada.',
+        'Toda obra ganhou "Da mesma franquia" no fim da ficha: os outros jogos da série, os outros filmes da saga, os spin-offs do anime. Serve tanto para reencontrar quanto para descobrir o que você não sabia que existia.',
+        'Já tinha temporadas catalogadas soltas? Configurações → Juntar temporadas de anime. Ele mostra o que encontrou e só junta depois que você confirmar.',
+      ],
+      en: [
+        'Anime seasons become ONE work. Searching "Attack on Titan" returned six cards that are the same story — now it is one, with the ruler running from the first episode of the franchise to the last. OVAs, spin-offs and parodies stay separate, because they are not seasons.',
+        'Every work gained a "From the same franchise" section at the end: the other games in the series, the other films in the saga, the anime spin-offs. It serves both finding again and finding out.',
+        'Already had seasons catalogued separately? Settings → Merge anime seasons. It shows what it found and only merges after you confirm.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-regua-e-status',
     date: '2026-08-09',
     emoji: '🎚️',

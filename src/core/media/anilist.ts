@@ -1,9 +1,11 @@
+import type { ResolvedChain } from '@core/items/mergeSeasons'
 import {
   chainHead,
   chainToSeasons,
   chainTotal,
   groupSameWork,
   isSameWork,
+  orderChain,
   type FranchiseEntry,
 } from './franchise'
 import {
@@ -314,6 +316,55 @@ export const anilistProvider: MediaProvider = {
       seasons: temporadas,
     }
   },
+}
+
+/**
+ * QUAIS ITENS DA ESTANTE SÃO A MESMA OBRA — a pergunta da fusão retroativa.
+ *
+ * Recebe os ids externos dos animes que a pessoa já catalogou e devolve uma
+ * cadeia por franquia com DUAS ou mais delas na estante. Grupo de um só não
+ * volta: ele já é a obra, e fundir ali seria apagar e recriar por nada.
+ *
+ * DUAS ETAPAS, e as duas são necessárias. A primeira consulta descobre quem se
+ * liga a quem entre os itens da estante — uma requisição para a estante
+ * inteira, com aliases. A segunda COMPLETA cada cadeia encontrada, porque o
+ * total da régua é a franquia toda: quem tem só a segunda e a terceira
+ * temporada precisa que a primeira entre na conta, senão a obra fundida
+ * nasceria com uma régua curta e um progresso que não bate.
+ *
+ * Vive no provider e não em `core/items` porque é a FONTE que sabe o que é
+ * temporada. O plano de fusão — onde mora o risco de perder o dado de alguém —
+ * é puro e mora em `core/items/mergeSeasons.ts`.
+ */
+export async function resolveAnimeChains(
+  externalIds: string[],
+  signal?: AbortSignal,
+): Promise<ResolvedChain[]> {
+  if (externalIds.length < 2) return []
+
+  const naEstante = await fetchByIds(externalIds, signal)
+  const grupos = groupSameWork(naEstante.map(toEntry)).filter(
+    (grupo) => grupo.length >= 2,
+  )
+
+  const cadeias: ResolvedChain[] = []
+  for (const grupo of grupos) {
+    // Sequencial de propósito: são poucas franquias, é uma ação única, e
+    // disparar todas de uma vez num serviço público e gratuito é a maneira
+    // clássica de levar um 429 justamente na hora em que a pessoa está
+    // esperando uma resposta.
+    const completa = orderChain(await walkChain(grupo[0].media, signal))
+    const cabeca = mapAniListMedia(completa[0].media)
+
+    cadeias.push({
+      provider: 'anilist',
+      ids: completa.map((e) => e.id),
+      episodes: completa.map((e) => e.episodes ?? 0),
+      title: cabeca?.title ?? completa[0].title,
+      coverUrl: cabeca?.coverUrl,
+    })
+  }
+  return cadeias
 }
 
 /** Teto de saltos e de entradas. Não é otimização: é a rede de segurança de um

@@ -856,6 +856,92 @@ conserta.
 
 ---
 
+## 18. Anime: temporada não é obra, e toda obra tem franquia
+
+**09/08/2026.** Duas coisas que compartilham uma busca, e por isso andaram
+juntas.
+
+### As temporadas viram uma obra
+
+O AniList cataloga cada temporada como obra separada porque a INDÚSTRIA faz
+isso: no Japão cada cour é uma produção própria. Buscar "Attack on Titan"
+devolvia seis cards que são uma história, mais um OVA e uma paródia chibi que
+não são.
+
+**Só `SEQUEL` e `PREQUEL` fundem.** As duas dizem "a mesma história,
+continuando", que é o que uma temporada é. `SIDE_STORY`, `SPIN_OFF`, `SUMMARY`,
+`ALTERNATIVE`, `CHARACTER` e `ADAPTATION` descrevem uma obra DIFERENTE que
+divide universo — e `OTHER`, pelo próprio manual do AniList, é o que se usa
+quando não se sabe. Fundir pelo desconhecido é chutar.
+
+A cadeia vira a mesma tabela de temporadas que a TMDB entrega, e por isso o
+slider, o "T3 E12" e a régua contínua funcionam sem uma linha de mudança na
+tela. É o que a interface `MediaProvider` promete: o resto do app não sabe de
+onde veio o dado.
+
+**Duas estratégias porque são dois custos.** A busca agrupa com as arestas que
+já tem em mãos (uma consulta, union-find sobre a página); a ficha caminha a
+cadeia de verdade, em RODADAS — aliases de GraphQL pedem toda a fronteira de
+uma vez, e Attack on Titan aberto pela segunda temporada resolve em três idas
+em vez de cinco. Aliases e não um filtro de lista do schema: aliases são
+GraphQL puro, e o AniList é inalcançável de dentro do ambiente de dev para
+verificar qualquer coisa mais específica.
+
+O custo do agrupamento barato: uma temporada que não voltou na mesma página não
+entra na soma. Quem conserta é a ficha.
+
+### O carrossel de franquia
+
+No fim da ficha, depois das anotações — o lugar é o argumento: não é sobre a
+obra aberta, é sobre o que existe ao redor dela, e quem rolou até ali está no
+modo de vagar.
+
+**Franquia declarada pela fonte, e não "parecidos".** A seção promete "isto é do
+mesmo mundo", e recomendação de algoritmo não sustenta a frase. Sai de
+`relations` (AniList), `franchises` (IGDB) e `belongs_to_collection` (TMDB).
+Série e livro não ganham nada e a seção some: a TMDB não modela franquia para
+TV e as fontes de livro não têm série confiável. Seção vazia com título seria
+pior.
+
+Tocar troca a obra do MESMO painel, sem empilhar um segundo sheet. Não há
+"voltar" — uma pilha dentro de um sheet pede botão próprio e uma história para
+o Escape, e o ganho é pequeno perto de fechar e tocar de novo.
+
+### Fundir o que já estava catalogado
+
+A unificação chegou depois de a estante ter conteúdo. Sem uma ação retroativa,
+quem já tinha "Season 2" e "Season 3" ficaria com dois cards para sempre
+enquanto o novo entrava unificado — dois modelos na mesma estante é pior que
+qualquer um dos dois.
+
+Mora em **Configurações**, e não num aviso automático: a detecção custa rede, e
+cobrar isso de toda abertura da estante para uma ação feita uma vez na vida é o
+custo que ninguém vê e todo mundo paga.
+
+**Pergunta antes, com os títulos na tela.** Apaga itens e cria um no lugar, sem
+volta. Uma contagem ("2 franquias") não bastaria: a pessoa precisa reconhecer os
+títulos para perceber se o grafo agrupou errado. O que é preservado está em
+`planMerge`, com teste: progresso somado (limitado ao tamanho real de cada
+temporada), nota mais alta e não média, anotações com o título de origem como
+cabeçalho, data de entrada mais antiga, tags unidas. Cria antes de apagar — se a
+rede cair no meio, o pior caso é uma obra duplicada, e não uma estante sem as
+duas.
+
+**A soma do progresso é uma aproximação assumida.** Ela acerta o caso comum
+(anteriores concluídas, a última em andamento) e erra quem parou no episódio 5
+da primeira e viu a segunda inteira. Não existe número honesto para isso: a
+régua é uma linha, e essa pessoa não está num ponto dela.
+
+### O que vai errar
+
+O grafo do AniList é editado por usuários. **Alguma franquia vai agrupar
+errado** — não é hipótese, é estatística. Foi por isso que o carrossel veio
+primeiro: lá um erro é uma capa estranha numa lista; na régua seria o seu
+progresso. Não existe ainda um "separar desta franquia"; se doer, é o próximo
+passo.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A

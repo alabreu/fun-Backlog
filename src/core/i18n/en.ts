@@ -177,6 +177,18 @@ export const en: Record<keyof typeof pt, string> = {
   'fact.genres': 'Genres',
 
   // Menu
+
+  // Juntar temporadas de anime (ação retroativa em Configurações).
+  // `seasons.` e não `merge.`: aquele prefixo já é da migração
+  // convidado→conta, e dois assuntos no mesmo namespace viram colisão.
+  'seasons.title': 'Merge anime seasons',
+  'seasons.searching': 'Looking…',
+  'seasons.nothing': 'Nothing to merge: your anime are already whole works.',
+  'seasons.failed': 'Could not reach AniList. Try again.',
+  'seasons.body': 'We found {count} franchise(s) catalogued in pieces. Merging deletes the items below and creates one in their place — there is no undo.',
+  'seasons.result': 'Lands on {current} of {total} episodes.',
+  'seasons.confirm': 'Merge',
+  'seasons.merging': 'Merging…',
   'menu.feedback': 'Send feedback',
   'menu.language': 'Language & region',
   'menu.news': "What's new",
