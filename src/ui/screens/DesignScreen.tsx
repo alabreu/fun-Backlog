@@ -157,7 +157,6 @@ export function DesignScreen() {
   const [ligado, setLigado] = useState(true)
   const [nota, setNota] = useState<number | undefined>(3)
   const [favorita, setFavorita] = useState(true)
-  const [pilhaAberta, setPilhaAberta] = useState(false)
   const [ordem, setOrdem] = useState<MediaType[]>([...MEDIA_TYPES])
   // Protótipo do progresso por slider: um valor por série de exemplo.
   const [vistos, setVistos] = useState<number[]>([12, 34, 100])
@@ -744,13 +743,10 @@ export function DesignScreen() {
             número no canto lê como contagem de episódios, no mesmo lugar e no
             mesmo formato do selo de progresso. Só agrupa dentro de um status: a
             espinha da estante é o estado da obra, e uma pilha que atravessasse
-            teria de morar em duas seções ao mesmo tempo. Toque a segunda para
-            ver o estado ABERTO: ela larga a arte e vira o tint da mídia com a
-            inicial, porque aberta ela fica ao lado da própria obra de capa e
-            duas capas idênticas vizinhas leem como item repetido. O contorno na
-            cor da mídia (<code>ringMedia</code>) vai nela e em todas as obras
-            do grupo — é o que responde "quais destas são da coleção que eu
-            abri", já que elas dividem a fileira com as obras soltas da seção.
+            teria de morar em duas seções ao mesmo tempo. Tocar ABRE UM PAINEL
+            com as obras da coleção (<code>StackSheet</code>), e não expande no
+            grid: expandindo, a pilha ficava ao lado da própria obra de capa e
+            as duas células liam como item repetido.
           </p>
           <CoverGrid className="mb-3">
             <li>
@@ -758,8 +754,7 @@ export function DesignScreen() {
                 name="The Legend of Zelda"
                 count={6}
                 media="game"
-                label="The Legend of Zelda, 6 obras. Abrir"
-                expanded={false}
+                label="The Legend of Zelda, 6 obras"
                 onClick={() => {}}
               />
             </li>
@@ -768,9 +763,8 @@ export function DesignScreen() {
                 name="Dandadan"
                 count={2}
                 media="anime"
-                label={`Dandadan, 2 obras. ${pilhaAberta ? 'Fechar' : 'Abrir'}`}
-                expanded={pilhaAberta}
-                onClick={() => setPilhaAberta((v) => !v)}
+                label="Dandadan, 2 obras"
+                onClick={() => {}}
                 favoriteLabel="Favorita"
               />
             </li>

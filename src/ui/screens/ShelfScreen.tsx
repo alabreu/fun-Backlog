@@ -40,6 +40,7 @@ import {
   type AddChoice,
 } from '@ui/components/AddStatusSheet'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
+import { StackSheet } from '@ui/components/StackSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useSectionState } from '@ui/hooks/useSectionState'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
@@ -93,20 +94,14 @@ export function ShelfScreen() {
   const [pendingAdd, setPendingAdd] = useState<MediaSearchResult | null>(null)
   const [query, setQuery] = useState('')
   const [onlyFavorites, setOnlyFavorites] = useState(false)
-  // As pilhas de franquia que a pessoa abriu, por chave de família. Estado da
-  // TELA, não do item: agrupar é uma leitura da lista, e nada disso é gravado.
-  const [abertas, setAbertas] = useState<ReadonlySet<string>>(new Set())
+  // A pilha de franquia cujo painel está aberto. Guarda a CHAVE e não a pilha:
+  // assim a lista dentro do painel acompanha o item mudando (progresso, nota)
+  // em vez de congelar no que existia quando você tocou.
+  const [pilhaKey, setPilhaKey] = useState<string | null>(null)
   // Um instante só por montagem. É ele que decide o que já saiu, e precisa ser
   // estável enquanto a tela está aberta: recalculado a cada render, um item na
   // fronteira da estreia poderia trocar de seção no meio de uma rolagem.
   const [agora] = useState(() => Date.now())
-
-  const alternarPilha = (chave: string) =>
-    setAbertas((atual) => {
-      const proximo = new Set(atual)
-      if (!proximo.delete(chave)) proximo.add(chave)
-      return proximo
-    })
 
   // Mídia desligada vira mídia inexistente: quem chega em /estante/anime pelo
   // histórico do navegador ou por um link antigo volta para a home, em vez de
@@ -144,6 +139,12 @@ export function ShelfScreen() {
     [items, mediaType, trimmed, onlyFavorites],
   )
 
+  // COM RECORTE EM CURSO, AS PILHAS SE DESFAZEM. É o mesmo raciocínio que já
+  // faz a seção vazia sumir na busca: a pergunta deixou de ser "como está minha
+  // estante" e passou a ser "onde está o que eu procuro" — e uma pilha
+  // escondendo justamente o acerto seria o pior desfecho possível.
+  const agrupando = !trimmed && !onlyFavorites
+
   // Os itens já filtrados, agrupados por status e na ordem de seções da mídia.
   // A contagem que aparece no título é a DESTE recorte, não a da estante
   // inteira: buscando "zelda", "Jogando 2" quer dizer "dois acertos aqui".
@@ -165,10 +166,16 @@ export function ShelfScreen() {
       (s) => !canonicas.includes(s) && visible.some((i) => i.status === s),
     )
     return [...canonicas, ...orfaos]
-      .map((value) => ({
-        status: value,
-        items: visible.filter((i) => sectionOf(i, agora) === value),
-      }))
+      .map((value) => {
+        const found = visible.filter((i) => sectionOf(i, agora) === value)
+        return {
+          status: value,
+          items: found,
+          entries: agrupando
+            ? groupByFranchise(found)
+            : found.map((item) => ({ kind: 'item' as const, key: item.id, item })),
+        }
+      })
       // SEÇÃO VAZIA SOME quando há um recorte em curso — busca OU filtro de
       // favoritas. Em repouso ela informa ("não tenho nada pausado"); dentro de
       // um recorte ela vira ruído, porque a pergunta deixou de ser "como está
@@ -181,13 +188,18 @@ export function ShelfScreen() {
           found.length > 0 ||
           (!hidesWhenEmpty(value) && !trimmed && !onlyFavorites),
       )
-  }, [mediaType, visible, trimmed, onlyFavorites, agora])
+  }, [mediaType, visible, trimmed, onlyFavorites, agora, agrupando])
 
-  // COM RECORTE EM CURSO, AS PILHAS SE DESFAZEM. É o mesmo raciocínio que já
-  // faz a seção vazia sumir na busca: a pergunta deixou de ser "como está minha
-  // estante" e passou a ser "onde está o que eu procuro" — e uma pilha
-  // escondendo justamente o acerto seria o pior desfecho possível.
-  const agrupando = !trimmed && !onlyFavorites
+  // A PILHA ABERTA, derivada da chave: se o item mudar (progresso, favorita),
+  // a lista dentro do painel muda junto. Some sozinha se a franquia deixar de
+  // existir — ao tirar da estante a penúltima obra dela, por exemplo.
+  const pilha = useMemo(
+    () =>
+      sections
+        .flatMap((s) => s.entries)
+        .find((e) => e.kind === 'stack' && e.key === pilhaKey),
+    [sections, pilhaKey],
+  )
 
   // A estante INTEIRA, e não o recorte: o botão não pode sumir por causa do
   // próprio filtro que ele ligou.
@@ -317,7 +329,7 @@ export function ShelfScreen() {
 
         {total > 0 && (
           <div className="flex flex-col">
-            {sections.map(({ status: value, items: found }) => (
+            {sections.map(({ status: value, items: found, entries }) => (
               <Section
                 key={value}
                 title={t(sectionLabelKey(value, mediaType))}
@@ -330,26 +342,15 @@ export function ShelfScreen() {
                 emptyLabel={t('shelf.sectionEmpty')}
               >
                 <CoverGrid>
-                  {(agrupando
-                    ? groupByFranchise(found)
-                    : found.map((item) => ({
-                        kind: 'item' as const,
-                        key: item.id,
-                        item,
-                      }))
-                  ).flatMap((entry, index) => {
-                    if (entry.kind === 'item')
-                      return [
-                        <ItemCell
-                          key={entry.key}
-                          item={entry.item}
-                          lazy={index > 5}
-                          onOpen={() => setSelected(entry.item)}
-                        />,
-                      ]
-
-                    const aberta = abertas.has(entry.key)
-                    return [
+                  {entries.map((entry, index) =>
+                    entry.kind === 'item' ? (
+                      <ItemCell
+                        key={entry.key}
+                        item={entry.item}
+                        lazy={index > 5}
+                        onOpen={() => setSelected(entry.item)}
+                      />
+                    ) : (
                       <li key={entry.key}>
                         <CoverStack
                           src={entry.items[0].coverUrl}
@@ -357,7 +358,6 @@ export function ShelfScreen() {
                           count={entry.items.length}
                           media={mediaType}
                           lazy={index > 5}
-                          expanded={aberta}
                           // A FAMÍLIA INTEIRA, não só a capa de cima: senão
                           // uma favorita agrupada sumia da estante. Na prática
                           // `sortForShelf` já traz a favorita como primeira do
@@ -368,29 +368,15 @@ export function ShelfScreen() {
                               ? t('item.favorite')
                               : undefined
                           }
-                          label={t(aberta ? 'shelf.stackOpen' : 'shelf.stack', {
+                          label={t('shelf.stack', {
                             name: entry.name,
                             count: String(entry.items.length),
                           })}
-                          onClick={() => alternarPilha(entry.key)}
+                          onClick={() => setPilhaKey(entry.key)}
                         />
-                      </li>,
-                      // ABERTA, A PILHA CONTINUA NA TELA e as obras vêm
-                      // DEPOIS dela. Trocar a pilha pelas obras deixaria a
-                      // pessoa sem nada para tocar para fechar de novo.
-                      ...(aberta
-                        ? entry.items.map((item) => (
-                            <ItemCell
-                              key={item.id}
-                              item={item}
-                              lazy={false}
-                              inStack
-                              onOpen={() => setSelected(item)}
-                            />
-                          ))
-                        : []),
-                    ]
-                  })}
+                      </li>
+                    ),
+                  )}
                 </CoverGrid>
               </Section>
             ))}
@@ -494,6 +480,25 @@ export function ShelfScreen() {
         onPick={(result, choice) => void addResult(result, choice)}
       />
 
+      {/* UM PAINEL POR VEZ, e é este `open` que garante isso. Abrindo uma obra
+          de dentro da coleção, o painel da coleção SAI de cena em vez de ficar
+          embaixo — nada de duas camadas, dois Escape e dois arrastes, que é a
+          razão de o `ItemSheet` também trocar de assunto em vez de empilhar.
+
+          E como `pilhaKey` continua guardado, fechar a obra devolve a coleção:
+          é o "voltar" sem pilha de navegação (escolha do usuário, 10/08/2026).
+          Tocando numa capa solta da estante, `pilhaKey` é nulo e fechar leva
+          direto ao grid, como sempre foi. */}
+      {pilha?.kind === 'stack' && (
+        <StackSheet
+          name={pilha.name}
+          items={pilha.items}
+          open={!openSubject}
+          onClose={() => setPilhaKey(null)}
+          onOpenItem={setSelected}
+        />
+      )}
+
       <ItemSheet subject={openSubject} onClose={() => setSelected(null)} />
     </Screen>
   )
@@ -508,13 +513,10 @@ function ItemCell({
   item,
   lazy,
   onOpen,
-  inStack = false,
 }: {
   item: Item
   lazy: boolean
   onOpen: () => void
-  /** Faz parte da pilha que está aberta — ganha o contorno que amarra o grupo. */
-  inStack?: boolean
 }) {
   const { t } = useTranslation()
   return (
@@ -535,7 +537,6 @@ function ItemCell({
           title={item.title}
           media={item.mediaType}
           lazy={lazy}
-          ringMedia={inStack ? item.mediaType : undefined}
         />
         {item.favorite && <CoverMark label={t('item.favorite')} />}
         <span className="mt-1.5 line-clamp-2 block text-label font-semibold">

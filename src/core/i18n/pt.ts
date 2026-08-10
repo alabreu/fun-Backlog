@@ -24,8 +24,8 @@ export const pt = {
   'shelf.sectionEmpty': 'Nada aqui',
   // A pilha de franquia. O nome acessível diz as três coisas que a capa com um
   // número não diz: de que série é, quantas obras tem e que aquilo abre.
-  'shelf.stack': '{name}, {count} obras. Abrir',
-  'shelf.stackOpen': '{name}, {count} obras. Fechar',
+  'shelf.stack': '{name}, {count} obras',
+  'shelf.stackCount': '{count} obras nesta franquia',
   'shelf.emptyTitle': 'Nada nesta estante ainda',
   'shelf.emptyBody': 'O que você adicionar desta mídia aparece aqui.',
 

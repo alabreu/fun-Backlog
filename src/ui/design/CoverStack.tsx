@@ -1,4 +1,3 @@
-import { CaretUp } from '@phosphor-icons/react'
 import { Badge } from './Badge'
 import { Cover } from './Cover'
 import { CoverMark } from './CoverMark'
@@ -21,10 +20,10 @@ import type { MediaType } from '@core/items/types'
  * motivo do `CoverMark` e do `CoverAction`; ao mudar a proporção da `Cover`,
  * mude aqui junto — são a mesma caixa.
  *
- * O ESTADO VAI EM TEXTO. `aria-expanded` diz que isto abre e fecha, e o nome
- * acessível traz o nome da família e quantas obras são: um contador sozinho
- * sobre uma capa não diz a quem usa leitor de tela que ali dentro há seis
- * obras, nem que tocar faz alguma coisa.
+ * O QUE ELA É VAI EM TEXTO. `aria-haspopup="dialog"` diz que tocar abre um
+ * painel, e o nome acessível traz o nome da família e quantas obras são: um
+ * contador sozinho sobre uma capa não diz a quem usa leitor de tela que ali
+ * dentro há seis obras, nem que tocar faz alguma coisa.
  *
  * `reduce-motion` não precisa de tratamento aqui — a rotação é estática, não
  * animada, e a única transição é a de toque que o app já usa em todo lugar.
@@ -38,7 +37,6 @@ export interface CoverStackProps {
   media?: MediaType
   /** Nome acessível completo, já traduzido ("The Legend of Zelda, 6 obras"). */
   label: string
-  expanded: boolean
   onClick: () => void
   lazy?: boolean
   /**
@@ -57,7 +55,6 @@ export function CoverStack({
   count,
   media,
   label,
-  expanded,
   onClick,
   lazy = true,
   favoriteLabel,
@@ -67,20 +64,16 @@ export function CoverStack({
       type="button"
       onClick={onClick}
       aria-label={label}
-      aria-expanded={expanded}
+      // ABRE UM DIÁLOGO, e não expande no lugar. Era `aria-expanded` enquanto a
+      // pilha se abria dentro do grid; com o painel, esse atributo prometeria
+      // ao leitor de tela um conteúdo que apareceria ali embaixo.
+      aria-haspopup="dialog"
       className="relative block w-full text-left transition active:scale-95"
     >
       {/* A moldura das folhas: repete a caixa da capa e não intercepta toque. */}
-      {/* ABERTA NÃO TEM FOLHAS. Não é enfeite: aberta, a pilha fica ao lado das
-          próprias obras, e a primeira delas repete esta capa e este nome — sem
-          um sinal de diferença as duas células leem como item duplicado. Sem as
-          folhas e com a seta no lugar do contador, uma é a pasta e a outra é a
-          obra. */}
       <span
         aria-hidden
-        className={`pointer-events-none absolute inset-x-0 top-0 aspect-[2/3] ${
-          expanded ? 'hidden' : ''
-        }`}
+        className="pointer-events-none absolute inset-x-0 top-0 aspect-[2/3]"
       >
         {/* GIRADAS, e a escolha foi do usuário (10/08/2026) com as duas
             versões desenhadas lado a lado. A alternativa era deslocar para
@@ -99,26 +92,13 @@ export function CoverStack({
       </span>
 
       {/* A capa por cima das folhas, no fluxo normal — é ela que dá a altura da
-          célula, então não pode ser absoluta.
-
-          ABERTA, A PILHA LARGA A ARTE (escolha do usuário, 10/08/2026). Fechada
-          ela veste a capa da primeira obra; aberta, essa mesma obra aparece na
-          célula ao lado, e duas capas idênticas vizinhas leem como item
-          repetido. Sem `src` a `Cover` cai no próprio fallback — o tint da
-          mídia com a inicial —, e aí a diferença não é sutil: uma é arte, a
-          outra é claramente um marcador de coleção. */}
+          célula, então não pode ser absoluta. */}
       <span className="relative block">
-        <Cover
-          src={expanded ? undefined : src}
-          title={name}
-          media={media}
-          lazy={lazy}
-          ringMedia={expanded ? media : undefined}
-        />
-        {/* O selo é DECORATIVO nos dois estados: o nome acessível do botão já
-            diz quantas obras são e se aquilo abre ou fecha. */}
+        <Cover src={src} title={name} media={media} lazy={lazy} />
+        {/* O selo é DECORATIVO: o nome acessível do botão já diz quantas obras
+            são. */}
         <Badge tone="onCover" aria-hidden className="absolute bottom-1.5 right-1.5">
-          {expanded ? <CaretUp size={12} weight="bold" /> : count}
+          {count}
         </Badge>
       </span>
       {favoriteLabel && <CoverMark label={favoriteLabel} />}

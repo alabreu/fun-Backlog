@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { MediaType } from '@core/items/types'
-import { MEDIA_GLOW, MEDIA_INITIAL, MEDIA_RING, MEDIA_TINT } from './media'
+import { MEDIA_GLOW, MEDIA_INITIAL, MEDIA_TINT } from './media'
 
 /**
  * A capa — o elemento visual primário do app. "Estante, não planilha" começa
@@ -37,18 +37,6 @@ export interface CoverProps {
    * `media`, e nunca carrega a informação sozinho: ver `MEDIA_GLOW`.
    */
   glow?: boolean
-  /**
-   * Contorno na cor da mídia, no lugar do anel neutro de sempre.
-   *
-   * Serve a UM caso: amarrar visualmente as capas de uma coleção aberta na
-   * estante. Substitui o anel padrão em vez de somar a ele — dois anéis na mesma
-   * caixa competem pela mesma propriedade de CSS, e quem ganha depende da ordem
-   * em que o Tailwind gerou as classes, que não é coisa para se depender.
-   *
-   * Ver `MEDIA_RING`: isto é exceção à regra de cor de mídia não encostar em
-   * capa, e ela só se sustenta por ser temporária.
-   */
-  ringMedia?: MediaType
   className?: string
 }
 
@@ -58,7 +46,6 @@ export function Cover({
   media,
   lazy = true,
   glow = false,
-  ringMedia,
   className = '',
 }: CoverProps) {
   const [failed, setFailed] = useState(false)
@@ -66,9 +53,9 @@ export function Cover({
 
   return (
     <div
-      className={`relative aspect-[2/3] w-full overflow-hidden rounded-card ${
-        ringMedia ? `ring-2 ${MEDIA_RING[ringMedia]}` : 'ring-1 ring-ink/10'
-      } ${media ? MEDIA_TINT[media] : 'bg-ink/5'} ${className}`}
+      className={`relative aspect-[2/3] w-full overflow-hidden rounded-card ring-1 ring-ink/10 ${
+        media ? MEDIA_TINT[media] : 'bg-ink/5'
+      } ${className}`}
     >
       {src && !failed ? (
         <img
