@@ -27,11 +27,12 @@ Entregues em 07/08/2026: credenciais da IGDB (via Twitch) e Read Access Token
 da TMDB, cadastrados como secrets do Supabase.
 
 Entregues em 09/08/2026: migração `0005_items_favorite.sql` (coluna `favorite`,
-o coração da nota já grava em produção).
+o coração da nota já grava em produção) e migração
+`0006_completed_at_optional.sql` (o check `items_completed_at_matches_status`
+foi derrubado — conferido no banco; a `main` destravou e subiu).
 
 | | Item | Por que importa | Onde |
 | --- | --- | --- | --- |
-| 🔴 | Rodar a migração `0006_completed_at_optional.sql` | **A `main` está segurada esperando isto.** A `0004` criou o check `(status = 'done') = (completed_at is not null)`. O app parou de carimbar a data de conclusão (decisão 16), então **marcar qualquer obra como concluída passa a ser REJEITADO pelo Postgres** enquanto o check existir. A migração só o derruba; a coluna e as datas existentes ficam. É idempotente | Supabase → SQL Editor |
 | 🟡 | `OPENROUTER_API_KEY` como secret + **teto de gasto na chave** | Destrava "Me ajude a escolher". O teto é a única defesa que sobrevive a um bug no código | Supabase → Edge Functions → Secrets |
 | 🟢 | `ALLOWED_ORIGIN` da Edge Function `llm` | Restringe o CORS à origin do app em vez de `*` | Supabase → Edge Functions → Secrets |
 | 🟢 | SMTP customizado (ex.: Resend) | O SMTP padrão do Supabase é lento e limitado — problema real antes de abrir para outras pessoas | Supabase → Auth → SMTP |
