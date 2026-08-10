@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Trash } from '@phosphor-icons/react'
+import { collectionState, sortByCollection } from '@core/media/collection'
 import { detailSourceFor, fetchDetail } from '@core/media/detail'
 import { genreColorIndexes } from '@core/media/genres'
 import { fullSizeCoverUrl } from '@core/media/image'
@@ -36,6 +37,7 @@ import {
   ClampedText,
   ConfirmDialog,
   Cover,
+  CoverMark,
   ExternalLink,
   Field,
   GENRE_TEXT,
@@ -742,39 +744,57 @@ function FranchiseRail({
     <div>
       <SectionTitle className="mb-2">{t('item.franchise')}</SectionTitle>
       <Rail>
-        {related.map((obra) => {
+        {sortByCollection(related, items).map((obra) => {
           // A obra da estante GANHA do resultado de busca: tocando nela, o
           // painel abre com progresso e nota em vez de um botão "adicionar"
           // para o que já é seu.
           const meu = items.find(
             (i) => i.externalIds[obra.provider] === obra.externalId,
           )
+          const estado = collectionState(obra, items)
+          const rotulo =
+            estado === 'done'
+              ? t(statusLabelKey('done', obra.mediaType))
+              : t('add.onShelf')
           return (
             <RailItem key={`${obra.provider}:${obra.externalId}`} size="compact">
               <button
                 type="button"
                 onClick={() => onOpen(meu ?? obra)}
-                className="w-full text-left transition active:scale-95"
+                // `relative` porque a marca se ancora nele — sem isso ela
+                // procura o ancestral posicionado mais próximo e sai da capa.
+                className="relative w-full text-left transition active:scale-95"
               >
                 <Cover
                   src={obra.coverUrl}
                   title={obra.title}
                   media={obra.mediaType}
                 />
+                {/* SEM MARCA é o que está faltando na coleção, e essa ausência
+                    é o sinal: numa fileira de cinco, as capas limpas são a
+                    resposta para "o que eu não tenho". Marcar as três coisas
+                    faria a lista inteira ficar marcada, e aí nada salta.
+
+                    Sem `label`: o estado está escrito logo abaixo, e o
+                    `sr-only` faria o leitor de tela repeti-lo no mesmo botão. */}
+                {estado !== 'missing' && <CoverMark tone={estado} />}
                 <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
                   {obra.title}
                 </span>
-                {meu ? (
-                  <span className="line-clamp-1 block text-label text-muted">
-                    {t('add.onShelf')}
-                  </span>
-                ) : (
-                  obra.year && (
-                    <span className="line-clamp-1 block text-label text-muted">
-                      {obra.year}
-                    </span>
-                  )
-                )}
+                {/* O ANO só aparece no que NÃO é seu. Onde há estado, ele
+                    ocupa a linha: entre "de que ano é" e "eu já terminei",
+                    a segunda é a que responde a pergunta desta seção. */}
+                {estado === 'missing'
+                  ? obra.year && (
+                      <span className="line-clamp-1 block text-label text-muted">
+                        {obra.year}
+                      </span>
+                    )
+                  : (
+                      <span className="line-clamp-1 block text-label text-muted">
+                        {rotulo}
+                      </span>
+                    )}
               </button>
             </RailItem>
           )

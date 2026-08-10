@@ -711,13 +711,29 @@ export function DesignScreen() {
             coração dá 2,69:1 e não passa sozinha.
           </p>
           <CoverGrid className="mb-3">
-            {MEDIA_TYPES.slice(0, 3).map((type) => (
-              <li key={type} className="relative">
-                <Cover title={type} media={type} />
-                <CoverMark label="Favorita" />
+            {(
+              [
+                ['favorite', 'Favorita'],
+                ['done', 'Terminado'],
+                ['shelved', 'Na estante'],
+              ] as const
+            ).map(([tone, rotulo]) => (
+              <li key={tone} className="relative">
+                <Cover title={rotulo} media="anime" />
+                <CoverMark tone={tone} label={rotulo} />
+                <span className="mt-1.5 block text-label text-muted">
+                  {tone}
+                </span>
               </li>
             ))}
           </CoverGrid>
+          <p className="text-label text-muted">
+            As formas são diferentes, e não a mesma em duas cores: quem não
+            distingue verde de rosa precisa separar os estados. E{' '}
+            <code>shelved</code> divide a cor com <code>favorite</code> porque{' '}
+            <code>accent</code> e <code>favorite</code> são o mesmo valor nesta
+            paleta — o que os separa é a forma e o rótulo escrito.
+          </p>
         </section>
 
         <section>
