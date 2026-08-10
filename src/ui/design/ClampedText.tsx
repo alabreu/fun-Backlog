@@ -17,6 +17,12 @@ import { useEffect, useRef, useState } from 'react'
  * O texto INTEIRO fica sempre no DOM — `line-clamp` só esconde visualmente.
  * Quem usa leitor de tela ouve tudo sem precisar achar o botão, e o `Ctrl+F` do
  * navegador continua encontrando o que está cortado.
+ *
+ * COR DE VALOR (`ink`), e não de rótulo. Era `muted`, a mesma cor do
+ * `SectionTitle` acima dele — então a sinopse era o único campo da ficha em que
+ * título e conteúdo tinham o mesmo peso, e o bloco lia como um parágrafo de
+ * legenda. Em todos os outros o rótulo recua e o valor avança; a sinopse é o
+ * texto mais longo da tela e é o que menos podia estar rebaixado.
  */
 
 /** Classes estáticas: o Tailwind lê o código-fonte, então `line-clamp-${n}`
@@ -76,7 +82,7 @@ export function ClampedText({
         data-open={open}
         // `whitespace-pre-line` porque sinopse de fonte vem com quebras de
         // parágrafo de verdade, e achatá-las viraria um bloco só.
-        className={`whitespace-pre-line text-body text-muted ${
+        className={`whitespace-pre-line text-body text-ink ${
           open ? '' : CLAMP[lines]
         }`}
       >

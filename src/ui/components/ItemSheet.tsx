@@ -527,7 +527,9 @@ function SourceFacts({
       {people.length > 0 && (
         <div>
           <SectionTitle className="mb-2">{t('item.people')}</SectionTitle>
-          <p className="text-body text-muted">{people.join(' · ')}</p>
+          {/* Valor, não rótulo — mesma correção da sinopse: quem recua é o
+              título da seção. */}
+          <p className="text-body">{people.join(' · ')}</p>
         </div>
       )}
 
