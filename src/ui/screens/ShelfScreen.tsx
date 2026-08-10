@@ -346,9 +346,22 @@ export function ShelfScreen() {
                         <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
                           {result.title}
                         </span>
-                        {result.year && (
+                        {/* "2013 · 3 temporadas". A contagem só existe quando o
+                            card é várias obras da fonte fundidas numa (anime —
+                            ver `core/media/franchise.ts`), e sem ela a fusão
+                            fica invisível: seriam seis cards virando um sem
+                            nada na tela dizendo por quê. */}
+                        {(result.year || result.seasonCount) && (
                           <span className="line-clamp-1 block text-label text-muted">
-                            {result.year}
+                            {[
+                              result.year,
+                              result.seasonCount &&
+                                t('add.seasonCount', {
+                                  count: result.seasonCount,
+                                }),
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
                           </span>
                         )}
                       </button>

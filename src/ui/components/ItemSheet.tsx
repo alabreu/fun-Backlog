@@ -43,6 +43,8 @@ import {
   Input,
   PlatformIcon,
   PLATFORM_TEXT,
+  Rail,
+  RailItem,
   RatingRow,
   SeasonSlider,
   SectionTitle,
@@ -99,9 +101,45 @@ export function ItemSheet({
       : `${subject.provider}:${subject.externalId}`
     : ''
 
+  /**
+   * NAVEGAR DENTRO DO PAINEL, sem abrir um segundo por cima.
+   *
+   * O carrossel de franquia oferece outras obras, e tocar numa delas tem de
+   * levar até ela. Sheet empilhado em celular é o pior dos mundos — duas
+   * camadas, dois Escape, dois arrastes para fechar —, então o mesmo painel
+   * troca de assunto.
+   *
+   * O estado carrega a CHAVE de quem o abriu, e é isso que o zera ao trocar de
+   * obra pela tela: sem a chave seria preciso um effect de reset, que o lint de
+   * hooks barra com razão. Se você abriu a obra A, navegou para B e fechou,
+   * reabrir A começa em A.
+   *
+   * NÃO HÁ VOLTAR. Foi escolha: uma pilha dentro de um sheet precisa de um
+   * botão próprio no cabeçalho e de uma história para o Escape, e o ganho é
+   * pequeno perto de fechar e tocar de novo.
+   */
+  const [navegado, setNavegado] = useState<{
+    de: string
+    para: SheetSubject
+  } | null>(null)
+  const atual = navegado?.de === key ? navegado.para : subject
+  const atualKey =
+    atual && isShelfItem(atual)
+      ? atual.id
+      : atual
+        ? `${atual.provider}:${atual.externalId}`
+        : ''
+
   return (
     <Sheet open={Boolean(subject)} onClose={onClose} label={label}>
-      {subject && <Detail key={key} subject={subject} onClose={onClose} />}
+      {atual && (
+        <Detail
+          key={atualKey}
+          subject={atual}
+          onClose={onClose}
+          onNavigate={(para) => setNavegado({ de: key, para })}
+        />
+      )}
     </Sheet>
   )
 }
@@ -109,9 +147,12 @@ export function ItemSheet({
 function Detail({
   subject,
   onClose,
+  onNavigate,
 }: {
   subject: SheetSubject
   onClose: () => void
+  /** Trocar a obra do painel — o carrossel de franquia é quem chama. */
+  onNavigate: (subject: SheetSubject) => void
 }) {
   const { t, locale } = useTranslation()
   const { items, add, update, setStatus, remove } = useItems()
@@ -122,13 +163,6 @@ function Detail({
   // que `add` resolve, o store muda e o painel vira modo estante sozinho.
   const fromShelf = isShelfItem(subject) ? subject : undefined
   const fromSearch = isShelfItem(subject) ? undefined : subject
-  const matched =
-    fromShelf ??
-    (fromSearch &&
-      items.find(
-        (i) => i.externalIds[fromSearch.provider] === fromSearch.externalId,
-      ))
-
   const mediaType = subject.mediaType
   const source = fromShelf
     ? detailSourceFor(fromShelf.externalIds)
@@ -145,6 +179,28 @@ function Detail({
   const [failed, setFailed] = useState(false)
   const [viewerOpen, setViewerOpen] = useState(false)
   const { download, downloading } = useImageDownload()
+
+  // DEPOIS do `useState` do `detail`, e não junto dos outros derivados: ele
+  // é lido aqui, e `const` não sobe. Declarado antes, isto quebrava com
+  // "Cannot access 'detail' before initialization" no primeiro render — o
+  // TypeScript não vê, o navegador vê na hora.
+  //
+  // Casa TAMBÉM pelo id da ficha, e não só pelo do resultado. Em anime os dois
+  // podem diferir: a ficha unifica as temporadas e devolve o id da PRIMEIRA
+  // (ver `core/media/franchise.ts`), que é o que o item guarda. Sem esta
+  // segunda comparação, abrir a franquia por um caminho que carregue o id de
+  // outra temporada mostraria "adicionar" para o que já é seu — e criaria o
+  // duplicado no toque seguinte.
+  const matched =
+    fromShelf ??
+    (fromSearch &&
+      items.find(
+        (i) =>
+          i.externalIds[fromSearch.provider] === fromSearch.externalId ||
+          (detail?.externalId !== undefined &&
+            i.externalIds[fromSearch.provider] === detail.externalId),
+      ))
+
 
   useEffect(() => {
     if (!source) return
@@ -180,9 +236,16 @@ function Detail({
     try {
       await add({
         mediaType: fromSearch.mediaType,
-        title: fromSearch.title,
-        coverUrl: fromSearch.coverUrl,
-        externalIds: { [fromSearch.provider]: fromSearch.externalId },
+        // A FICHA GANHA DO RESULTADO nos três campos de identidade. Em anime é
+        // ela que sabe que "Season 3" é a terceira temporada de "Attack on
+        // Titan": guardar o título, a capa e o id do que foi TOCADO deixaria o
+        // item preso a um pedaço da obra, com uma régua que não bate com o
+        // total. Nas outras mídias os dois valores são iguais.
+        title: detail?.title ?? fromSearch.title,
+        coverUrl: detail?.coverUrl ?? fromSearch.coverUrl,
+        externalIds: {
+          [fromSearch.provider]: detail?.externalId ?? fromSearch.externalId,
+        },
         progress: unit && total ? { unit, current: 0, total } : undefined,
       })
     } catch {
@@ -315,6 +378,16 @@ function Detail({
           seasons={detail?.seasons}
         />
       )}
+
+      {/* DEPOIS DAS ANOTAÇÕES (escolha do usuário, 09/08/2026), e o lugar é o
+          argumento: isto não é sobre a obra que você abriu, é sobre o que
+          existe ao redor dela. Quem veio marcar progresso resolve tudo antes de
+          chegar aqui; quem rolou até o fim está justamente no modo de vagar. */}
+      <FranchiseRail
+        related={detail?.related}
+        items={items}
+        onOpen={onNavigate}
+      />
 
       {/* A capa em tela cheia. Pede a versão AMPLIADA (a guardada tem a
           largura do grid e borra esticada) e guarda a menor como rede: a url
@@ -628,6 +701,77 @@ function FactItems({ items }: { items: MediaFactItem[] }) {
         )
       })}
     </span>
+  )
+}
+
+/**
+ * OUTRAS OBRAS DA MESMA FRANQUIA.
+ *
+ * FRANQUIA DECLARADA PELA FONTE, e não "parecidos": a seção promete "isto é do
+ * mesmo mundo", e recomendação de algoritmo não sustenta a frase. Por isso ela
+ * some inteira em série e livro — a TMDB não modela franquia para TV e as
+ * fontes de livro não têm série confiável. Uma seção vazia com título seria
+ * pior que nenhuma seção.
+ *
+ * O QUE VOCÊ JÁ TEM VEM MARCADO, em texto e não em ícone. Sem a marca o
+ * carrossel vira uma lista de coisas que talvez já sejam suas, e a pessoa toca
+ * para descobrir; com um ícone só, quem usa leitor de tela não recebe nada.
+ */
+function FranchiseRail({
+  related,
+  items,
+  onOpen,
+}: {
+  related?: MediaSearchResult[]
+  items: Item[]
+  onOpen: (subject: SheetSubject) => void
+}) {
+  const { t } = useTranslation()
+  if (!related || related.length === 0) return null
+
+  return (
+    <div>
+      <SectionTitle className="mb-2">{t('item.franchise')}</SectionTitle>
+      <Rail>
+        {related.map((obra) => {
+          // A obra da estante GANHA do resultado de busca: tocando nela, o
+          // painel abre com progresso e nota em vez de um botão "adicionar"
+          // para o que já é seu.
+          const meu = items.find(
+            (i) => i.externalIds[obra.provider] === obra.externalId,
+          )
+          return (
+            <RailItem key={`${obra.provider}:${obra.externalId}`} size="compact">
+              <button
+                type="button"
+                onClick={() => onOpen(meu ?? obra)}
+                className="w-full text-left transition active:scale-95"
+              >
+                <Cover
+                  src={obra.coverUrl}
+                  title={obra.title}
+                  media={obra.mediaType}
+                />
+                <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
+                  {obra.title}
+                </span>
+                {meu ? (
+                  <span className="line-clamp-1 block text-label text-muted">
+                    {t('add.onShelf')}
+                  </span>
+                ) : (
+                  obra.year && (
+                    <span className="line-clamp-1 block text-label text-muted">
+                      {obra.year}
+                    </span>
+                  )
+                )}
+              </button>
+            </RailItem>
+          )
+        })}
+      </Rail>
+    </div>
   )
 }
 

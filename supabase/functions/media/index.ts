@@ -204,7 +204,7 @@ const IGDB_DETAIL_FIELDS =
   'fields name,summary,storyline,first_release_date,cover.image_id,' +
   'platforms.abbreviation,genres.name,game_modes.name,total_rating,' +
   'involved_companies.developer,involved_companies.publisher,' +
-  'involved_companies.company.name'
+  'involved_companies.company.name,franchises'
 
 /**
  * "Onde comprar" — Steam, Epic, GOG, itch. Fica SEPARADO do resto dos campos
@@ -386,7 +386,60 @@ async function detailIgdb(id: string): Promise<unknown> {
     rows = await ask(IGDB_DETAIL_FIELDS)
   }
   // A IGDB sempre devolve ARRAY, mesmo para um id só. O app espera o objeto.
-  return Array.isArray(rows) ? (rows[0] ?? null) : null
+  const jogo = Array.isArray(rows) ? (rows[0] ?? null) : null
+  if (!jogo || typeof jogo !== 'object') return jogo
+
+  return {
+    ...(jogo as Record<string, unknown>),
+    franchiseGames: await franchiseGamesIgdb(jogo as Record<string, unknown>),
+  }
+}
+
+/**
+ * OS OUTROS JOGOS DA FRANQUIA — o carrossel do fim da ficha.
+ *
+ * Requisição SEPARADA, e não `franchises.games.name` embutido, por dois
+ * motivos. O primeiro é o mesmo de `IGDB_WEBSITE_FIELDS`: um campo que a IGDB
+ * renomear não devolve "sem franquia", devolve erro e derruba a ficha inteira —
+ * separado, o `catch` custa o carrossel e nada mais. O segundo é que expansão
+ * de dois níveis multiplica o payload da ficha por uma franquia inteira, e a
+ * maioria das aberturas nem rola até o carrossel.
+ *
+ * `total_rating_count desc` porque um limite de 24 numa franquia de cinquenta
+ * jogos tem de cortar por alguma coisa, e "o que mais gente jogou" é a única
+ * ordem que serve tanto para reencontrar quanto para descobrir. Ordenar por
+ * data deixaria de fora justamente o clássico.
+ */
+const IGDB_FRANCHISE_LIMIT = 24
+
+async function franchiseGamesIgdb(
+  jogo: Record<string, unknown>,
+): Promise<unknown[]> {
+  // `franchises` é a lista (o guarda-chuva); `collection` é a série fina. A
+  // primeira é a que a igdb.com mostra em /franchises/… — ver a nota longa
+  // em IGDB_COLLECTION_FIELDS.
+  const franquias = jogo.franchises
+  const ids = Array.isArray(franquias)
+    ? franquias
+        .map((f) => (typeof f === 'object' && f ? (f as { id?: unknown }).id : f))
+        .filter((id): id is number => Number.isInteger(id))
+    : []
+  if (ids.length === 0) return []
+
+  // SÓ A PRIMEIRA franquia. Em APICalypse, `= (a,b)` é "contém TODOS", não
+  // "contém algum" — passar a lista inteira estreitaria a busca para os jogos
+  // que pertencem às duas franquias ao mesmo tempo, que costumam ser zero.
+  // Jogo com mais de uma franquia é raro, e a primeira é a principal.
+  try {
+    const rows = await askIgdb(
+      `where franchises = (${ids[0]}) & id != ${Number(jogo.id)};` +
+        ' fields name,first_release_date,cover.image_id;' +
+        ` sort total_rating_count desc; limit ${IGDB_FRANCHISE_LIMIT};`,
+    )
+    return Array.isArray(rows) ? rows : []
+  } catch {
+    return []
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -431,12 +484,51 @@ async function detailTmdb(id: string, kind: 'movie' | 'tv'): Promise<unknown> {
 
   // `release_dates` só existe para filme — pedir numa série devolve erro na
   // requisição INTEIRA, então o append muda com o tipo.
-  return await tmdbGet(`/${kind}/${numeric}`, {
+  const ficha = await tmdbGet(`/${kind}/${numeric}`, {
     append_to_response:
       kind === 'movie'
         ? 'credits,watch/providers,release_dates'
         : 'credits,watch/providers',
   })
+  if (!ficha || typeof ficha !== 'object') return ficha
+
+  return {
+    ...(ficha as Record<string, unknown>),
+    collectionParts: await collectionPartsTmdb(ficha as Record<string, unknown>),
+  }
+}
+
+/**
+ * OS OUTROS FILMES DA SAGA.
+ *
+ * A ficha do filme já traz `belongs_to_collection`, mas só com id e nome — os
+ * MEMBROS exigem outra chamada, e `append_to_response` não cobre coleção. Então
+ * é uma ida a mais, e só ela: paga apenas o filme que pertence a alguma saga.
+ *
+ * SÉRIE NÃO TEM ISTO. A TMDB não modela franquia para TV — não é campo que
+ * esquecemos de pedir, é conceito que não existe lá. Série sai daqui com lista
+ * vazia e a seção some da tela, que é a resposta honesta.
+ *
+ * O `catch` devolve vazio: perder o carrossel é aceitável, perder a ficha do
+ * filme por causa dele não é.
+ */
+async function collectionPartsTmdb(
+  ficha: Record<string, unknown>,
+): Promise<unknown[]> {
+  const colecao = ficha.belongs_to_collection
+  const id =
+    colecao && typeof colecao === 'object'
+      ? (colecao as { id?: unknown }).id
+      : undefined
+  if (!Number.isInteger(id)) return []
+
+  try {
+    const body = await tmdbGet(`/collection/${id as number}`, {})
+    const parts = (body as { parts?: unknown })?.parts
+    return Array.isArray(parts) ? parts : []
+  } catch {
+    return []
+  }
 }
 
 /**

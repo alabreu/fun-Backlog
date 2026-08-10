@@ -16,6 +16,8 @@ import {
   NavRow,
   PlatformIcon,
   PLATFORM_TEXT,
+  Rail,
+  RailItem,
   Field,
   GENRE_TEXT,
   IconButton,
@@ -670,6 +672,34 @@ export function DesignScreen() {
             Escape fecha, Tab circula dentro do sheet, e o foco volta a este botão
             ao fechar.
           </p>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">Rail</SectionTitle>
+          <p className="mb-3 text-body text-muted">
+            Trilho horizontal com snap. <code>hero</code> é o "continue de onde
+            parou" da home; <code>compact</code> é o trilho secundário — hoje "da
+            mesma franquia", no fim da ficha. A diferença é de papel: em 160px
+            cabem duas capas e meia num celular, e duas capas e meia não são uma
+            lista.
+          </p>
+          {(['hero', 'compact'] as const).map((size) => (
+            <div key={size} className="mb-3">
+              <p className="mb-1 text-label uppercase tracking-wide text-muted">
+                {size}
+              </p>
+              <Rail>
+                {MEDIA_TYPES.map((type) => (
+                  <RailItem key={type} size={size}>
+                    <Cover title={type} media={type} />
+                    <span className="mt-1.5 line-clamp-2 block text-label font-semibold">
+                      {type}
+                    </span>
+                  </RailItem>
+                ))}
+              </Rail>
+            </div>
+          ))}
         </section>
 
         <section>

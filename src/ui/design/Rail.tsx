@@ -42,7 +42,28 @@ export function Rail({
   )
 }
 
-/** Um item do trilho. Largura fixa: é ela que faz a próxima capa "espiar". */
-export function RailItem({ children }: { children: ReactNode }) {
-  return <li className="w-40 shrink-0 snap-start">{children}</li>
+/**
+ * Um item do trilho. Largura fixa: é ela que faz a próxima capa "espiar".
+ *
+ * DOIS TAMANHOS, e a diferença é de papel, não de estética. `hero` é o trilho
+ * da home, onde a capa É o assunto da tela. `compact` é o trilho secundário —
+ * hoje "da mesma franquia", no fim da ficha —, onde a seção existe para ser
+ * varrida de canto de olho: em 160px cabem duas capas e meia num celular, e
+ * duas capas e meia não são uma lista, são um monte. Em 96px cabem quase
+ * quatro, e aí a fileira lê como fileira.
+ */
+export function RailItem({
+  children,
+  size = 'hero',
+}: {
+  children: ReactNode
+  size?: 'hero' | 'compact'
+}) {
+  return (
+    <li
+      className={`shrink-0 snap-start ${size === 'compact' ? 'w-24' : 'w-40'}`}
+    >
+      {children}
+    </li>
+  )
 }

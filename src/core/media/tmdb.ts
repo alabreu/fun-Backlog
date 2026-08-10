@@ -94,6 +94,10 @@ export function mapTmdbResult(
 }
 
 interface TmdbDetailBody extends TmdbResult {
+  /** Sintético: os membros da saga, montados pela Edge Function a partir de
+   *  `belongs_to_collection`. Não é campo da TMDB — ver `collectionPartsTmdb`
+   *  em supabase/functions/media. Série nunca traz: lá não existe coleção. */
+  collectionParts?: TmdbResult[]
   overview?: string
   vote_average?: number
   genres?: { name?: string }[]
@@ -219,6 +223,15 @@ export function mapTmdbDetail(
   const base = mapTmdbResult(body, kind)
   if (!base) return null
 
+  // OS OUTROS FILMES DA SAGA. A Edge Function busca os membros da coleção numa
+  // chamada própria (ver `collectionPartsTmdb`); aqui só o filme atual sai da
+  // lista. SÉRIE nunca chega com nada: a TMDB não modela franquia para TV, e a
+  // seção some sozinha quando a lista é vazia.
+  const related = (body.collectionParts ?? [])
+    .filter((parte) => parte?.id !== undefined && parte.id !== body.id)
+    .map((parte) => mapTmdbResult({ ...parte, media_type: 'movie' }, 'movie'))
+    .filter((r): r is MediaSearchResult => r !== null)
+
   const facts: MediaFact[] = []
   if (body.runtime)
     facts.push({ labelKey: 'fact.runtime', value: formatRuntime(body.runtime) })
@@ -296,6 +309,7 @@ export function mapTmdbDetail(
     // nunca chegaria ao fim. Temporada anunciada mas sem episódio (`0`) também
     // sai: ela viraria um botão que não move o progresso.
     seasons: mapSeasons(body.seasons),
+    related,
   }
 }
 

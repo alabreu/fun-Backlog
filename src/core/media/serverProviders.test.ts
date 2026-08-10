@@ -555,3 +555,56 @@ describe('ficha da TMDB', () => {
     expect(d?.facts?.some((f) => f.labelKey === 'fact.where')).toBe(false)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Carrossel de franquia. Os campos `franchiseGames` e `collectionParts` são
+// SINTÉTICOS — a Edge Function os monta —, então o teste vive aqui para que
+// renomear um deles lá quebre aqui em vez de sumir com a seção em silêncio.
+// ---------------------------------------------------------------------------
+
+describe('franquia na ficha', () => {
+  it('IGDB: os irmãos de franquia viram cards', () => {
+    const detalhe = mapIgdbDetail({
+      id: 1942,
+      name: 'The Witcher 3',
+      franchiseGames: [
+        { id: 1, name: 'The Witcher', cover: { image_id: 'a' } },
+        { id: 2, name: 'The Witcher 2', cover: { image_id: 'b' } },
+      ],
+    })
+    expect(detalhe?.related?.map((r) => r.title)).toEqual([
+      'The Witcher',
+      'The Witcher 2',
+    ])
+    expect(detalhe?.related?.[0].provider).toBe('igdb')
+  })
+
+  it('IGDB: sem franquia, sem seção', () => {
+    expect(mapIgdbDetail({ id: 1, name: 'Jogo solto' })?.related).toEqual([])
+  })
+
+  it('TMDB: a saga vira cards, sem repetir o próprio filme', () => {
+    const detalhe = mapTmdbDetail(
+      {
+        id: 671,
+        title: 'Harry Potter e a Pedra Filosofal',
+        media_type: 'movie',
+        collectionParts: [
+          { id: 671, title: 'Harry Potter e a Pedra Filosofal' },
+          { id: 672, title: 'Harry Potter e a Câmara Secreta' },
+        ],
+      },
+      'movie',
+    )
+    expect(detalhe?.related?.map((r) => r.externalId)).toEqual(['672'])
+  })
+
+  // Não é campo esquecido: a TMDB não tem coleção para TV. A seção some.
+  it('TMDB: série não tem franquia', () => {
+    const detalhe = mapTmdbDetail(
+      { id: 1396, name: 'Breaking Bad', media_type: 'tv' },
+      'tv',
+    )
+    expect(detalhe?.related).toEqual([])
+  })
+})

@@ -37,6 +37,16 @@ export interface MediaSearchResult {
    * caso comum, e a ordenação simplesmente não mexe em quem não tem.
    */
   franchise?: string
+  /**
+   * Quantas TEMPORADAS este card representa, quando ele é mais de uma obra da
+   * fonte fundida numa só (o caso do anime — ver `core/media/franchise.ts`).
+   *
+   * Existe porque sem ele a fusão fica invisível: quem busca "Attack on Titan"
+   * veria um card e teria de adivinhar se aquilo é a franquia inteira ou só a
+   * primeira temporada. Ausente = a fonte já entregava uma obra só, e não há o
+   * que dizer.
+   */
+  seasonCount?: number
 }
 
 /**
@@ -149,6 +159,27 @@ export interface MediaDetail {
    * e a tela trata os dois igual: não mostra nada.
    */
   inTheaters?: boolean
+  /**
+   * OUTRAS OBRAS DA MESMA FRANQUIA.
+   *
+   * `MediaSearchResult` e não um tipo novo: é literalmente o que a tela já sabe
+   * desenhar (capa, título, ano) e o que ela precisa para abrir a obra tocada
+   * (`provider` + `externalId`). Um tipo próprio aqui seria o mesmo objeto com
+   * outro nome, e obrigaria uma segunda conversão antes de renderizar.
+   *
+   * FRANQUIA DE VERDADE, e não "parecidos": a promessa da seção é "isto é do
+   * mesmo mundo", e recomendação de algoritmo não sustenta essa frase. Por isso
+   * ela vem só de campo declarado pela fonte — `relations` no AniList,
+   * `franchises` na IGDB, `belongs_to_collection` na TMDB. Série e livro ficam
+   * sem: a TMDB não modela franquia para TV, e as fontes de livro não têm série
+   * confiável. Ausente ou vazio = a seção não aparece, que é a resposta honesta
+   * quando não há o que mostrar.
+   *
+   * NÃO inclui as entradas que já viraram temporada desta mesma obra — em anime
+   * elas foram absorvidas na régua (ver `core/media/franchise.ts`), e listá-las
+   * aqui ofereceria abrir separadamente o que acabou de ser fundido.
+   */
+  related?: MediaSearchResult[]
 }
 
 /**

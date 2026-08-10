@@ -126,6 +126,9 @@ interface IgdbDetail extends IgdbGame {
     company?: { name?: string }
   }[]
   websites?: { url?: string; category?: number }[]
+  /** Sintético: os irmãos de franquia, montados pela Edge Function. Não é
+   *  campo da IGDB — ver `franchiseGamesIgdb` em supabase/functions/media. */
+  franchiseGames?: IgdbGame[]
 }
 
 /**
@@ -159,6 +162,14 @@ const IGDB_STORES: { category: number; name: string }[] = [
 export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
   const base = mapIgdbGame(game)
   if (!base) return null
+
+  // OS OUTROS JOGOS DA FRANQUIA. Vêm de uma consulta própria na Edge Function
+  // (ver `franchiseGamesIgdb`), já sem o jogo atual. `mapIgdbGame` é o mesmo
+  // mapeamento da busca: um card do carrossel e um card de resultado são a
+  // mesma coisa na tela e abrem a mesma ficha.
+  const related = (game.franchiseGames ?? [])
+    .map((outro) => mapIgdbGame(outro))
+    .filter((r): r is MediaSearchResult => r !== null)
 
   const platforms = (game.platforms ?? [])
     .map((p) => p?.abbreviation)
@@ -230,5 +241,6 @@ export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
         : []),
     ],
     score: game.total_rating ? Math.round(game.total_rating) : undefined,
+    related,
   }
 }
