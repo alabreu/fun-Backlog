@@ -509,34 +509,33 @@ body {
 /**
  * O CONTORNO DO CORAÇÃO sobre a capa (`CoverMark`).
  *
- * Traço preto a 8%, para o ícone não se dissolver sobre pôster claro. Fica em
- * CSS e não em classe do Tailwind porque `paint-order` não existe como
+ * Traço preto a 42%, para o ícone não se dissolver sobre pôster claro.
+ *
+ * O NÚMERO É MEDIDO, não escolhido. Começou em 8% (pedido do usuário,
+ * 09/08/2026) e não funcionava: sobre capa branca o fio ficava em #ebebeb, ou
+ * seja 1,19:1 contra o fundo — invisível. 42% é exatamente o ponto em que ele
+ * alcança 3,03:1, o mínimo que a WCAG 1.4.11 pede de um objeto gráfico
+ * informativo. Abaixo disso o contorno é decoração; a partir dali ele é o que
+ * segura o ícone.
+ *
+ * O contorno precisa existir porque a cor do coração NÃO basta: `favorite`
+ * sobre branco dá 2,69:1. Sobre capa escura ele desaparece, e tudo bem — ali
+ * quem tem contraste de sobra é o próprio coração.
+ *
+ * Fica em CSS e não em classe do Tailwind porque `paint-order` não existe como
  * utilitário, e é ele que faz a coisa funcionar: sem ele o traço é desenhado
  * DEPOIS do preenchimento e engrossa o desenho por dentro, comendo o miolo de
  * um ícone de 18px.
  *
- * Duas ressalvas honestas, as duas medidas.
- *
- * ALINHAMENTO: traço em SVG é sempre CENTRADO no contorno. Com
- * `paint-order: stroke fill` o preenchimento cobre a metade de dentro e sobra a
- * de fora — ou seja, é "outside", não "inside". Alinhamento interno de verdade
- * exigiria recortar cada glifo pela própria forma. A 8% e 1,5px a diferença
- * entre os dois é invisível.
- *
- * CONTRASTE: 8% não resolve o contraste, e o número diz por quê. Sobre uma capa
- * branca o fio fica em #ebebeb, que é 1,19:1 contra o fundo — invisível. Quem
- * carrega o contraste continua sendo a cor do coração, que sobre branco dá
- * 2,69:1 e portanto NÃO alcança os 3:1 que a WCAG 1.4.11 pede de um objeto
- * gráfico informativo. Para o próprio contorno passar seria preciso 42%.
- *
- * Fica assim porque foi a escolha do usuário (09/08/2026), e porque a marca não
- * é a única pista: o estado vai em texto no nome acessível do card e aparece na
- * ficha. Se um dia precisar resolver de verdade, o app já tem a resposta
- * independente da cor do fundo — a tarja de `scrim` do `Badge tone="onCover"`.
+ * UMA RESSALVA sobre o alinhamento: traço em SVG é sempre CENTRADO no contorno.
+ * Com `paint-order: stroke fill` o preenchimento cobre a metade de dentro e
+ * sobra a de fora — ou seja, é "outside", não o "inside" pedido. Alinhamento
+ * interno de verdade exigiria recortar cada glifo pela própria forma, e a
+ * diferença visível entre os dois é de meio pixel.
  */
 .app-cover-mark {
   paint-order: stroke fill;
-  stroke: rgb(0 0 0 / 0.08);
+  stroke: rgb(0 0 0 / 0.42);
   stroke-width: 1.5px;
   stroke-linejoin: round;
 }

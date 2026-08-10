@@ -16,12 +16,10 @@ import { Heart } from '@phosphor-icons/react'
  *
  * Ao mudar a proporção da `Cover`, mude aqui junto — são a mesma caixa.
  *
- * O CONTORNO (`app-cover-mark`, em index.css) é um traço preto a 8% pedido pelo
- * usuário para ajudar sobre capa clara. Vale o aviso escrito: 8% é MUITO leve —
- * sobre um pôster branco ele quase não aparece, e quem carrega o contraste
- * continua sendo a cor do próprio coração. Se um dia não bastar, o app já tem a
- * solução independente de cor de fundo, usada no `Badge tone="onCover"`: uma
- * tarja de `scrim` atrás.
+ * O CONTORNO (`app-cover-mark`, em index.css) é o que segura o ícone sobre capa
+ * clara — a cor do coração sozinha dá 2,69:1 sobre branco e não alcança os 3:1
+ * da WCAG 1.4.11. A opacidade do traço está medida lá, e é o comentário do CSS
+ * que explica por que ela é 42% e não menos.
  *
  * O ícone é DECORATIVO (`aria-hidden`) e o estado vai em texto no `label`: um
  * coração sozinho não diz nada para quem usa leitor de tela, e cor tampouco
