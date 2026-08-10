@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MediaType } from '@core/items/types'
 import { searchAll, type SearchOutcome } from '@core/media/search'
 import { useRegionStore } from '@core/state/regionStore'
+import { useSafeSearchStore } from '@core/state/safeSearchStore'
 
 /** Espera entre a última tecla e a busca. Curto o bastante para parecer
  *  instantâneo, longo o bastante para não disparar uma request por letra. */
@@ -36,6 +37,9 @@ export function useExternalSearch(
   // Lido do store aqui, e não pedido a cada tela: é preferência global, e
   // repassá-la por parâmetro seria uma chance a mais de alguém esquecer.
   const region = useRegionStore((s) => s.region)
+  // Lido aqui pelo mesmo motivo da região: é preferência global, e repassá-la
+  // por parâmetro seria uma chance a mais de uma tela esquecer.
+  const safeSearch = useSafeSearchStore((s) => s.safeSearch)
 
   const [outcome, setOutcome] = useState<SearchOutcome>(EMPTY)
   const [searching, setSearching] = useState(false)
@@ -57,6 +61,7 @@ export function useExternalSearch(
         enabled: enabledMedia,
         signedIn,
         region,
+        safeSearch,
         signal: controller.signal,
       })
         .then((result) => {
@@ -70,7 +75,7 @@ export function useExternalSearch(
     }, DEBOUNCE_MS)
 
     return () => clearTimeout(timer)
-  }, [query, mediaType, enabledMedia, signedIn, region, active])
+  }, [query, mediaType, enabledMedia, signedIn, region, safeSearch, active])
 
   // Sem busca ativa o resultado é vazio, e não o da busca anterior: senão
   // apagar o campo deixaria a lista antiga na tela.

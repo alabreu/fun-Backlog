@@ -3,6 +3,7 @@ import {
   Desktop,
   Info,
   Moon,
+  ShieldCheck,
   SquaresFour,
   Sun,
   UserCircle,
@@ -12,9 +13,17 @@ import { useNavigate } from 'react-router'
 import { vocativeFor } from '@core/greeting'
 import type { MessageKey } from '@core/i18n'
 import { useNicknameStore } from '@core/state/nicknameStore'
+import { useSafeSearchStore } from '@core/state/safeSearchStore'
 import { useThemeStore } from '@core/state/themeStore'
 import { LOCKED_THEME, THEMES, type Theme } from '@core/theme'
-import { Card, NavRow, Screen, ScreenBody, SectionTitle } from '@ui/design'
+import {
+  Card,
+  NavRow,
+  Screen,
+  ScreenBody,
+  SectionTitle,
+  Toggle,
+} from '@ui/design'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -33,6 +42,8 @@ const THEME_META: Record<Theme, { icon: Icon; labelKey: MessageKey }> = {
  */
 export function SettingsScreen() {
   const { t } = useTranslation()
+  const safeSearch = useSafeSearchStore((s) => s.safeSearch)
+  const setSafeSearch = useSafeSearchStore((s) => s.setSafeSearch)
   const navigate = useNavigate()
 
   const { enabled } = useItems()
@@ -118,6 +129,25 @@ export function SettingsScreen() {
           trailing={String(enabled.length)}
           onClick={() => navigate('/categorias')}
         />
+
+        {/* LINHA PRÓPRIA e não um `NavRow`: o `NavRow` inteiro é um botão, e
+            um interruptor dentro dele seria botão dentro de botão — HTML
+            inválido, e o leitor de tela anuncia um só. Aqui o `Toggle` é o
+            único controle, e o texto ao lado é rótulo, não alvo. */}
+        <Card className="mt-2 flex items-start gap-3">
+          <ShieldCheck size={20} aria-hidden className="mt-0.5 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-body font-semibold">{t('settings.safeSearch')}</p>
+            <p className="mt-1 text-label text-muted">
+              {t('settings.safeSearchHelp')}
+            </p>
+          </div>
+          <Toggle
+            checked={safeSearch}
+            onChange={setSafeSearch}
+            label={t('settings.safeSearch')}
+          />
+        </Card>
 
         <SectionTitle className="mb-2 mt-8">
           {t('settings.aboutLabel')}

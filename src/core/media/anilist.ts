@@ -1,3 +1,4 @@
+import { isAdultAnime } from './adult'
 import {
   SEARCH_LIMIT,
   type MediaDetail,
@@ -44,6 +45,7 @@ const QUERY = `
         id
         episodes
         format
+        genres
         seasonYear
         startDate { year month day }
         title { romaji english }
@@ -76,6 +78,8 @@ interface AniListMedia extends AniListRelations {
   seasonYear: number | null
   /** `TV` | `TV_SHORT` | `MOVIE` | `SPECIAL` | `OVA` | `ONA` | `MUSIC`. */
   format?: string | null
+  /** Pedido também na BUSCA, e não só na ficha: é dele que sai o `adult`. */
+  genres?: string[] | null
   /** Ano, mês e dia ANUNCIADOS, cada um podendo faltar — ver `isoDate`. */
   startDate?: {
     year?: number | null
@@ -200,6 +204,10 @@ export function mapAniListMedia(media: AniListMedia): MediaSearchResult | null {
     total: media.episodes ?? undefined,
     releaseDate: isoDate(media.startDate),
     format: media.format ?? undefined,
+    // `|| undefined` e não `?? undefined`: só o `true` viaja. Um `false`
+    // explícito diria "esta obra é segura", e o que a gente sabe é bem menos —
+    // que ela não tem o gênero adulto entre os que a fonte listou.
+    adult: isAdultAnime(media.genres) || undefined,
     subtitle:
       media.title?.english && media.title?.romaji !== media.title?.english
         ? (media.title.romaji ?? undefined)
@@ -303,7 +311,6 @@ interface AniListDetail extends AniListMedia {
   // `startDate` vem de `AniListMedia`: numa temporada que ainda não estreou,
   // `seasonYear` é null e o ano dela é o único que existe — sem ele a ficha
   // aparecia sem ano nenhum no cabeçalho.
-  genres?: string[] | null
   averageScore?: number | null
   description?: string | null
   studios?: { nodes?: { name?: string }[] } | null

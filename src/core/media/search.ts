@@ -58,6 +58,12 @@ export interface SearchOptions {
    * categoria — buscar "the last" com anime desligado deixa de bater no AniList.
    */
   enabled?: MediaType[]
+  /**
+   * ESCONDER conteúdo de gênero adulto. Ligado por padrão — inclusive quando
+   * quem chama esquece de passar, que é a razão de o padrão ser `true` aqui e
+   * não `false`: um filtro de segurança que falha aberto não é um filtro.
+   */
+  safeSearch?: boolean
   signal?: AbortSignal
 }
 
@@ -225,6 +231,7 @@ export async function searchAll(
     signedIn = false,
     enabled = GROUP_ORDER,
     region,
+    safeSearch = true,
     signal,
   } = options
   const failed: string[] = []
@@ -259,7 +266,13 @@ export async function searchAll(
   )
 
   const byType = new Map<MediaType, MediaSearchResult[]>()
-  for (const result of settled.flat()) {
+  // O FILTRO MORA AQUI, na porta única por onde toda busca passa. Numa tela
+  // seria uma tela a esquecer dele — e são três que listam resultado.
+  //
+  // Só o que está MARCADO sai. Fonte que não sabe dizer devolve `undefined`, e
+  // desconhecido não é o mesmo que adulto: sumir com obra legítima é um erro
+  // silencioso, mostrar uma que devia ter sumido a pessoa vê e ignora.
+  for (const result of settled.flat().filter((r) => !safeSearch || !r.adult)) {
     const bucket = byType.get(result.mediaType)
     if (bucket) bucket.push(result)
     else byType.set(result.mediaType, [result])

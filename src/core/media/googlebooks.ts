@@ -1,3 +1,4 @@
+import { isAdultBook } from './adult'
 import {
   SEARCH_LIMIT,
   type MediaDetail,
@@ -38,6 +39,8 @@ interface GoogleVolume {
     description?: string
     categories?: string[]
     averageRating?: number
+    /** `NOT_MATURE` | `MATURE` — a classificação do Google para o volume. */
+    maturityRating?: string
     imageLinks?: { thumbnail?: string; smallThumbnail?: string }
   }
   saleInfo?: {
@@ -87,6 +90,7 @@ export function mapGoogleVolume(
     coverUrl: thumb ? googleBooksCover(thumb) : undefined,
     year: Number.isInteger(year) ? year : undefined,
     total: info.pageCount || undefined,
+    adult: isAdultBook(info.maturityRating) || undefined,
     subtitle: info.authors?.[0] ?? info.subtitle,
   }
 }

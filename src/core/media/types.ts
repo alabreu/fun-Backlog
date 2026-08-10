@@ -44,6 +44,19 @@ export interface MediaSearchResult {
    * decide vocabulário de interface.
    */
   format?: string
+  /**
+   * A obra é de um gênero DELIBERADAMENTE adulto (hentai, pornografia).
+   *
+   * NÃO é "tem nudez". A distinção é do usuário (10/08/2026) e é o que separa
+   * um filme premiado com uma cena de nu de uma obra cujo gênero É o conteúdo
+   * adulto — só a segunda some com o filtro ligado.
+   *
+   * Ausente quando a fonte não sabe dizer, e ausente NÃO é "seguro": é
+   * desconhecido. O filtro tira o que está marcado, e o resto passa — errar
+   * para "mostra" é recuperável (a pessoa vê e ignora), errar para "esconde"
+   * some com obra legítima sem deixar rastro.
+   */
+  adult?: boolean
   /** Uma linha de contexto para desempatar homônimos na lista. */
   subtitle?: string
   /**
@@ -155,6 +168,8 @@ export interface MediaDetail {
   releaseDate?: string
   /** Ver `MediaSearchResult.format`. */
   format?: string
+  /** Ver `MediaSearchResult.adult`. */
+  adult?: boolean
   synopsis?: string
   genres?: string[]
   facts?: MediaFact[]

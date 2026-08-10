@@ -14,6 +14,7 @@ import { useLocaleStore } from '@core/state/localeStore'
 import { useRegionStore } from '@core/state/regionStore'
 import { useMediaStore } from '@core/state/mediaStore'
 import { useNicknameStore } from '@core/state/nicknameStore'
+import { useSafeSearchStore } from '@core/state/safeSearchStore'
 import { useThemeStore } from '@core/state/themeStore'
 import {
   parsePreferences,
@@ -44,6 +45,7 @@ const THEME_STORAGE_KEY = storageKey('theme')
 const NICKNAME_STORAGE_KEY = storageKey('nickname')
 const MEDIA_STORAGE_KEY = storageKey('media-preferences')
 const REGION_STORAGE_KEY = storageKey('region')
+const SAFE_SEARCH_STORAGE_KEY = storageKey('safe-search')
 /** 'user' quando a pessoa escolheu na tela; ausente/'guess' quando o app
  *  deduziu. É o que autoriza o boot a refazer um chute (ver regionStore). */
 const REGION_SOURCE_STORAGE_KEY = storageKey('region-source')
@@ -88,6 +90,8 @@ export function App() {
   const region = useRegionStore((s) => s.region)
   const regionChosen = useRegionStore((s) => s.chosen)
   const seedRegion = useRegionStore((s) => s.seedRegion)
+  const safeSearch = useSafeSearchStore((s) => s.safeSearch)
+  const setSafeSearch = useSafeSearchStore((s) => s.setSafeSearch)
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const nickname = useNicknameStore((s) => s.nickname)
@@ -103,6 +107,7 @@ export function App() {
   // escolha se perderia de verdade a cada recarga.
   const mediaSeededRef = useRef(false)
   const regionSeededRef = useRef(false)
+  const safeSearchSeededRef = useRef(false)
 
   // Semeia as preferências salvas uma vez no boot. Idioma cai para o do
   // navegador; tema cai para "seguir o sistema".
@@ -198,6 +203,18 @@ export function App() {
     if (!mediaSeededRef.current) return
     writeStored(MEDIA_STORAGE_KEY, serializePreferences(mediaPreferences))
   }, [mediaPreferences])
+
+  // O filtro de conteúdo adulto. SÓ O "off" É GRAVADO — qualquer outra coisa
+  // no armazenamento (ausente, lixo, chave apagada) volta ligado. É o lado
+  // seguro de errar: um localStorage corrompido não pode destravar o filtro.
+  useEffect(() => {
+    if (!safeSearchSeededRef.current) {
+      safeSearchSeededRef.current = true
+      setSafeSearch(readStored(SAFE_SEARCH_STORAGE_KEY) !== 'off')
+      return
+    }
+    writeStored(SAFE_SEARCH_STORAGE_KEY, safeSearch ? 'on' : 'off')
+  }, [safeSearch, setSafeSearch])
 
   return (
     <BrowserRouter>

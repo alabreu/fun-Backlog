@@ -18,6 +18,7 @@ import { findByImdbId } from '@core/media/tmdb'
 import type { MediaSearchResult } from '@core/media/types'
 import { groupResultsByFranchise } from '@core/media/collection'
 import { useRegionStore } from '@core/state/regionStore'
+import { useSafeSearchStore } from '@core/state/safeSearchStore'
 import {
   AddStatusSheet,
   type AddChoice,
@@ -72,6 +73,7 @@ export function AddScreen() {
   const { items, add, remove, enabled, signedIn } = useItems()
   // Livro é onde o país pesa: decide a loja e se a obra está à venda.
   const region = useRegionStore((s) => s.region)
+  const safeSearch = useSafeSearchStore((s) => s.safeSearch)
 
   const [query, setQuery] = useState('')
   const [media, setMedia] = useState<MediaType | undefined>()
@@ -171,6 +173,7 @@ export function AddScreen() {
               enabled,
               signedIn,
               region,
+              safeSearch,
               signal: controller.signal,
             })
 
@@ -198,7 +201,7 @@ export function AddScreen() {
     }, DEBOUNCE_MS)
 
     return () => clearTimeout(timer)
-  }, [searchQuery, searchMedia, active, link, noSource, signedIn, enabled, region])
+  }, [searchQuery, searchMedia, active, link, noSource, signedIn, enabled, region, safeSearch])
 
   // Chamado pelo painel de status: o + pergunta ANTES, então a obra já nasce
   // no estado escolhido, com as datas que o estado implica (`datesForStatus`).

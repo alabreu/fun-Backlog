@@ -281,6 +281,9 @@ export const pt = {
   'settings.greetingLabel': 'Saudação',
   'settings.nicknameNone': 'Nenhum',
   'settings.catalogLabel': 'Catálogo',
+  'settings.safeSearch': 'Filtrar conteúdo adulto',
+  'settings.safeSearchHelp':
+    'Esconde nas buscas as obras de gênero adulto, como hentai. Não esconde obra que só tem nudez, nem o que já está na sua estante.',
   'settings.aboutLabel': 'Sobre',
 
   // Categorias: o que você quer ver, e em que ordem

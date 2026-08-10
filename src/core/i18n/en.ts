@@ -277,6 +277,9 @@ export const en: Record<keyof typeof pt, string> = {
   'settings.greetingLabel': 'Greeting',
   'settings.nicknameNone': 'None',
   'settings.catalogLabel': 'Catalogue',
+  'settings.safeSearch': 'Filter adult content',
+  'settings.safeSearchHelp':
+    'Hides adult-genre works, such as hentai, from search. It does not hide works that merely contain nudity, nor anything already on your shelf.',
   'settings.aboutLabel': 'About',
 
   // Categories: what you want to see, and in which order
