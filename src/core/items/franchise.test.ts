@@ -122,6 +122,30 @@ describe('agrupamento da seção', () => {
     ])
   })
 
+  // FORMATO NÃO FILTRA NADA AQUI, e isto é deliberado (10/08/2026).
+  //
+  // A unificação revertida (decisão 18) PRECISAVA do formato: ela fundia as
+  // obras numa régua de progresso só, e aí um filme entrar como "temporada"
+  // quebrava a conta — foi o que aconteceu com Evangelion. A pilha não funde
+  // nada: cada obra continua com o próprio progresso, própria nota e própria
+  // ficha, só desenhadas juntas. Então OVA, especial e filme da mesma série
+  // pertencem à pilha tanto quanto a 2ª temporada.
+  //
+  // Este teste existe para impedir que alguém "conserte" isto adicionando o
+  // filtro de formato que o outro caminho exigia.
+  it('OVA, especial e filme entram na pilha junto com as temporadas', () => {
+    const entradas = groupByFranchise([
+      item('Attack on Titan'),
+      item('Attack on Titan: No Regrets'),
+      item('Attack on Titan Final Season THE FINAL CHAPTERS Special 1'),
+      item('Attack on Titan Season 2'),
+    ])
+
+    expect(entradas).toHaveLength(1)
+    const pilha = entradas[0]
+    expect(pilha.kind === 'stack' && pilha.items).toHaveLength(4)
+  })
+
   it('obra sozinha na família não vira pilha', () => {
     const entradas = groupByFranchise([item('Dandadan'), item('Frieren')])
     expect(entradas.every((e) => e.kind === 'item')).toBe(true)

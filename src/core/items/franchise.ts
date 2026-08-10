@@ -10,6 +10,14 @@ import type { Item } from './types'
  * o custo é uma capa no lugar errado — não um catálogo corrompido. Foi essa
  * diferença que permitiu voltar ao assunto.
  *
+ * É por não fundir que o FORMATO NÃO IMPORTA aqui. A unificação revertida
+ * precisava dele — ela jogava tudo numa régua de progresso só, e um filme
+ * entrando como "temporada" quebrava a conta (foi o caso Evangelion). A pilha
+ * só desenha junto: cada obra guarda o próprio progresso, a própria nota e a
+ * própria ficha. Então OVA, especial e filme da mesma série pertencem à pilha
+ * tanto quanto a segunda temporada, e não existe filtro de formato em lugar
+ * nenhum deste arquivo — de propósito.
+ *
  * E agrupa DENTRO DE UM STATUS, nunca através deles (escolha do usuário,
  * 10/08/2026). Esta função recebe os itens de UMA seção, e é isso que dissolve
  * a tensão da tela: a espinha da estante é o status, uma franquia atravessa
