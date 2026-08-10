@@ -664,3 +664,61 @@ describe('obra não lançada', () => {
       ).toBeUndefined()
   })
 })
+
+describe('data anunciada do AniList', () => {
+  const ficha = (over: Record<string, unknown>) =>
+    mapAniListDetail({
+      id: 1,
+      episodes: null,
+      seasonYear: null,
+      title: { romaji: 'Uma obra', english: null },
+      coverImage: { large: null },
+      ...over,
+    })
+
+  it('data completa vale como está, tenha saído ou não', () => {
+    expect(
+      ficha({ status: 'FINISHED', startDate: { year: 2015, month: 1, day: 9 } })
+        ?.releaseDate,
+    ).toBe('2015-01-09')
+  })
+
+  // O caso que motivou tudo: temporada anunciada sem dia marcado ficava sem
+  // data e caía na fila como se desse para assistir.
+  it('não lançada com só o ano vira o fim do ano', () => {
+    expect(
+      ficha({ status: 'NOT_YET_RELEASED', startDate: { year: 2027 } })
+        ?.releaseDate,
+    ).toBe('2027-12-31')
+  })
+
+  it('não lançada com ano e mês vira o último dia do mês', () => {
+    expect(
+      ficha({ status: 'NOT_YET_RELEASED', startDate: { year: 2027, month: 4 } })
+        ?.releaseDate,
+    ).toBe('2027-04-30')
+    // Fevereiro bissexto, que uma tabela de dias erraria.
+    expect(
+      ficha({ status: 'NOT_YET_RELEASED', startDate: { year: 2028, month: 2 } })
+        ?.releaseDate,
+    ).toBe('2028-02-29')
+  })
+
+  // A condição que segura a regra: sem ela, um anime que foi ao ar em abril
+  // deste ano viraria "31/12" e sairia da fila por engano.
+  it('JÁ lançada com data parcial não ganha data inventada', () => {
+    expect(
+      ficha({ status: 'FINISHED', startDate: { year: 2026 } })?.releaseDate,
+    ).toBeUndefined()
+    expect(
+      ficha({ status: 'RELEASING', startDate: { year: 2026, month: 4 } })
+        ?.releaseDate,
+    ).toBeUndefined()
+  })
+
+  it('sem data nenhuma, nada é gravado', () => {
+    expect(
+      ficha({ status: 'NOT_YET_RELEASED', startDate: null })?.releaseDate,
+    ).toBeUndefined()
+  })
+})

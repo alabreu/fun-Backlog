@@ -141,12 +141,46 @@ export function relatedFrom(medias: AniListRelations[]): MediaSearchResult[] {
  * Sem os três, a obra fica sem data e cai na fila normal, que é o palpite certo
  * para desconhecido.
  */
-function isoDate(
-  d: { year?: number | null; month?: number | null; day?: number | null } | null | undefined,
-): string | undefined {
+type AniListDate =
+  | { year?: number | null; month?: number | null; day?: number | null }
+  | null
+  | undefined
+
+const pad = (n: number) => String(n).padStart(2, '0')
+
+function isoDate(d: AniListDate): string | undefined {
   if (!d?.year || !d.month || !d.day) return undefined
-  const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.year}-${pad(d.month)}-${pad(d.day)}`
+}
+
+/**
+ * A data de uma obra que a fonte diz que AINDA NÃO SAIU, completada para o FIM
+ * do período conhecido: "2027" vira 31/12/2027, "abril de 2027" vira 30/04.
+ *
+ * Existe porque exigir os três campos deixava de fora justamente o caso que a
+ * seção "Não lançados" foi feita para pegar — temporada anunciada quase nunca
+ * tem dia marcado, e sem data ela caía na fila como se desse para assistir.
+ *
+ * SÓ VALE COM O `NOT_YET_RELEASED` DA FONTE, e a condição é o que segura a
+ * regra. Aplicada a qualquer data parcial, um anime de 2026 que foi ao ar em
+ * abril viraria "31/12/2026" — futuro — e sairia da fila por engano. Com a
+ * condição, quem afirma que a obra não saiu é a fonte; a data só decide QUANDO
+ * ela deixa de afirmar isso sozinha.
+ *
+ * E o FIM do período, não o começo: 1º de janeiro devolveria a obra para a fila
+ * no primeiro dia do ano anunciado, meses antes de ela existir. Errar para
+ * "ainda não saiu" enquanto a fonte diz isso é o lado seguro, e se corrige a
+ * cada abertura da ficha, conforme o AniList firma a data.
+ */
+function isoDateAnnounced(d: AniListDate): string | undefined {
+  if (!d?.year) return undefined
+  const completa = isoDate(d)
+  if (completa) return completa
+  if (!d.month) return `${d.year}-12-31`
+  // Dia 0 do mês seguinte é o último do mês pedido — inclusive em fevereiro
+  // bissexto, sem tabela de dias.
+  const ultimo = new Date(Date.UTC(d.year, d.month, 0)).getUTCDate()
+  return `${d.year}-${pad(d.month)}-${pad(ultimo)}`
 }
 
 /** Exportado para teste: o mapeamento é a parte que quebra quando a API muda. */
@@ -334,6 +368,15 @@ export function mapAniListDetail(media: AniListDetail): MediaDetail | null {
     // outra foi `format`, que deixou filmes virarem temporada): pedir um campo
     // e não consumi-lo não quebra tipo nem teste, e some da vista.
     unreleased: media.status === 'NOT_YET_RELEASED' || undefined,
+    // A DATA ANUNCIADA, e é ela que faz a obra chegar em "Não lançados". O
+    // `base` só traz data completa (é o que o resultado de busca pode
+    // garantir); aqui, com o status em mãos, uma data parcial vira o fim do
+    // período conhecido. Ver `isoDateAnnounced`.
+    releaseDate:
+      base.releaseDate ??
+      (media.status === 'NOT_YET_RELEASED'
+        ? isoDateAnnounced(media.startDate)
+        : undefined),
     synopsis: media.description ? stripHtml(media.description) : undefined,
     genres: media.genres ?? [],
     facts,

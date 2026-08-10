@@ -40,6 +40,21 @@ export function useReleaseBackfill(
   // Fora do estado: mudar isto não pode redesenhar nada, e ele precisa
   // sobreviver aos re-renders que a própria escrita provoca.
   const tentadas = useRef(new Set<string>())
+  const abortRef = useRef<AbortController | null>(null)
+
+  /**
+   * CANCELA SÓ AO SAIR DA TELA — e este `useEffect` sem dependências é o
+   * conserto de um bug que quase anulou a varredura inteira.
+   *
+   * O cancelamento vivia na limpeza do efeito de baixo, que depende de `items`.
+   * Só que `items` muda na PRIMEIRA gravação bem-sucedida (e em qualquer
+   * atualização do store), então a limpeza matava as buscas ainda em voo das
+   * outras obras. E como cada uma já estava marcada como tentada, a
+   * re-execução não retomava nada: a estante terminava a sessão com todo mundo
+   * sem data. Medido na estante do usuário — cinco obras, cinco `releases_at`
+   * nulos, inclusive as que têm data completa na fonte há dez anos.
+   */
+  useEffect(() => () => abortRef.current?.abort(), [])
 
   useEffect(() => {
     if (!enabled || !mediaType) return
@@ -56,20 +71,21 @@ export function useReleaseBackfill(
       .slice(0, LOTE)
     if (alvos.length === 0) return
 
-    const controller = new AbortController()
+    abortRef.current ??= new AbortController()
+    const { signal } = abortRef.current
     for (const item of alvos) {
       tentadas.current.add(item.id)
       const source = detailSourceFor(item.externalIds)
       if (!source) continue
       void fetchDetail(source.provider, source.externalId, item.mediaType, {
-        signal: controller.signal,
+        signal,
       })
         .then((found) => {
-          if (controller.signal.aborted || !found?.releaseDate) return
+          if (signal.aborted || !found?.releaseDate) return
           void update(item.id, { releasesAt: found.releaseDate })
         })
         .catch(() => {})
     }
-    return () => controller.abort()
+    // SEM limpeza que cancela — ver o efeito acima.
   }, [items, mediaType, update, enabled])
 }
