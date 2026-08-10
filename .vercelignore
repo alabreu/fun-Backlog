@@ -1,0 +1,6 @@
+# A Vercel transforma TODO arquivo dentro de `api/` numa função HTTP — inclusive
+# um `.test.ts`. Sem esta linha, `api/obra.test.ts` viraria o endpoint público
+# `/api/obra.test`, e o deploy quebraria ao não achar o `vitest` que ele importa.
+#
+# O teste continua rodando no `npm test`: quem o ignora é o deploy, não o CI.
+api/**/*.test.ts
