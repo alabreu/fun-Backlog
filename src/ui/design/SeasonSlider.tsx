@@ -170,9 +170,17 @@ export function SeasonSlider({
             espeto saindo de um canto. Flutuar acima já diz que o balão é do
             polegar, e sem a seta o `clamp` deixa de ter efeito colateral
             visível. */}
+        {/* A TRANSIÇÃO SÓ VALE PARADO. Arrastando, ela é exatamente o atraso
+            que se sente: o polegar é nativo e vai junto do dedo, o balão
+            esperava 75ms de easing atrás dele, e num arraste rápido a distância
+            entre os dois virava a coisa mais visível da tela. Ela existe para o
+            salto do teclado e o toque num marco de temporada, que são pulos
+            grandes de uma vez — e nesses casos ela continua lá. */}
         <div
           ref={medirBalao}
-          className="absolute bottom-1 w-fit -translate-x-1/2 transition-[left] duration-75"
+          className={`absolute bottom-1 w-fit -translate-x-1/2 ${
+            dragging === null ? 'transition-[left] duration-75' : ''
+          }`}
           style={{
             left: `clamp(${balaoMeta}px, ${posicao.left}, calc(100% - ${balaoMeta}px))`,
           }}
@@ -231,7 +239,44 @@ export function SeasonSlider({
         </div>
       </div>
 
-      <div className="relative">
+      {/* TRÊS CAMADAS, e a ordem entre elas é o conserto: a barra embaixo, os
+          marcos no meio, o polegar em cima. Antes eram duas — a barra era a
+          trilha NATIVA do input, o mesmo elemento que desenha o polegar, e
+          nada cabia entre eles. Os marcos ficavam então ou atrás da barra
+          (invisíveis) ou na frente do polegar (cobrindo-o).
+          O `--fill` mora aqui porque a barra e o input precisam do mesmo. */}
+      <div
+        className="relative"
+        style={{ '--fill': thumbOffset(shown, total) } as CSSProperties}
+      >
+        <span
+          aria-hidden
+          className="app-range-rail pointer-events-none absolute left-0 top-1/2 h-1.5 w-full -translate-y-1/2 rounded-control"
+        />
+
+        {/* OS MARCOS SÃO BURACOS, e não pontos coloridos. Nenhuma cor funciona
+            nos dois lados: à esquerda do polegar a barra é clara, à direita é
+            escura, e um ponto que aparece numa metade some na outra — foi
+            exatamente o que aconteceu com o `bg-bg` que estava aqui. Um buraco
+            da cor do painel (`surface`) lê como interrupção da barra,
+            independente da cor que a barra tem naquele ponto.
+
+            `pointer-events-none` mantém o arraste vivo quando o dedo passa por
+            cima de um deles — sem isso o gesto morre ao cruzar uma temporada,
+            que é exatamente onde ele mais acontece. */}
+        {marcos.map((s) => (
+          <span
+            key={s.number}
+            aria-hidden
+            className="pointer-events-none absolute top-1/2 z-10 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-control bg-surface"
+            style={{ left: thumbOffset(s.through, total) }}
+          />
+        ))}
+
+        {/* `block` e não o inline padrão: como inline, o input arrasta consigo o
+            espaço de descida da linha, o `div` fica alguns pixels mais alto que
+            ele, e o `top-1/2` dos marcos cai abaixo do centro da barra. Era a
+            causa do desalinhamento. */}
         <input
           type="range"
           min={0}
@@ -244,26 +289,8 @@ export function SeasonSlider({
           onPointerUp={comprometer}
           onKeyUp={comprometer}
           onBlur={comprometer}
-          className="app-range relative z-10 w-full"
-          style={
-            {
-              '--fill': thumbOffset(shown, total),
-            } as CSSProperties
-          }
+          className="app-range relative z-20 block w-full"
         />
-
-        {/* OS PONTOS, sobre a trilha. `pointer-events-none` é o que mantém o
-            arraste funcionando quando o dedo passa por cima de um deles — sem
-            isso o gesto morre ao cruzar uma temporada, que é exatamente onde
-            ele mais acontece. */}
-        {marcos.map((s) => (
-          <span
-            key={s.number}
-            aria-hidden
-            className="pointer-events-none absolute top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-control bg-bg"
-            style={{ left: thumbOffset(s.through, total) }}
-          />
-        ))}
       </div>
 
       {rotulados.length > 0 && (

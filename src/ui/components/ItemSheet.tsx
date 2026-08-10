@@ -646,10 +646,12 @@ function RemoveChip({
   item,
   remove,
   onClose,
+  className,
 }: {
   item: Item
   remove: ReturnType<typeof useItems>['remove']
   onClose: () => void
+  className?: string
 }) {
   const { t } = useTranslation()
   const [confirming, setConfirming] = useState(false)
@@ -667,6 +669,7 @@ function RemoveChip({
         tone="danger"
         aria-expanded={confirming}
         onClick={() => setConfirming((c) => !c)}
+        className={className}
       >
         <Trash size={16} weight="bold" aria-hidden />
         {t('common.remove')}
@@ -742,10 +745,12 @@ function ProgressBlock({
     const derivado = statusFromProgress(current, total, item.status)
     if (derivado === item.status) return
     void setStatus(item.id, derivado)
-    // Concluir fecha o sheet: a comemoração assume a tela, e deixar o detalhe
-    // aberto atrás dela transforma o momento de recompensa em duas camadas
-    // empilhadas. Era o que a fileira fazia ao tocar em "Concluída".
-    if (derivado === 'done') onClose()
+    // CONCLUIR NÃO FECHA O PAINEL (escolha do usuário, 09/08/2026). Fechava: a
+    // ideia era dar a tela inteira à comemoração. Mas quem termina uma obra
+    // quase sempre quer fazer mais uma coisa ali — dar a nota, escrever a
+    // impressão fresca — e ser expulso para a estante obrigava a procurar a
+    // capa e reabrir. A comemoração continua acontecendo: ela é `fixed` sobre
+    // tudo, e sair dela devolve o painel onde estava.
   }
 
   /** Liga ou desliga uma interrupção. Desligar não escolhe um estado — devolve
@@ -787,17 +792,29 @@ function ProgressBlock({
         onCommit={gravar}
       />
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      {/* TRÊS COLUNAS IGUAIS (escolha do usuário, 09/08/2026), e não a fileira
+          que se acomoda. Aqui são sempre os mesmos três botões, então largura
+          por conteúdo só produzia três tamanhos diferentes e uma sobra à
+          direita — a grade dá uma linha inteira e resolvida. Diferente da
+          fileira de status, que tem de três a seis chips de rótulos variáveis e
+          por isso continua com `flex-wrap`. */}
+      <div className="mt-3 grid grid-cols-3 gap-2">
         {(['paused', 'abandoned'] as const).map((estado) => (
           <Chip
             key={estado}
             selected={item.status === estado}
             onClick={() => alternar(estado)}
+            className="w-full justify-center"
           >
             {t(statusLabelKey(estado, item.mediaType))}
           </Chip>
         ))}
-        <RemoveChip item={item} remove={remove} onClose={onClose} />
+        <RemoveChip
+          item={item}
+          remove={remove}
+          onClose={onClose}
+          className="w-full justify-center"
+        />
       </div>
     </div>
   )
@@ -849,10 +866,6 @@ function StatusPicker({
                 void update(item.id, {
                   progress: { unit: unidade, current: alvo, total },
                 })
-              // Concluir fecha o sheet: a comemoração assume a tela, e
-              // deixar o detalhe aberto atrás dela transforma o momento de
-              // recompensa em duas camadas empilhadas.
-              if (value === 'done' && item.status !== 'done') onClose()
             }}
           >
             {t(statusLabelKey(value, item.mediaType))}

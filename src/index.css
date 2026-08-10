@@ -484,26 +484,37 @@ body {
   touch-action: none;
 }
 
+/* TRANSPARENTE de propósito: quem pinta a barra é `.app-range-rail`, um
+   elemento nosso ATRÁS do input. Trilha nativa e polegar são o MESMO elemento,
+   então enquanto ela era a barra visível não havia como pôr nada ENTRE as duas
+   — e o marcador de temporada precisa ficar acima da barra e abaixo do polegar.
+   A altura fica: é ela que posiciona o polegar. */
 .app-range::-webkit-slider-runnable-track {
   height: 6px;
   border-radius: 999px;
-  background: linear-gradient(
-    to right,
-    var(--color-primary) var(--fill, 0px),
-    color-mix(in srgb, var(--color-ink) 12%, transparent) var(--fill, 0px)
-  );
+  background: transparent;
 }
 
 .app-range::-moz-range-track {
   height: 6px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  background: transparent;
 }
 
 .app-range::-moz-range-progress {
   height: 6px;
-  border-radius: 999px;
-  background: var(--color-primary);
+  background: transparent;
+}
+
+/* A BARRA DE VERDADE. Mesma altura e mesmo raio da trilha nativa, e a parada do
+   gradiente é o CENTRO DO POLEGAR (`--fill`, de `thumbOffset`) e não a fração
+   crua — senão a cor terminaria alguns pixels longe de onde o polegar está. */
+.app-range-rail {
+  background: linear-gradient(
+    to right,
+    var(--color-primary) var(--fill, 0px),
+    color-mix(in srgb, var(--color-ink) 12%, transparent) var(--fill, 0px)
+  );
 }
 
 .app-range::-webkit-slider-thumb {

@@ -787,6 +787,44 @@ par agora pode ser `['ink', 0.05, 'surface']`. O selo verde mede 5,02:1 contra a
 superfície limpa e 4,56:1 contra o fundo real do chip — o segundo número é o que
 se enxerga, e é a 0,06 do mínimo.
 
+### Mais quatro, depois de rodar em produção (09/08/2026)
+
+**Concluir não expulsa mais do painel.** Fechava de propósito — a ideia era dar
+a tela inteira à comemoração. Na prática, quem acaba de terminar uma obra quase
+sempre quer fazer mais uma coisa ali: dar a nota, escrever a impressão fresca.
+Ser mandado de volta para a estante obrigava a achar a capa e reabrir. A
+comemoração continua acontecendo (é `fixed` sobre tudo); sair dela devolve o
+painel onde estava. Vale para os dois caminhos — a régua e o chip "Concluída".
+
+**Os três botões viraram grade de três colunas iguais.** São sempre os mesmos
+três, então largura por conteúdo só produzia três tamanhos e uma sobra à
+direita. A fileira de STATUS continua com `flex-wrap`: lá são de três a seis
+chips com rótulos de tamanhos diferentes.
+
+**O balão perdeu a transição enquanto se arrasta.** O polegar é nativo e vai
+junto do dedo; o balão esperava 75ms de easing atrás dele, e num arraste rápido
+a distância entre os dois virava a coisa mais visível da tela. A transição
+continua existindo parado, que é onde ela serve: o salto do teclado e o toque
+num marco de temporada são pulos grandes de uma vez.
+
+**O marcador de temporada ganhou uma camada só dele.** Ele estava atrás da
+barra e desalinhado, e as duas coisas tinham a mesma raiz: a barra ERA a trilha
+nativa do `input[type=range]`, o mesmo elemento que desenha o polegar — não
+havia como pôr nada entre os dois. Agora a barra é um elemento nosso
+(`.app-range-rail`), a trilha nativa é transparente, e a ordem fica barra →
+marcos → polegar.
+
+O desalinhamento vertical era outra coisa: o input era `inline`, arrastava
+consigo o espaço de descida da linha, e o `div` ficava alguns pixels mais alto
+que ele — então o `top-1/2` dos marcos caía abaixo do centro da barra. `block`
+resolve. Medido depois: 0,0px de desvio.
+
+E o marcador deixou de ser um PONTO para ser um BURACO da cor do painel. Nenhuma
+cor funcionava nos dois lados: à esquerda do polegar a barra é clara, à direita
+é escura, e um ponto que aparece numa metade some na outra — que era exatamente
+o sintoma. Um buraco lê como interrupção da barra independente da cor que a
+barra tem ali.
+
 ### O que fica torto por um tempo
 
 Item gravado como "assistindo" com progresso zero — estado que existia antes
