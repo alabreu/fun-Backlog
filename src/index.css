@@ -548,12 +548,29 @@ body {
  * sobra a de fora — ou seja, é "outside", não o "inside" pedido. Alinhamento
  * interno de verdade exigiria recortar cada glifo pela própria forma, e a
  * diferença visível entre os dois é de meio pixel.
+ *
+ * `vector-effect: non-scaling-stroke` NÃO É ENFEITE — sem ele não há contorno
+ * nenhum, e foi assim que este ficou invisível na tela por um bom tempo apesar
+ * de todo o cálculo de contraste acima estar certo. `stroke-width` em SVG é
+ * medido em UNIDADES DO viewBox, não em pixels de tela: o ícone do Phosphor tem
+ * `viewBox="0 0 256 256"` desenhado em 18px, uma redução de 14,2×, então
+ * `1.5px` virava 0,11px de traço de verdade. O `px` na declaração engana — ele
+ * é lido como "1.5 unidades". Com `non-scaling-stroke` a espessura passa a ser
+ * contada na tela, e 2px viram 2px.
+ *
+ * 2px e não 1.5px porque metade do traço fica debaixo do preenchimento (ver a
+ * ressalva acima): o que sobra à mostra é 1px, que é o fio mais fino que ainda
+ * se lê num ícone de 18px em tela de alta densidade.
  */
 .app-cover-mark {
   paint-order: stroke fill;
   stroke: rgb(0 0 0 / 0.42);
-  stroke-width: 1.5px;
+  stroke-width: 2px;
   stroke-linejoin: round;
+}
+
+.app-cover-mark * {
+  vector-effect: non-scaling-stroke;
 }
 
 /* A BARRA DE VERDADE. Mesma altura e mesmo raio da trilha nativa, e a parada do
