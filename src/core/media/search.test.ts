@@ -489,49 +489,21 @@ describe('ficha do AniList', () => {
     )
   })
 
-  it('separa STREAMING do resto dos links externos', () => {
+  // O "ONDE ASSISTIR" DE ANIME FOI REMOVIDO (09/08/2026), e este teste é o que
+  // impede alguém de trazê-lo de volta sem ler o porquê: a lista de streaming do
+  // AniList não conhece país, então ela oferecia Hulu — que não opera no Brasil
+  // — na ficha em português. Ver a nota longa em `mapAniListDetail`.
+  it('não promete onde assistir: a lista do AniList não tem país', () => {
     const d = mapAniListDetail({
       id: 21,
-      episodes: null,
-      seasonYear: null,
+      episodes: 26,
+      seasonYear: 1998,
       title: { romaji: 'Cowboy Bebop', english: null },
       coverImage: { large: '' },
-      externalLinks: [
-        { site: 'Official Site', type: 'INFO', url: 'https://bebop.example' },
-        { site: 'Crunchyroll', type: 'STREAMING', url: 'https://cr.example/21' },
-        { site: 'Twitter', type: 'SOCIAL', url: 'https://x.example/bebop' },
-        { site: 'Netflix', type: 'STREAMING', url: 'https://nf.example/21' },
-        // Repetido: o AniList lista a mesma casa uma vez por idioma. Vence a
-        // PRIMEIRA — a segunda n\u00e3o pode trocar o link por baixo.
-        { site: 'Netflix', type: 'STREAMING', url: 'https://nf.example/outro' },
-        null,
-      ],
-    })
-
-    const onde = d?.facts?.find((f) => f.labelKey === 'fact.where')
-    // O link leva \u00e0 P\u00c1GINA DA OBRA no servi\u00e7o, n\u00e3o \u00e0 home dele. Sem logo:
-    // o AniList manda s\u00f3 o nome, ent\u00e3o anime fica em texto (a TMDB tem logo).
-    expect(onde?.items).toEqual([
-      { label: 'Crunchyroll', url: 'https://cr.example/21' },
-      { label: 'Netflix', url: 'https://nf.example/21' },
-    ])
-    // Fato-l\u00edder e primeiro da lista: sobe acima da sinopse.
-    expect(onde?.lead).toBe(true)
-    expect(d?.facts?.[0]).toBe(onde)
-  })
-
-  it('sem streaming, n\u00e3o inventa a se\u00e7\u00e3o', () => {
-    const d = mapAniListDetail({
-      id: 1,
-      episodes: null,
-      seasonYear: null,
-      title: { romaji: 'X', english: null },
-      coverImage: { large: '' },
-      externalLinks: [
-        { site: 'Official Site', type: 'INFO', url: 'https://x.example' },
-      ],
     })
     expect(d?.facts?.some((f) => f.labelKey === 'fact.where')).toBe(false)
+    // O que sobra continua sendo fato de verdade sobre a obra.
+    expect(d?.facts?.map((f) => f.labelKey)).toEqual(['fact.episodes'])
   })
 
   it('mapeia est\u00fadio, g\u00eaneros e dura\u00e7\u00e3o por epis\u00f3dio', () => {

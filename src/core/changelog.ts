@@ -19,6 +19,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-anime-streaming',
+    date: '2026-08-09',
+    emoji: '📺',
+    title: {
+      pt: 'Anime não promete mais onde assistir',
+      en: 'Anime no longer promises where to watch',
+    },
+    items: {
+      pt: [
+        'A lista de streaming que aparecia em anime vinha do AniList, e ela é a mesma para o mundo inteiro — por isso oferecia Hulu, que nem existe no Brasil. Preferimos tirar a informar errado.',
+        'Filme e série não mudaram: ali a fonte sabe o seu país, e a lista continua sendo a sua.',
+      ],
+      en: [
+        'The streaming list on anime came from AniList, and it is the same for the entire world — which is why it offered Hulu, which does not exist in Brazil. We would rather remove it than be wrong.',
+        'Films and series are unchanged: there the source knows your country, and the list is really yours.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-franquias',
     date: '2026-08-09',
     emoji: '🧩',

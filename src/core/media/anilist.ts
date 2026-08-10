@@ -482,7 +482,6 @@ const DETAIL_QUERY = `
       title { romaji english }
       coverImage { large }
       studios(isMain: true) { nodes { name } }
-      externalLinks { site type url }
       ${RELATIONS_FULL}
     }
   }
@@ -491,9 +490,6 @@ const DETAIL_QUERY = `
 interface AniListDetail extends AniListMedia {
   duration?: number | null
   status?: string | null
-  externalLinks?:
-    | ({ site?: string | null; type?: string | null; url?: string | null } | null)[]
-    | null
   genres?: string[] | null
   averageScore?: number | null
   description?: string | null
@@ -521,30 +517,37 @@ export function mapAniListDetail(media: AniListDetail): MediaDetail | null {
   if (media.duration)
     facts.push({ labelKey: 'fact.episodeLength', value: `${media.duration}min` })
 
-  // ONDE ASSISTIR. O AniList mistura em `externalLinks` site oficial, rede
-  // social e streaming; só o `type: STREAMING` responde "dá para ver hoje?".
-  //
-  // O `url` de cada link vem junto: o AniList aponta para a PÁGINA DA OBRA no
-  // serviço, não para a home dele — clicar em "Crunchyroll" cai no anime, que é
-  // o único jeito de isso valer mais que ler o nome.
-  const streaming = new Map<string, string | null>()
-  for (const link of media.externalLinks ?? []) {
-    // `Map` no lugar do `Set`: a mesma casa aparece repetida quando há mais de
-    // um idioma de legenda, e a primeira ocorrência é a que fica com o link.
-    if (link?.type !== 'STREAMING' || !link.site) continue
-    if (!streaming.has(link.site)) streaming.set(link.site, link.url ?? null)
-  }
-  // Teto de seis porque um anime popular lista uma dezena de serviços, muitos
-  // regionais e nenhum útil aqui — e porque isto é fato-líder, então uma lista
-  // longa empurraria a sinopse para fora da tela.
-  const onde = [...streaming.keys()].slice(0, 6)
-  if (onde.length > 0)
-    facts.unshift({
-      labelKey: 'fact.where',
-      value: onde.join(' · '),
-      items: onde.map((site) => ({ label: site, url: streaming.get(site) ?? undefined })),
-      lead: true,
-    })
+  /* ONDE ASSISTIR SAIU DO ANIME (09/08/2026), e a razão é que ele mentia.
+   *
+   * Vinha dos `externalLinks` do AniList com `type: STREAMING`, e essa lista
+   * NÃO CONHECE PAÍS. Ela é global e cadastrada pela comunidade, então a ficha
+   * de um anime aparecia em português oferecendo Hulu — que nunca operou no
+   * Brasil. Um serviço onde a pessoa não consegue assistir, no lugar mais nobre
+   * da ficha, é pior que não dizer nada: ela abre, procura e não acha.
+   *
+   * DOIS PROBLEMAS SOMADOS, e nenhum tem conserto do nosso lado:
+   *
+   * 1. Sem país. A TMDB tem `watch/providers` por região e a gente já manda a
+   *    região da pessoa — foi o que consertou o JustWatch abrindo no Reino
+   *    Unido. O AniList não tem equivalente. O código aqui já sabia disso pela
+   *    metade: ele deduplicava por nome de serviço e ficava com o PRIMEIRO
+   *    link, ou seja, escolhia uma variante de idioma no sopro.
+   * 2. Envelhece. São entradas editadas à mão, não um feed da plataforma.
+   *    Licença de anime gira, e o link fica.
+   *
+   * POR QUE NÃO FILTRAR EM VEZ DE REMOVER. O AniList expõe um campo de idioma
+   * por link — mas o endpoint e a documentação deles estão bloqueados pela
+   * política de egresso deste ambiente, então não dá para confirmar o nome nem
+   * os valores daqui, e um campo inexistente em GraphQL derruba a consulta
+   * inteira. E mesmo confirmado, idioma não é país: "English" não diz se aquilo
+   * abre no Brasil. Filtrar por ele trocaria uma lista errada por uma lista
+   * quase vazia e ainda errada.
+   *
+   * O CAMINHO CERTO está no backlog: casar o anime com a ficha da TMDB, que
+   * tem provider por país. Custa uma ida a mais à rede e um casamento de
+   * título entre duas fontes — que é frágil o bastante para merecer sessão
+   * própria, e não um remendo aqui.
+   */
 
   return {
     ...base,

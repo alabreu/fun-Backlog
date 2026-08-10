@@ -942,6 +942,45 @@ passo.
 
 ---
 
+## 19. "Onde assistir" sai do anime
+
+**09/08/2026.** A ficha de anime mostrava serviços de streaming vindos dos
+`externalLinks` do AniList. **Essa lista não conhece país** — é global e
+cadastrada pela comunidade —, então uma ficha em português oferecia Hulu, que
+nunca operou no Brasil. Um serviço onde a pessoa não consegue assistir, ocupando
+o lugar mais nobre da ficha (é fato-líder, vem antes da sinopse), é pior que não
+dizer nada: ela abre o app, procura e não acha.
+
+O código já sabia disso pela metade. Ele deduplicava os links por nome de
+serviço e ficava com o PRIMEIRO — o comentário dizia "a mesma casa aparece
+repetida quando há mais de um idioma de legenda". Ou seja, a escolha de qual
+variante mostrar era o sopro.
+
+Filme e série continuam certos e não mudaram: a TMDB tem `watch/providers` por
+região e a gente já manda a região da pessoa (foi o que consertou o JustWatch
+abrindo no Reino Unido).
+
+### Por que remover, e não filtrar
+
+O AniList expõe um campo de idioma por link. Filtrar por ele seria o remendo
+barato, e ele não foi feito por duas razões:
+
+1. **Não deu para verificar.** O endpoint e a documentação do AniList estão
+   bloqueados pela política de egresso do ambiente onde este código é escrito.
+   Um campo inexistente em GraphQL não devolve "sem idioma" — derruba a consulta
+   inteira, e a ficha junto.
+2. **Idioma não é país.** "English" não diz se aquilo abre no Brasil. Filtrar
+   trocaria uma lista errada por uma lista quase vazia e ainda errada.
+
+O caminho certo está no backlog: casar o anime com a ficha da TMDB, que tem
+provider por país. Custa uma ida a mais à rede e um casamento de título entre
+duas fontes — e é justamente esse casamento que erra (romaji, temporadas com
+nomes diferentes), o que faria a ficha mostrar o "onde assistir" de OUTRA obra.
+Isso é pior que a lista de hoje, e por isso merece sessão própria em vez de um
+remendo.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A
