@@ -150,6 +150,18 @@ export interface MediaDetail {
    */
   inTheaters?: boolean
   /**
+   * A OBRA AINDA NÃO SAIU.
+   *
+   * Irmão do `inTheaters`, e pelo mesmo motivo: é estado momentâneo da obra, do
+   * naipe do ano e da nota, e não um par rótulo/valor. Só existe quando é
+   * verdade — ausente significa "já saiu" ou "a fonte não sabe", e a tela trata
+   * os dois igual.
+   *
+   * É o que permite ao painel parar de oferecer "Assistindo", progresso e nota
+   * para uma temporada anunciada para o ano que vem. Ver `core/media/release.ts`.
+   */
+  unreleased?: boolean
+  /**
    * OUTRAS OBRAS DA MESMA FRANQUIA.
    *
    * `MediaSearchResult` e não um tipo novo: é literalmente o que a tela já sabe

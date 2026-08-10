@@ -216,6 +216,7 @@ const DETAIL_QUERY = `
       duration
       status
       seasonYear
+      startDate { year }
       genres
       averageScore
       description(asHtml: false)
@@ -229,7 +230,12 @@ const DETAIL_QUERY = `
 
 interface AniListDetail extends AniListMedia {
   duration?: number | null
+  /** `FINISHED` | `RELEASING` | `NOT_YET_RELEASED` | `CANCELLED` | `HIATUS`. */
   status?: string | null
+  /** O ano ANUNCIADO. Numa temporada que ainda não estreou, `seasonYear` é
+   *  null e este é o único ano que existe — sem ele a ficha aparecia sem ano
+   *  nenhum no cabeçalho. */
+  startDate?: { year?: number | null } | null
   genres?: string[] | null
   averageScore?: number | null
   description?: string | null
@@ -291,6 +297,14 @@ export function mapAniListDetail(media: AniListDetail): MediaDetail | null {
 
   return {
     ...base,
+    // O ANO ANUNCIADO como reserva. Temporada que não estreou tem `seasonYear`
+    // null, e sem isto o cabeçalho ficava sem ano nenhum — justamente na obra
+    // em que a data é a informação mais procurada.
+    year: base.year ?? media.startDate?.year ?? undefined,
+    // O CAMPO JÁ ERA BUSCADO E NUNCA LIDO. Segunda vez no mesmo arquivo (a
+    // outra foi `format`, que deixou filmes virarem temporada): pedir um campo
+    // e não consumi-lo não quebra tipo nem teste, e some da vista.
+    unreleased: media.status === 'NOT_YET_RELEASED' || undefined,
     synopsis: media.description ? stripHtml(media.description) : undefined,
     genres: media.genres ?? [],
     facts,

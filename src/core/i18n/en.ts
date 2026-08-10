@@ -154,6 +154,7 @@ export const en: Record<keyof typeof pt, string> = {
   'item.adding': 'Adding…',
   'item.readMore': 'Read more',
   'item.readLess': 'Read less',
+  'item.unreleased': 'Not released yet',
   'item.inTheaters': 'In cinemas',
   'item.viewCover': 'View the cover at full size',
   'item.coverDialog': 'Cover of {title}',

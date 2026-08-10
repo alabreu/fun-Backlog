@@ -1,5 +1,6 @@
 import { callMediaFunction } from './server'
 import { FAMILY_LABEL, groupPlatforms } from './platforms'
+import { releasesInFuture } from './release'
 import type { MediaDetail, MediaProvider, MediaSearchResult } from './types'
 
 /**
@@ -241,6 +242,14 @@ export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
         : []),
     ],
     score: game.total_rating ? Math.round(game.total_rating) : undefined,
+    // A IGDB dá a data em SEGUNDOS. Um jogo anunciado tem data no futuro; um
+    // jogo sem data anunciada não entra — "não sei quando sai" é diferente de
+    // "não saiu", e tratar os dois igual esconderia as horas jogadas de todo
+    // jogo antigo mal catalogado.
+    unreleased:
+      releasesInFuture(
+        game.first_release_date ? game.first_release_date * 1000 : undefined,
+      ) || undefined,
     related,
   }
 }

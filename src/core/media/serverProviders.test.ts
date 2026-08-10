@@ -608,3 +608,56 @@ describe('franquia na ficha', () => {
     expect(detalhe?.related).toEqual([])
   })
 })
+
+describe('obra não lançada (fontes com servidor)', () => {
+  const daquiA = (anos: number) =>
+    new Date(Date.UTC(new Date().getUTCFullYear() + anos, 0, 1))
+
+  it('IGDB: jogo anunciado para o futuro', () => {
+    const futuro = mapIgdbDetail({
+      id: 1,
+      name: 'GTA VII',
+      first_release_date: Math.floor(daquiA(2).getTime() / 1000),
+    })
+    expect(futuro?.unreleased).toBe(true)
+  })
+
+  it('IGDB: jogo lançado, e jogo sem data, não são marcados', () => {
+    expect(
+      mapIgdbDetail({ id: 1, name: 'Antigo', first_release_date: 1431993600 })
+        ?.unreleased,
+    ).toBeUndefined()
+    // "Não sei quando sai" não é "não saiu": marcar aqui esconderia as horas
+    // jogadas de todo jogo retrô mal catalogado.
+    expect(mapIgdbDetail({ id: 2, name: 'Sem data' })?.unreleased).toBeUndefined()
+  })
+
+  it('TMDB: basta o status OU a data — a fonte desencontra os dois', () => {
+    const porStatus = mapTmdbDetail(
+      { id: 1, title: 'Anunciado', media_type: 'movie', status: 'Post Production' },
+      'movie',
+    )
+    const porData = mapTmdbDetail(
+      {
+        id: 2,
+        title: 'Com data futura',
+        media_type: 'movie',
+        release_date: daquiA(2).toISOString().slice(0, 10),
+      },
+      'movie',
+    )
+    expect(porStatus?.unreleased).toBe(true)
+    expect(porData?.unreleased).toBe(true)
+  })
+
+  // Cancelada depois de ir ao ar é assistível.
+  it('TMDB: série no ar ou encerrada não é marcada', () => {
+    for (const status of ['Returning Series', 'Ended', 'Canceled'])
+      expect(
+        mapTmdbDetail(
+          { id: 1, name: 'X', media_type: 'tv', status, first_air_date: '2008-01-20' },
+          'tv',
+        )?.unreleased,
+      ).toBeUndefined()
+  })
+})

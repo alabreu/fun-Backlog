@@ -307,6 +307,12 @@ function Detail({
             {detail?.inTheaters && (
               <Badge tone="accent">{t('item.inTheaters')}</Badge>
             )}
+            {/* NEUTRO, e não `accent`: "em cartaz" pede uma decisão (sair de
+                casa hoje?), "ainda não lançou" pede o contrário — é para
+                explicar por que o painel abaixo está mais curto que o normal.
+                Sem o selo, sumir com progresso e nota faria a ficha parecer
+                quebrada. */}
+            {detail?.unreleased && <Badge>{t('item.unreleased')}</Badge>}
           </div>
           {matched && (
             <p className="mt-1.5 text-label text-muted">
@@ -358,6 +364,7 @@ function Detail({
             update={update}
             remove={remove}
             total={total}
+            unreleased={detail?.unreleased}
           />
         ))}
 
@@ -376,6 +383,7 @@ function Detail({
           // gravada, é a lente que traduz o número corrido. Fonte fora do ar =
           // sem fileira, e o campo numérico continua funcionando sozinho.
           seasons={detail?.seasons}
+          unreleased={detail?.unreleased}
         />
       )}
 
@@ -980,6 +988,7 @@ function StatusPicker({
   update,
   remove,
   total,
+  unreleased,
 }: {
   item: Item
   onClose: () => void
@@ -988,14 +997,31 @@ function StatusPicker({
   remove: ReturnType<typeof useItems>['remove']
   /** O total vivo da obra, quando existe — é o que dá sentido a "concluída". */
   total?: number
+  /** A obra ainda não saiu: sobra "na fila". Ver `core/media/release.ts`. */
+  unreleased?: boolean
 }) {
   const { t } = useTranslation()
+
+  /* OBRA ANUNCIADA SÓ TEM UM ESTADO POSSÍVEL. Oferecer "assistindo" e
+   * "concluída" para uma temporada que estreia ano que vem é a interface
+   * propondo algo que não pode ter acontecido.
+   *
+   * O DADO GRAVADO GANHA DA FONTE, e é por isso que a colapsagem só vale
+   * quando o item está na fila. Se ele já está como "assistindo" — porque a
+   * fonte se enganou, ou porque você viu por outro caminho —, esconder os
+   * outros estados prenderia você num estado que não dá para sair. Entre
+   * confiar no catálogo de terceiro e confiar no que a pessoa gravou, ganha a
+   * pessoa. */
+  const estados =
+    unreleased && item.status === 'backlog'
+      ? (['backlog'] as const)
+      : statusesFor(item.mediaType)
 
   return (
     <div>
       <SectionTitle className="mb-2">{t('item.statusLabel')}</SectionTitle>
       <div className="flex flex-wrap gap-2">
-        {statusesFor(item.mediaType).map((value) => (
+        {estados.map((value) => (
           <Chip
             key={value}
             selected={item.status === value}
@@ -1031,11 +1057,14 @@ function PersonalControls({
   update,
   setStatus,
   seasons,
+  unreleased,
 }: {
   item: Item
   update: ReturnType<typeof useItems>['update']
   setStatus: ReturnType<typeof useItems>['setStatus']
   seasons?: SeasonInfo[]
+  /** A obra ainda não saiu: não há posição para marcar. */
+  unreleased?: boolean
 }) {
   const { t } = useTranslation()
   const [notes, setNotes] = useState(item.notes ?? '')
@@ -1127,7 +1156,10 @@ function PersonalControls({
           total ninguém sabe — série que a fonte não conhece, livro digitado à
           mão. Com total, quem manda é o `ProgressBlock`, lá em cima: a régua
           tomou o lugar da fileira de status, e o campo virou o balão dela. */}
-      {unit && !contaHoras && !hasRuler(item.mediaType, total) && (
+      {/* NADA DE PROGRESSO numa obra que não saiu — nem episódio, nem hora.
+          Não é só que não há o que marcar: um campo em branco ali convida a
+          preencher, e o número preenchido seria mentira. */}
+      {unit && !contaHoras && !hasRuler(item.mediaType, total) && !unreleased && (
         <div>{campoNumerico}</div>
       )}
 
@@ -1137,7 +1169,12 @@ function PersonalControls({
           ali era colher toque acidental. Mas ela VOLTA quando o item já carrega
           nota ou favorita, senão um item avaliado que retorna para a fila
           esconderia um dado que ninguém mais consegue apagar. */}
-      {(canRate(item.status) || item.rating !== undefined || item.favorite) && (
+      {/* `!unreleased` na frente de tudo: nota é impressão, e ninguém tem
+          impressão do que não estreou. O que JÁ tem nota continua mostrando —
+          a condição olha o que está gravado, e um dado invisível é pior que um
+          dado estranho. */}
+      {(!unreleased || item.rating !== undefined || item.favorite) &&
+        (canRate(item.status) || item.rating !== undefined || item.favorite) && (
         <div>
           {/* Sem botão "Limpar" ao lado (decisão do usuário, 09/08/2026):
               quem apaga é a própria estrela da nota atual. Ver `RatingRow`. */}
@@ -1168,7 +1205,7 @@ function PersonalControls({
 
       {/* AS HORAS, depois da nota e antes das anotações. É acervo, não
           andamento: nenhum slider, nenhum estado derivado dela. */}
-      {contaHoras && <div>{campoNumerico}</div>}
+      {contaHoras && !unreleased && <div>{campoNumerico}</div>}
 
       <Field label={t('item.notesLabel')}>
         {(id) => (

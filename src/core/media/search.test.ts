@@ -554,3 +554,40 @@ describe('ficha da Open Library', () => {
     expect(mapOpenLibraryWork('OL4W', { title: 'C' }).synopsis).toBeUndefined()
   })
 })
+
+// ---------------------------------------------------------------------------
+// Obra que ainda não saiu. O painel para de oferecer "assistindo", progresso e
+// nota — ver `core/media/release.ts` e a decisão 20.
+// ---------------------------------------------------------------------------
+
+describe('obra não lançada', () => {
+  it('AniList: NOT_YET_RELEASED marca, e o ano anunciado preenche o cabeçalho', () => {
+    const d = mapAniListDetail({
+      id: 999,
+      episodes: null,
+      seasonYear: null,
+      status: 'NOT_YET_RELEASED',
+      startDate: { year: 2026 },
+      title: { romaji: 'Dandadan 3rd Season', english: null },
+      coverImage: { large: '' },
+    })
+    expect(d?.unreleased).toBe(true)
+    // Sem isto o cabeçalho ficava sem ano nenhum: `seasonYear` só existe
+    // depois da estreia.
+    expect(d?.year).toBe(2026)
+  })
+
+  it('AniList: o que já está no ar não é marcado', () => {
+    for (const status of ['RELEASING', 'FINISHED', 'HIATUS', 'CANCELLED'])
+      expect(
+        mapAniListDetail({
+          id: 1,
+          episodes: 12,
+          seasonYear: 2020,
+          status,
+          title: { romaji: 'X', english: null },
+          coverImage: { large: '' },
+        })?.unreleased,
+      ).toBeUndefined()
+  })
+})

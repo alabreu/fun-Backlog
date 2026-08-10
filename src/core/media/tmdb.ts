@@ -1,4 +1,5 @@
 import type { SeasonInfo } from '@core/items/seasons'
+import { isUnreleasedTmdbStatus, releasesInFuture } from './release'
 import { DEFAULT_REGION } from '@core/region'
 import {
   SEARCH_LIMIT,
@@ -94,6 +95,8 @@ export function mapTmdbResult(
 }
 
 interface TmdbDetailBody extends TmdbResult {
+  /** "Planned", "In Production", "Released", "Ended"… — ver `release.ts`. */
+  status?: string
   /** Sintético: os membros da saga, montados pela Edge Function a partir de
    *  `belongs_to_collection`. Não é campo da TMDB — ver `collectionPartsTmdb`
    *  em supabase/functions/media. Série nunca traz: lá não existe coleção. */
@@ -294,6 +297,18 @@ export function mapTmdbDetail(
     // Só quando é `true`: um `false` explícito não muda nada na tela e faria a
     // ficha carregar um campo que ninguém lê.
     inTheaters: isInTheaters(body, region) || undefined,
+    // DOIS SINAIS, e o OU entre eles é de propósito: a TMDB às vezes deixa o
+    // `status` desatualizado num anúncio antigo, e às vezes cadastra a data
+    // antes de mexer no status. Qualquer um dos dois basta para não oferecer
+    // "assistido" a um filme que não estreou.
+    unreleased:
+      isUnreleasedTmdbStatus(body.status) ||
+      releasesInFuture(
+        Date.parse(
+          (kind === 'movie' ? body.release_date : body.first_air_date) ?? '',
+        ),
+      ) ||
+      undefined,
     synopsis: body.overview || undefined,
     genres: (body.genres ?? [])
       .map((g) => g?.name)

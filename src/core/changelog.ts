@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-nao-lancado',
+    date: '2026-08-09',
+    emoji: '🗓️',
+    title: {
+      pt: 'O que ainda não saiu só fica na fila',
+      en: 'What is not out yet can only be queued',
+    },
+    items: {
+      pt: [
+        'Uma temporada anunciada para o ano que vem oferecia "Assistindo", "Terminado" e um campo de progresso. Agora ela mostra um selo de "Ainda não lançado" e só deixa ficar na fila — vale para anime, série, filme e jogo.',
+        'De quebra, essas obras voltaram a mostrar o ano previsto no cabeçalho, que antes aparecia vazio.',
+        'No dia da estreia o painel volta ao normal sozinho.',
+      ],
+      en: [
+        'A season announced for next year offered "Watching", "Finished" and a progress field. It now shows a "Not released yet" badge and can only be queued — for anime, series, films and games alike.',
+        'As a bonus, those works show their expected year in the header again, where it used to be blank.',
+        'On release day the panel goes back to normal on its own.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-anime-streaming',
     date: '2026-08-09',
     emoji: '📺',

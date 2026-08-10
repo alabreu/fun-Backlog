@@ -152,6 +152,7 @@ export const pt = {
   'item.adding': 'Adicionando…',
   'item.readMore': 'Ler mais',
   'item.readLess': 'Ler menos',
+  'item.unreleased': 'Ainda não lançado',
   'item.inTheaters': 'Em cartaz',
   'item.viewCover': 'Ver a capa em tamanho grande',
   'item.coverDialog': 'Capa de {title}',

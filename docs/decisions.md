@@ -952,6 +952,66 @@ remendo.
 
 ---
 
+## 20. Obra que ainda não saiu só pode ficar na fila
+
+**09/08/2026.** A ficha de "Dandadan 3rd Season" — uma temporada anunciada e não
+exibida — oferecia "Assistindo", "Terminado" e um campo de progresso. Uma
+interface propondo algo que não pode ter acontecido.
+
+O caminho até ali estava certo e o resultado errado: a régua precisa de um fim,
+o AniList devolve `episodes: null` para o que não estreou, e sem total o painel
+cai no modelo antigo — o mesmo de um livro digitado à mão. O que faltava era
+distinguir **"a fonte não sabe o tamanho"** de **"a obra não existe ainda"**.
+
+### O sinal existe em toda fonte que importa
+
+| | como |
+| --- | --- |
+| Anime | `Media.status === 'NOT_YET_RELEASED'` |
+| Filme e série | `status` de pré-produção **OU** data de estreia no futuro |
+| Jogo | `first_release_date` no futuro |
+
+O **OU** da TMDB é de propósito: ela às vezes deixa o `status` velho num anúncio
+antigo e às vezes cadastra a data antes de mexer no status. Um sinal só deixaria
+metade dos casos passar.
+
+E o que **não** conta: sem data não é "não lançado". Marcar ali esconderia o
+progresso de todo jogo retrô mal catalogado. Cancelado depois de ir ao ar também
+não conta — é assistível, e esconder o progresso perderia o que a pessoa já viu.
+
+### O que muda na tela
+
+Um selo neutro ("Ainda não lançado"), a fileira de status colapsa para "Na fila"
+e "Remover", e progresso e nota somem. O selo não é enfeite: sem ele, sumir com
+metade do painel faz a ficha parecer quebrada — ele é a explicação.
+
+Neutro e não `accent`: "em cartaz" pede uma decisão (sair de casa hoje?), este
+pede o contrário.
+
+**O DADO GRAVADO GANHA DA FONTE.** A colapsagem só vale quando o item está na
+fila. Se ele já está como "assistindo" — porque a fonte se enganou, ou porque
+você viu por outro caminho —, a fileira inteira continua ali. Prender alguém num
+estado do qual não dá para sair, por causa de um catálogo de terceiro, é pior
+que o problema original.
+
+O estado se resolve sozinho: a ficha é buscada a cada abertura, e no dia da
+estreia o painel volta ao normal sem ninguém tocar em nada.
+
+### Um efeito colateral que valia por si
+
+Temporada não exibida tem `seasonYear` nulo, e a ficha aparecia **sem ano
+nenhum** — justamente na obra em que a data é o que mais se procura. O
+`startDate` do AniList entrou como reserva, e agora o cabeçalho diz 2026.
+
+### O padrão que apareceu duas vezes no mesmo dia
+
+`status` já era buscado e nunca lido. Horas antes, `format` também era buscado e
+nunca lido — e foi o que deixou filmes virarem temporada de Evangelion (decisão
+18). Pedir um campo e não consumi-lo não quebra tipo nem teste, e some da vista.
+Vale como aviso: campo novo na consulta nasce com um uso ou não nasce.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A
