@@ -858,6 +858,28 @@ conserta.
 
 ## Ainda em aberto
 
+- **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A
+  hipótese é que o atalho não se paga. Ele existia para poupar toques, e a conta
+  nunca fechou: tocar no `+` abre um painel para perguntar onde você está, o que
+  já são dois toques — os mesmos de abrir a obra. Pior, ele obrigava a manter um
+  SEGUNDO painel de adição (`AddStatusSheet`) fazendo, com menos contexto, o que
+  o painel da obra já faz: a mesma régua, os mesmos estados, sem a sinopse nem a
+  capa grande.
+
+  Com ele desligado o caminho é um só — tocar na capa abre a obra, e "Adicionar
+  à estante" ali dentro faz o painel virar régua na hora, sem fechar. Adicionar
+  e dizer onde parou viram um gesto contínuo.
+
+  Duas coisas saem junto e valem ser ditas: some o atalho de TIRAR da estante
+  direto do grid de busca (agora é pelo painel), e some a possibilidade de
+  adicionar como "pausado"/"abandonado" em um toque — quem quiser isso adiciona
+  e toca no chip, no mesmo painel.
+
+  Ligar de volta é `ATALHO_NA_CAPA = true` em `CoverAction.tsx`. Nada foi
+  removido: as duas telas continuam montando o componente e o `AddStatusSheet`
+  segue inteiro. Se o teste pegar, aí sim vale apagar os dois e recuperar o
+  peso.
+
 - **Identidade visual**: paleta (primitivos em `src/index.css`) e a linguagem do
   grid de capas. Sessão própria, com opções — é a última etapa planejada. O
   ícone do PWA já saiu do placeholder (marcador de página, 08/08/2026), mas é

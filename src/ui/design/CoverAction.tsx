@@ -1,6 +1,26 @@
 import { Check, Plus } from '@phosphor-icons/react'
 
 /**
+ * EXPERIMENTO EM CURSO (09/08/2026): o atalho está DESLIGADO.
+ *
+ * A hipótese é que ele não se paga. Ele existia para poupar toques, mas a
+ * conta nunca fechou: tocar no `+` abre um painel para perguntar onde você
+ * está, o que já são dois toques — os mesmos de abrir a obra. E ele obrigava a
+ * manter um segundo painel de adição (`AddStatusSheet`) fazendo, pior e com
+ * menos contexto, o que o painel da obra já faz: a mesma régua, os mesmos
+ * estados, sem a sinopse nem a capa grande.
+ *
+ * Com ele desligado o caminho é um só — tocar na capa abre a obra, e o botão
+ * "Adicionar à estante" ali dentro faz o painel virar régua na hora, sem
+ * fechar. Adicionar e dizer onde parou viram o mesmo gesto contínuo.
+ *
+ * Ligar de volta é trocar esta linha por `true`. Nada mais foi removido: as
+ * duas telas continuam montando o componente e o `AddStatusSheet` segue
+ * inteiro, justamente para que voltar atrás não custe uma reconstrução.
+ */
+const ATALHO_NA_CAPA = false
+
+/**
  * O botão de adicionar/tirar da estante que fica SOBRE a capa.
  *
  * Ele existe porque tocar na capa passou a abrir o detalhe da obra, e sem um
@@ -39,6 +59,12 @@ export function CoverAction({
   onClick: () => void
   className?: string
 }) {
+  // NADA NA TELA enquanto o experimento durar — e nada no DOM, que é o ponto:
+  // esconder por CSS deixaria o alvo de 44px capturando o toque destinado à
+  // capa, e o leitor de tela continuaria anunciando um botão que não existe
+  // mais. Ver `ATALHO_NA_CAPA`.
+  if (!ATALHO_NA_CAPA) return null
+
   // A moldura NÃO leva `aria-hidden`: ele esconderia os descendentes junto, e
   // o botão de adicionar sumiria do leitor de tela. Moldura invisível não é a
   // mesma coisa que conteúdo decorativo.
