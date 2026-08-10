@@ -82,18 +82,20 @@ export function CoverStack({
           expanded ? 'hidden' : ''
         }`}
       >
-        {/* DESLOCADAS, NÃO GIRADAS. As duas foram desenhadas e comparadas na
-            tela: girar meio grau numa célula de ~110px espalha uma borda fina
-            pelos quatro lados e lê como SOMBRA, não como pilha. Deslocar para
-            baixo e para a direita deixa duas beiradas nítidas de um lado só,
-            que é o que o olho reconhece como "tem mais coisa embaixo".
+        {/* GIRADAS, e a escolha foi do usuário (10/08/2026) com as duas
+            versões desenhadas lado a lado. A alternativa era deslocar para
+            baixo e para a direita, que dá duas beiradas nítidas de um lado só;
+            eu tinha argumentado por ela, e o giro ganhou no olho — ele envolve
+            a capa pelos quatro lados e lê como um monte largado na prateleira,
+            não como um baralho alinhado. Ao mexer aqui, saiba que a versão
+            deslocada já foi testada e recusada.
 
-            E `bg-ink` e não `bg-surface`: no tema escuro a superfície é quase a
+            `bg-ink` e não `bg-surface`: no tema escuro a superfície é quase a
             cor do fundo, e as folhas sumiam — medido, não suposto. `ink` com
             alfa é a única que contrasta nos DOIS temas, porque inverte junto
             com o fundo. */}
-        <span className="absolute inset-0 translate-x-[7px] translate-y-[4px] rounded-card bg-ink/15 ring-1 ring-ink/20" />
-        <span className="absolute inset-0 translate-x-[3.5px] translate-y-[2px] rounded-card bg-ink/25 ring-1 ring-ink/20" />
+        <span className="absolute inset-0 -rotate-3 rounded-card bg-ink/15 ring-1 ring-ink/20" />
+        <span className="absolute inset-0 rotate-2 rounded-card bg-ink/25 ring-1 ring-ink/20" />
       </span>
 
       {/* A capa por cima das folhas, no fluxo normal — é ela que dá a altura da
