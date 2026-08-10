@@ -111,16 +111,12 @@ describe('summarizeCompleted', () => {
   it('soma cada unidade de progresso na sua conta', () => {
     const summary = summarizeCompleted([
       done('2026-01-01T00:00:00.000Z', {
-        mediaType: 'game',
-        progress: { unit: 'hour', current: 80 },
-      }),
-      done('2026-01-01T00:00:00.000Z', {
-        mediaType: 'game',
-        progress: { unit: 'hour', current: 12 },
+        mediaType: 'book',
+        progress: { unit: 'page', current: 194 },
       }),
       done('2026-01-01T00:00:00.000Z', {
         mediaType: 'book',
-        progress: { unit: 'page', current: 194 },
+        progress: { unit: 'page', current: 106 },
       }),
       done('2026-01-01T00:00:00.000Z', {
         mediaType: 'anime',
@@ -128,9 +124,22 @@ describe('summarizeCompleted', () => {
       }),
     ])
 
-    expect(summary.hoursPlayed).toBe(92)
-    expect(summary.pagesRead).toBe(194)
+    expect(summary.pagesRead).toBe(300)
     expect(summary.episodesWatched).toBe(26)
+  })
+
+  // Item antigo de jogo pode ter `unit: 'hour'` gravado, de antes da decisão
+  // 21. A soma tem de IGNORAR em vez de quebrar: a coluna continua no banco e
+  // o app simplesmente parou de ler.
+  it('unidade que não existe mais não entra em conta nenhuma', () => {
+    const summary = summarizeCompleted([
+      done('2026-01-01T00:00:00.000Z', {
+        mediaType: 'game',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        progress: { unit: 'hour' as any, current: 80 },
+      }),
+    ])
+    expect(summary).toMatchObject({ total: 1, pagesRead: 0, episodesWatched: 0 })
   })
 
   it('não inventa número para quem não registrou progresso', () => {
@@ -149,7 +158,6 @@ describe('summarizeCompleted', () => {
     const summary = summarizeCompleted([done('2026-01-01T00:00:00.000Z')])
     expect(summary).toMatchObject({
       total: 1,
-      hoursPlayed: 0,
       pagesRead: 0,
       episodesWatched: 0,
     })
@@ -159,7 +167,6 @@ describe('summarizeCompleted', () => {
     expect(summarizeCompleted([])).toEqual({
       total: 0,
       byMedia: [],
-      hoursPlayed: 0,
       pagesRead: 0,
       episodesWatched: 0,
     })

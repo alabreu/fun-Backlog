@@ -14,7 +14,6 @@ export const en: Record<keyof typeof pt, string> = {
   'home.loading': 'Loading your shelf…',
   'home.shelves': 'Your shelves',
   'home.searchFab': 'Search or add',
-  'home.progressHours': '{current} h',
   'home.emptyTitle': 'Your shelf is empty',
   'home.emptyBody':
     'Add the first game, movie, series, anime or book you want to get to.',
@@ -98,7 +97,6 @@ export const en: Record<keyof typeof pt, string> = {
   'completed.allYears': 'All',
   'completed.yearHeading': 'In {year}',
   'completed.statTotal': 'completed',
-  'completed.statHours': 'hours played',
   'completed.statEpisodes': 'episodes',
   'completed.statPages': 'pages',
   'completed.emptyTitle': 'No trophies yet',
@@ -120,11 +118,8 @@ export const en: Record<keyof typeof pt, string> = {
   // Item (detail)
   'item.statusLabel': 'Status',
   'item.progressLabel': 'Progress',
-  'item.hoursLabel': 'Hours played',
-  'item.hoursUnit': 'hours so far',
   'item.progress.page': 'Page',
   'item.progress.episode': 'Episode',
-  'item.progress.hour': 'Hours',
   'item.progressOf': 'of {total}',
   'item.seasonEpisode': 'S{season} E{episode}',
   'item.typeExact': 'Type the exact position',

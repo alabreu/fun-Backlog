@@ -63,15 +63,22 @@ export function progressLabelKey(unit: ProgressUnit): MessageKey {
   const keys: Record<ProgressUnit, MessageKey> = {
     page: 'item.progress.page',
     episode: 'item.progress.episode',
-    hour: 'item.progress.hour',
   }
   return keys[unit]
 }
 
 /**
- * A unidade em que o progresso é contado. Filme não tem progresso: ou você
- * assistiu, ou não — e inventar uma barra de progresso para ele seria a
- * interface mentindo sobre o formato da mídia.
+ * A unidade em que o progresso é contado.
+ *
+ * FILME E JOGO não têm. No filme, ou você assistiu ou não — inventar uma barra
+ * ali seria a interface mentindo sobre o formato da mídia.
+ *
+ * No jogo o motivo é outro e levou duas tentativas para ficar claro. Ele contava
+ * HORAS, que já não eram progresso (decisão 16: Dota e CS não têm fim, e mesmo
+ * num jogo que tem, "40 horas" não diz o quanto falta) — o campo tinha sido
+ * rebatizado e movido para depois da nota. Continuava sendo um número que a
+ * pessoa teria de saber de cor e digitar à mão, e ninguém sabe quantas horas
+ * jogou. Ver decisão 21.
  */
 export function progressUnitFor(
   mediaType: MediaType,
@@ -83,7 +90,6 @@ export function progressUnitFor(
     case 'anime':
       return 'episode'
     case 'game':
-      return 'hour'
     case 'movie':
       return undefined
   }
@@ -132,8 +138,8 @@ export function datesForStatus(
  *    o que você pretende fazer, não sobre onde você está — e sem isto seria
  *    impossível registrar progresso sem sair do pausado, que é justamente
  *    quando se quer anotar onde parou.
- * 2. SEM TOTAL, NÃO HÁ REGRA. Jogo mede em horas sem fim conhecido, e obra
- *    adicionada à mão pode não ter total nenhum. Ali o status continua sendo
+ * 2. SEM TOTAL, NÃO HÁ REGRA. Obra adicionada à mão pode não ter total nenhum, e
+ *    filme e jogo não têm unidade de progresso. Ali o status continua sendo
  *    escolhido, como sempre foi.
  *
  * Devolve o status ATUAL quando não há o que derivar, e nunca `null`: quem
@@ -161,9 +167,8 @@ export function statusFromProgress(
  * Três casos caem fora, e por motivos diferentes:
  *
  * 1. FILME não tem unidade de progresso. Ou você assistiu, ou não.
- * 2. JOGO conta HORAS, e hora não é caminho percorrido (decisão 16): Dota e CS
- *    não têm fim, e mesmo num jogo que tem, "40 horas" não diz o quanto falta.
- *    Uma régua ali teria uma ponta inventada.
+ * 2. JOGO não tem unidade nenhuma desde a decisão 21. Contava horas, que já não
+ *    eram progresso, e o campo saiu inteiro.
  * 3. SEM TOTAL não existe ponta. Livro adicionado à mão, série que a fonte não
  *    conhece: a régua não teria fim, e o estado "concluída" ficaria inalcançável
  *    — que é exatamente o buraco que esta função existe para não abrir.
@@ -177,7 +182,7 @@ export function hasRuler(
   total: number | undefined,
 ): boolean {
   const unit = progressUnitFor(mediaType)
-  if (!unit || unit === 'hour') return false
+  if (!unit) return false
   return Boolean(total && total > 0)
 }
 

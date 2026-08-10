@@ -1100,15 +1100,8 @@ function PersonalControls({
     if (derivado !== item.status) void setStatus(item.id, derivado)
   }
 
-  // HORA NÃO É PROGRESSO (decisão 16, escolha do usuário 09/08/2026). Dota e
-  // CS não têm fim: as horas ali medem INVESTIMENTO, não caminho percorrido —
-  // e mesmo num jogo com fim, "40 horas" não diz o quanto falta. Por isso elas
-  // saem do lugar do progresso, ganham nome próprio e descem para depois da
-  // nota: é informação de acervo, não de andamento.
-  const contaHoras = unit === 'hour'
-
   const campoNumerico = (
-    <Field label={t(contaHoras ? 'item.hoursLabel' : 'item.progressLabel')}>
+    <Field label={t('item.progressLabel')}>
       {(id) => (
         <div className="flex items-center gap-2">
           {/* A LARGURA VEM DO ENVOLTÓRIO, e não de uma classe no componente: o
@@ -1121,9 +1114,7 @@ function PersonalControls({
               inputMode="numeric"
               min={0}
               value={item.progress?.current ?? ''}
-              aria-label={t(
-                contaHoras ? 'item.hoursLabel' : progressLabelKey(unit!),
-              )}
+              aria-label={t(progressLabelKey(unit!))}
               onChange={(e) => {
                 const current = Number(e.target.value)
                 if (Number.isFinite(current)) gravar(current)
@@ -1131,12 +1122,10 @@ function PersonalControls({
             />
           </div>
           <span className="min-w-0 flex-1 text-body text-muted">
-            {contaHoras
-              ? t('item.hoursUnit')
-              : total
-                ? t('item.progressOf', { total })
-                : t(progressLabelKey(unit!))}
-            {!contaHoras && posicao && (
+            {total
+              ? t('item.progressOf', { total })
+              : t(progressLabelKey(unit!))}
+            {posicao && (
               <span className="ml-2 font-semibold text-ink">
                 {t('item.seasonEpisode', {
                   season: posicao.season,
@@ -1159,7 +1148,7 @@ function PersonalControls({
       {/* NADA DE PROGRESSO numa obra que não saiu — nem episódio, nem hora.
           Não é só que não há o que marcar: um campo em branco ali convida a
           preencher, e o número preenchido seria mentira. */}
-      {unit && !contaHoras && !hasRuler(item.mediaType, total) && !unreleased && (
+      {unit && !hasRuler(item.mediaType, total) && !unreleased && (
         <div>{campoNumerico}</div>
       )}
 
@@ -1202,10 +1191,6 @@ function PersonalControls({
           />
         </div>
       )}
-
-      {/* AS HORAS, depois da nota e antes das anotações. É acervo, não
-          andamento: nenhum slider, nenhum estado derivado dela. */}
-      {contaHoras && !unreleased && <div>{campoNumerico}</div>}
 
       <Field label={t('item.notesLabel')}>
         {(id) => (

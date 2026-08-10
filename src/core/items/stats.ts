@@ -64,8 +64,9 @@ export interface CompletedSummary {
   total: number
   /** Só as mídias com pelo menos um item — nada de "0 livros" na tela. */
   byMedia: MediaCount[]
-  /** Somas de progresso, por unidade. Zero quando ninguém registrou nada. */
-  hoursPlayed: number
+  /** Somas de progresso, por unidade. Zero quando ninguém registrou nada.
+   *  Horas saíram junto com o campo que as escrevia (decisão 21): um contador
+   *  que só pode congelar é pior que contador nenhum. */
   pagesRead: number
   episodesWatched: number
 }
@@ -86,7 +87,6 @@ export function summarizeCompleted(
   order: MediaType[] = MEDIA_ORDER,
 ): CompletedSummary {
   const counts = new Map<MediaType, number>()
-  let hoursPlayed = 0
   let pagesRead = 0
   let episodesWatched = 0
 
@@ -95,8 +95,7 @@ export function summarizeCompleted(
 
     const progress = item.progress
     if (!progress || !Number.isFinite(progress.current)) continue
-    if (progress.unit === 'hour') hoursPlayed += progress.current
-    else if (progress.unit === 'page') pagesRead += progress.current
+    if (progress.unit === 'page') pagesRead += progress.current
     else if (progress.unit === 'episode') episodesWatched += progress.current
   }
 
@@ -106,7 +105,6 @@ export function summarizeCompleted(
       mediaType,
       count: counts.get(mediaType) as number,
     })),
-    hoursPlayed,
     pagesRead,
     episodesWatched,
   }

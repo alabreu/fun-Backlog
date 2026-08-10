@@ -28,11 +28,13 @@ describe('progressUnitFor', () => {
     expect(progressUnitFor('book')).toBe('page')
     expect(progressUnitFor('series')).toBe('episode')
     expect(progressUnitFor('anime')).toBe('episode')
-    expect(progressUnitFor('game')).toBe('hour')
   })
 
-  it('filme não tem progresso — ou assistiu, ou não', () => {
+  // Filme: ou assistiu, ou não. Jogo: contava horas, e horas nunca foram
+  // progresso — o campo saiu inteiro na decisão 21.
+  it('filme e jogo não têm progresso', () => {
     expect(progressUnitFor('movie')).toBeUndefined()
+    expect(progressUnitFor('game')).toBeUndefined()
   })
 
   it('cobre todas as mídias declaradas', () => {

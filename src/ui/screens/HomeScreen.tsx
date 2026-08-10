@@ -8,7 +8,11 @@ import {
   vocativeFor,
 } from '@core/greeting'
 import { useNicknameStore } from '@core/state/nicknameStore'
-import { mediaLabelKey, progressLabelKey } from '@core/items/status'
+import {
+  mediaLabelKey,
+  progressLabelKey,
+  progressUnitFor,
+} from '@core/items/status'
 import {
   inProgress,
   shelfProgress,
@@ -255,6 +259,7 @@ function ItemCard({
 }) {
   const { t } = useTranslation()
   const progress = item.progress
+  const unit = progressUnitFor(item.mediaType)
 
   return (
     <button
@@ -270,16 +275,17 @@ function ItemCard({
           glow
           lazy={!eager}
         />
-        {progress && progress.current > 0 && (
+        {/* A UNIDADE VEM DA MÍDIA, e não do que está gravado no item. Parece a
+            mesma coisa e não é: um jogo antigo tem `unit: 'hour'` guardado, de
+            antes de o campo de horas sair (decisão 21), e pedir o rótulo dessa
+            unidade devolvia `undefined` — o selo aparecia com um buraco no
+            lugar do nome. Perguntar à mídia faz o dado órfão simplesmente não
+            desenhar nada. */}
+        {unit && progress && progress.current > 0 && (
           <Badge tone="onCover" className="absolute bottom-1.5 left-1.5">
-            {/* Horas não levam rótulo antes do número: "Horas 42" sai torto em
-                qualquer idioma, enquanto "Episódio 12/26" pede o rótulo para
-                não virar um número solto. */}
-            {progress.unit === 'hour'
-              ? t('home.progressHours', { current: progress.current })
-              : `${t(progressLabelKey(progress.unit))} ${progress.current}${
-                  progress.total ? `/${progress.total}` : ''
-                }`}
+            {`${t(progressLabelKey(unit))} ${progress.current}${
+              progress.total ? `/${progress.total}` : ''
+            }`}
           </Badge>
         )}
       </div>

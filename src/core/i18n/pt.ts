@@ -12,7 +12,6 @@ export const pt = {
   'home.loading': 'Carregando sua estante…',
   'home.shelves': 'Suas estantes',
   'home.searchFab': 'Buscar ou adicionar',
-  'home.progressHours': '{current} h',
   'home.emptyTitle': 'Sua estante está vazia',
   'home.emptyBody':
     'Adicione o primeiro jogo, filme, série, anime ou livro que você quer consumir.',
@@ -96,7 +95,6 @@ export const pt = {
   'completed.allYears': 'Tudo',
   'completed.yearHeading': 'Em {year}',
   'completed.statTotal': 'concluídos',
-  'completed.statHours': 'horas de jogo',
   'completed.statEpisodes': 'episódios',
   'completed.statPages': 'páginas',
   'completed.emptyTitle': 'Nenhum troféu ainda',
@@ -118,11 +116,8 @@ export const pt = {
   // Item (detalhe)
   'item.statusLabel': 'Status',
   'item.progressLabel': 'Progresso',
-  'item.hoursLabel': 'Horas jogadas',
-  'item.hoursUnit': 'horas até agora',
   'item.progress.page': 'Página',
   'item.progress.episode': 'Episódio',
-  'item.progress.hour': 'Horas',
   'item.progressOf': 'de {total}',
   'item.seasonEpisode': 'T{season} E{episode}',
   'item.typeExact': 'Digitar a posição exata',

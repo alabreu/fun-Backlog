@@ -28,7 +28,10 @@ export const ITEM_STATUSES = [
 export type ItemStatus = (typeof ITEM_STATUSES)[number]
 
 /** Unidade de progresso de cada mídia. Filme não tem — ver `progressUnitFor`. */
-export type ProgressUnit = 'page' | 'episode' | 'hour'
+/** `hour` SAIU (09/08/2026, decisão 21). Jogo não tem mais campo de progresso.
+ *  Itens antigos podem ter a unidade gravada na coluna `progress` — nada os
+ *  apaga, e nada mais os lê. */
+export type ProgressUnit = 'page' | 'episode'
 
 export interface Progress {
   unit: ProgressUnit

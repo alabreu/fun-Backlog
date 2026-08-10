@@ -1012,6 +1012,39 @@ Vale como aviso: campo novo na consulta nasce com um uso ou não nasce.
 
 ---
 
+## 21. Jogo não tem campo de progresso
+
+**09/08/2026, a pedido do usuário.** As "horas jogadas" saíram inteiras. Jogo
+passa a ser como filme: fileira de status, nota, anotações — e nada de
+progresso.
+
+A decisão 16 já tinha tirado as horas do lugar de progresso ("investimento, não
+andamento") e as movido para depois da nota. Ficou meio caminho: continuava
+sendo um número que a pessoa teria de saber de cor e digitar à mão, e **ninguém
+sabe quantas horas jogou**. O dado existe na Steam e é lá que ele deve ser
+buscado — está no backlog, junto dos imports de biblioteca.
+
+### O que saiu junto, e por quê
+
+O campo era a única coisa que ESCREVIA horas. Deixar a leitura de pé faria a
+estatística "92 horas de jogo" na tela de Concluídos congelar para sempre, sem
+jeito de crescer nem corrigir. **Um contador que só pode congelar é pior que
+contador nenhum**, então a soma e o selo da home saíram junto. Sobrou a unidade
+`hour` no tipo `ProgressUnit`, que também saiu.
+
+### O dado antigo fica no banco
+
+Nada foi apagado: um jogo que já tinha `progress: {unit: 'hour', current: 80}`
+continua com a coluna preenchida. O app simplesmente parou de ler.
+
+Isso escondia uma armadilha que só apareceu no navegador. O selo de progresso na
+home pedia o rótulo da unidade GRAVADA no item — e `progressLabelKey('hour')`
+passou a devolver `undefined`, ou seja, o selo aparecia com um buraco no lugar
+do nome. A correção é a regra geral: **a unidade vem da MÍDIA, não do que está
+gravado**. Assim o dado órfão simplesmente não desenha nada.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A

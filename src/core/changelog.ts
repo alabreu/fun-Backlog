@@ -19,6 +19,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-09-horas-jogadas',
+    date: '2026-08-09',
+    emoji: '🎮',
+    title: {
+      pt: 'Jogo não pede mais horas',
+      en: 'Games no longer ask for hours',
+    },
+    items: {
+      pt: [
+        'O campo de horas jogadas saiu. Era um número que você teria de saber de cor e digitar à mão — e ninguém sabe quantas horas jogou. A Steam sabe, e é de lá que ele deve vir um dia.',
+        'Jogo agora funciona como filme: status, nota e anotações. As horas que você já tinha registrado continuam guardadas.',
+      ],
+      en: [
+        'The hours-played field is gone. It was a number you would have to know by heart and type in — and nobody knows how many hours they played. Steam does, and that is where it should come from one day.',
+        'Games now work like films: status, rating and notes. Any hours you had already recorded are still stored.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-nao-lancado',
     date: '2026-08-09',
     emoji: '🗓️',

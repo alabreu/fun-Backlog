@@ -96,12 +96,6 @@ export function CompletedScreen() {
           />
           {/* Cada unidade só aparece se alguém registrou progresso nela —
               "0 páginas" não é troféu, é ruído. */}
-          {summary.hoursPlayed > 0 && (
-            <Stat
-              value={summary.hoursPlayed}
-              label={t('completed.statHours')}
-            />
-          )}
           {summary.episodesWatched > 0 && (
             <Stat
               value={summary.episodesWatched}
