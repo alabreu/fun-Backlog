@@ -4,7 +4,14 @@ export const pt = {
   'common.back': 'Voltar',
   'common.cancel': 'Cancelar',
   'common.close': 'Fechar',
+  'common.home': 'Ir para o início',
   'common.remove': 'Remover',
+
+  // A obra aberta por link compartilhado
+  'work.missingTitle': 'Não achamos essa obra',
+  'work.missingBody':
+    'O link pode estar incompleto, ou a obra saiu do catálogo da fonte.',
+  'work.goHome': 'Ver o Fun Backlog',
 
   // Home
   'home.menuButton': 'Menu',
@@ -168,6 +175,9 @@ export const pt = {
   'item.unreleased': 'Ainda não lançado',
   'item.inTheaters': 'Em cartaz',
   'item.viewCover': 'Ver a capa em tamanho grande',
+  'item.share': 'Compartilhar esta obra',
+  'item.shareCopied': 'Link copiado',
+  'item.shareFailed': 'Não deu para compartilhar o link',
   'item.coverDialog': 'Capa de {title}',
   'item.downloadCover': 'Baixar a capa',
   'item.franchise': 'Da mesma franquia',

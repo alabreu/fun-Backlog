@@ -19,6 +19,46 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-10-compartilhar',
+    date: '2026-08-10',
+    emoji: '🔗',
+    title: {
+      pt: 'Mandar uma obra para alguém',
+      en: 'Send a work to someone',
+    },
+    items: {
+      pt: [
+        'Toda obra ganhou um botão de compartilhar ao lado do título. Ele abre o menu do seu celular — WhatsApp, Telegram, o que você usar — com o link pronto.',
+        'Quem recebe abre e vê a obra inteira: capa, sinopse, nota, onde assistir. Sem conta, sem instalar nada.',
+        'Se a obra já estiver na estante de quem abriu, o link mostra o progresso dela normalmente.',
+      ],
+      en: [
+        'Every work has a share button next to its title. It opens your phone’s share menu — WhatsApp, Telegram, whatever you use — with the link ready.',
+        'Whoever receives it opens and sees the whole work: cover, synopsis, rating, where to watch. No account, nothing to install.',
+        'If the work is already on their shelf, the link shows their progress as usual.',
+      ],
+    },
+  },
+  {
+    id: '2026-08-10-busca-flutuante',
+    date: '2026-08-10',
+    emoji: '🔍',
+    title: {
+      pt: 'A busca desceu para o rodapé',
+      en: 'Search moved to the bottom',
+    },
+    items: {
+      pt: [
+        'Na estante, o campo de busca saiu do topo e virou uma barra flutuante embaixo — perto do polegar, que é onde a mão já está.',
+        'O filtro de favoritas saiu. O coração na capa continua, e as favoritas seguem aparecendo primeiro dentro de cada seção.',
+      ],
+      en: [
+        'On the shelf, the search field left the top and became a floating bar at the bottom — near your thumb, where your hand already is.',
+        'The favourites filter is gone. The heart on the cover stays, and favourites still come first inside each section.',
+      ],
+    },
+  },
+  {
     id: '2026-08-09-favoritas',
     date: '2026-08-09',
     emoji: '🩷',

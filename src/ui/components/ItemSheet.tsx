@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Trash } from '@phosphor-icons/react'
 import { collectionState, sortByCollection } from '@core/media/collection'
 import { detailSourceFor, fetchDetail } from '@core/media/detail'
+import { shareTargetFor } from '@core/media/share'
 import { genreColorIndexes } from '@core/media/genres'
 import { fullSizeCoverUrl } from '@core/media/image'
 import type { PlatformFamily } from '@core/media/platforms'
@@ -55,6 +56,7 @@ import {
   Skeleton,
   Textarea,
 } from '@ui/design'
+import { ShareButton } from '@ui/components/ShareButton'
 import { useImageDownload } from '@ui/hooks/useImageDownload'
 import { makeProgressFormat } from '@ui/progressFormat'
 import { useItems } from '@ui/hooks/useItems'
@@ -86,9 +88,23 @@ function isShelfItem(subject: SheetSubject): subject is Item {
 export function ItemSheet({
   subject,
   onClose,
+  initialDetail,
 }: {
   subject: SheetSubject | null
   onClose: () => void
+  /**
+   * A ficha JÁ CARREGADA, quando quem abre o painel também precisou dela.
+   *
+   * É o caso da página de link compartilhado: ela tem de buscar a ficha antes
+   * de renderizar qualquer coisa — sem a ficha não dá para saber se o id existe
+   * nem qual é o título. Sem este atalho o painel buscaria de novo, e quem
+   * abrisse o link veria a ficha carregar DUAS vezes, com o esqueleto piscando
+   * depois de o conteúdo já ter aparecido.
+   *
+   * Vale só para o assunto de ABERTURA: navegando pelo carrossel de franquia, a
+   * obra é outra e a ficha dela é buscada normalmente.
+   */
+  initialDetail?: MediaDetail | null
 }) {
   const { t } = useTranslation()
   const label = subject?.title ?? t('common.close')
@@ -135,9 +151,12 @@ export function ItemSheet({
   return (
     <Sheet open={Boolean(subject)} onClose={onClose} label={label}>
       {atual && (
-        <Detail
+        <WorkDetail
           key={atualKey}
           subject={atual}
+          // Só enquanto o assunto for o de abertura: `navegado` significa que a
+          // pessoa foi para outra obra, e a ficha pronta é da primeira.
+          initialDetail={navegado ? null : initialDetail}
           onClose={onClose}
           onNavigate={(para) => setNavegado({ de: key, para })}
         />
@@ -146,15 +165,27 @@ export function ItemSheet({
   )
 }
 
-function Detail({
+/**
+ * O CORPO do painel — e ele é um `<div>` comum, sem nada de sheet.
+ *
+ * Exportado porque o link compartilhado (`/obra/...`) mostra a MESMA ficha numa
+ * PÁGINA, e não num painel: quem chega pelo WhatsApp não tem app atrás para o
+ * painel flutuar por cima, e um modal sem nada embaixo é um modal mentindo
+ * sobre de onde você veio. Duas cópias desta ficha divergiriam no primeiro
+ * ajuste, então quem muda é a moldura, não o conteúdo.
+ */
+export function WorkDetail({
   subject,
   onClose,
   onNavigate,
+  initialDetail,
 }: {
   subject: SheetSubject
   onClose: () => void
   /** Trocar a obra do painel — o carrossel de franquia é quem chama. */
   onNavigate: (subject: SheetSubject) => void
+  /** Ver `ItemSheet`. */
+  initialDetail?: MediaDetail | null
 }) {
   const { t, locale } = useTranslation()
   const { items, add, update, setStatus, remove } = useItems()
@@ -172,11 +203,14 @@ function Detail({
       ? { provider: fromSearch.provider, externalId: fromSearch.externalId }
       : null
 
-  const [detail, setDetail] = useState<MediaDetail | null>(null)
+  const [detail, setDetail] = useState<MediaDetail | null>(initialDetail ?? null)
   // Já nasce sabendo se há o que carregar, em vez de nascer `true` e ser
   // corrigido por um setState dentro do effect — que é o que o lint de hooks
   // barra, e com razão: seria um render a mais só para desdizer o anterior.
-  const [loadingDetail, setLoadingDetail] = useState(Boolean(source))
+  // Com a ficha já em mãos, nasce em `false` e nunca há esqueleto.
+  const [loadingDetail, setLoadingDetail] = useState(
+    Boolean(source) && !initialDetail,
+  )
   const [adding, setAdding] = useState(false)
   const [failed, setFailed] = useState(false)
   const [viewerOpen, setViewerOpen] = useState(false)
@@ -207,6 +241,27 @@ function Detail({
 
   useEffect(() => {
     if (!source) return
+
+    // A DATA DE ESTREIA APROVEITA A CARONA. A ficha sabe quando a obra sai; a
+    // estante precisa desse dado para separar "Não lançados" e não pode buscar
+    // ficha nenhuma. Gravar aqui não custa requisição, e é o que faz um item
+    // antigo — catalogado antes da coluna existir — se corrigir só por ser
+    // aberto uma vez.
+    //
+    // Só escreve quando MUDA: sem essa comparação, toda abertura de ficha
+    // viraria um UPDATE.
+    const gravarEstreia = (found: MediaDetail | null) => {
+      if (found?.releaseDate && matched && matched.releasesAt !== found.releaseDate)
+        void update(matched.id, { releasesAt: found.releaseDate })
+    }
+
+    // Ficha já em mãos: nada a buscar, mas a carona da data continua valendo —
+    // quem abre o próprio link também merece a correção.
+    if (initialDetail) {
+      gravarEstreia(initialDetail)
+      return
+    }
+
     const controller = new AbortController()
     void fetchDetail(source.provider, source.externalId, mediaType, {
       signal: controller.signal,
@@ -215,16 +270,7 @@ function Detail({
       if (controller.signal.aborted) return
       setDetail(found)
       setLoadingDetail(false)
-      // A DATA DE ESTREIA APROVEITA A CARONA. A ficha acabou de chegar e ela
-      // sabe quando a obra sai; a estante precisa desse dado para separar "Não
-      // lançados" e não pode buscar ficha nenhuma. Gravar aqui não custa
-      // requisição, e é o que faz um item antigo — catalogado antes da coluna
-      // existir — se corrigir só por ser aberto uma vez.
-      //
-      // Só escreve quando MUDA: sem essa comparação, toda abertura de ficha
-      // viraria um UPDATE.
-      if (found?.releaseDate && matched && matched.releasesAt !== found.releaseDate)
-        void update(matched.id, { releasesAt: found.releaseDate })
+      gravarEstreia(found)
     })
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -233,6 +279,20 @@ function Detail({
   const title = matched?.title ?? subject.title
   const coverUrl = detail?.coverUrl ?? matched?.coverUrl ?? subject.coverUrl
   const year = detail?.year ?? fromSearch?.year
+
+  // O ALVO DO LINK sai da fonte, nunca do item: o id do item é seu e protegido
+  // por RLS, então mandá-lo não compartilharia nada. `null` numa obra digitada
+  // à mão — sem fonte não há endereço, e o botão some.
+  const shareTarget = shareTargetFor(
+    mediaType,
+    title,
+    fromShelf
+      ? fromShelf.externalIds
+      : // A ficha ganha do resultado no id, pelo mesmo motivo do `addToShelf`
+        // logo acima: em anime é ela que sabe que "Season 3" é a terceira
+        // temporada, e o link tem de apontar para a obra, não para o pedaço.
+        { [fromSearch!.provider]: detail?.externalId ?? fromSearch!.externalId },
+  )
 
   function formatDate(iso: string): string {
     return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
@@ -305,7 +365,15 @@ function Detail({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-title font-bold">{title}</h2>
+          {/* O compartilhar fica AO LADO DO TÍTULO, e não no rodapé com as
+              outras ações: ele não é sobre a sua relação com a obra (status,
+              progresso, nota) — é sobre a obra em si, que é justamente o que
+              esta linha apresenta. `items-start` porque título de duas linhas
+              não pode empurrar o botão para o meio. */}
+          <div className="flex items-start gap-2">
+            <h2 className="min-w-0 flex-1 text-title font-bold">{title}</h2>
+            <ShareButton target={shareTarget} className="-mr-1 -mt-1 shrink-0" />
+          </div>
           {detail?.originalTitle && detail.originalTitle !== title && (
             <p className="text-label text-muted">{detail.originalTitle}</p>
           )}

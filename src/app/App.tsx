@@ -39,6 +39,7 @@ import { NewsScreen } from '@ui/screens/NewsScreen'
 import { NicknameScreen } from '@ui/screens/NicknameScreen'
 import { SettingsScreen } from '@ui/screens/SettingsScreen'
 import { ShelfScreen } from '@ui/screens/ShelfScreen'
+import { WorkScreen } from '@ui/screens/WorkScreen'
 
 const LOCALE_STORAGE_KEY = storageKey('locale')
 const THEME_STORAGE_KEY = storageKey('theme')
@@ -222,6 +223,23 @@ export function App() {
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/estante/:media" element={<ShelfScreen />} />
+          {/* A OBRA COMO PÁGINA — o destino de um link compartilhado. Duas
+              rotas para a mesma tela porque o apelido do fim é opcional: ele é
+              enfeite para o link ficar legível no WhatsApp, e um endereço sem
+              ele continua valendo (ver `core/media/share.ts`).
+
+              NÃO É `lazy`, ao contrário do /admin e do /design: esta é a
+              PRIMEIRA tela que muita gente vai ver do app, chegando de fora por
+              um link. Um pedaço de código a mais para baixar antes de qualquer
+              pixel é justamente o que não se quer nessa hora. */}
+          <Route
+            path="/obra/:media/:provider/:externalId"
+            element={<WorkScreen />}
+          />
+          <Route
+            path="/obra/:media/:provider/:externalId/:slug"
+            element={<WorkScreen />}
+          />
           <Route path="/buscar" element={<AddScreen />} />
           <Route path="/concluidos" element={<CompletedScreen />} />
           <Route path="/configuracoes" element={<SettingsScreen />} />

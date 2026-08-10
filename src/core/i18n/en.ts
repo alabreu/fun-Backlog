@@ -6,7 +6,14 @@ export const en: Record<keyof typeof pt, string> = {
   'common.back': 'Back',
   'common.cancel': 'Cancel',
   'common.close': 'Close',
+  'common.home': 'Go to the start',
   'common.remove': 'Remove',
+
+  // A work opened from a shared link
+  'work.missingTitle': 'We could not find this work',
+  'work.missingBody':
+    'The link may be incomplete, or the work left the source’s catalogue.',
+  'work.goHome': 'See Fun Backlog',
 
   // Home
   'home.menuButton': 'Menu',
@@ -163,6 +170,9 @@ export const en: Record<keyof typeof pt, string> = {
   'item.unreleased': 'Not released yet',
   'item.inTheaters': 'In cinemas',
   'item.viewCover': 'View the cover at full size',
+  'item.share': 'Share this work',
+  'item.shareCopied': 'Link copied',
+  'item.shareFailed': 'Could not share the link',
   'item.coverDialog': 'Cover of {title}',
   'item.downloadCover': 'Download the cover',
   'item.franchise': 'From the same franchise',
