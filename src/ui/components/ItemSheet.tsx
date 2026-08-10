@@ -52,6 +52,7 @@ import {
   Textarea,
 } from '@ui/design'
 import { useImageDownload } from '@ui/hooks/useImageDownload'
+import { makeProgressFormat } from '@ui/progressFormat'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
@@ -760,23 +761,19 @@ function ProgressBlock({
     )
   }
 
-  /** Como dizer um valor: "T3 E12" quando a fonte conhece as temporadas,
-   *  "Episódio 34" / "Página 234" quando não. */
-  function dizer(v: number): string {
-    const onde = locate(v, seasons ?? [])
-    if (onde)
-      return t('item.seasonEpisode', {
-        season: onde.season,
-        episode: onde.episode,
-      })
-    return `${t(progressLabelKey(unit))} ${v}`
-  }
+  const dizer = makeProgressFormat(t, item.mediaType, seasons)
 
   return (
     <div>
-      <div className="mb-2 flex items-center gap-2">
+      {/* O SELO VAI PARA A DIREITA DA TELA (escolha do usuário, 09/08/2026).
+          Colado no título ele lia como continuação dele — "PROGRESSO Assistindo"
+          numa frase só. Nas pontas opostas da mesma linha, os dois viram o que
+          são: à esquerda o nome do controle, à direita o estado que ele produz. */}
+      <div className="mb-2 flex items-center justify-between gap-2">
         <SectionTitle>{t('item.progressLabel')}</SectionTitle>
-        <Badge>{t(statusLabelKey(item.status, item.mediaType))}</Badge>
+        <Badge status={item.status}>
+          {t(statusLabelKey(item.status, item.mediaType))}
+        </Badge>
       </div>
 
       <SeasonSlider

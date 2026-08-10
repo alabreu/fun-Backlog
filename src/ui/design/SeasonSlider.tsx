@@ -10,14 +10,6 @@ import {
   thumbOffset,
 } from './sliderGeometry'
 
-/**
- * Metade da largura do balão MAIS LARGO. Medido, não estimado: "Episódio 0" com
- * o lápis dá 123px a 16px — e o pior caso é justamente esse, porque o texto
- * longo ("Episódio N", sem temporada) só aparece no zero, que é também a ponta
- * esquerda. Com 50 aqui o balão vazava 12px para fora da margem da tela.
- */
-const BALAO_META_PX = 62
-
 /** Distância mínima entre dois RÓTULOS de temporada, em fração da trilha.
  *  11% de 334px ≈ 37px, que é a largura de "T10" com o alvo em volta. */
 const ESPACO_MINIMO = 0.11
@@ -102,6 +94,29 @@ export function SeasonSlider({
     el?.focus()
   }, [])
 
+  /**
+   * METADE DA LARGURA DO BALÃO, medida — é o quanto ele precisa recuar da borda
+   * para não vazar da trilha.
+   *
+   * Já foi uma constante, e a constante não sobreviveu ao primeiro texto curto:
+   * o rótulo varia de "E0" (58px) a "Episódio 0" (123px) conforme a obra tenha
+   * uma temporada, várias ou nenhuma. Fixa no pior caso, o balão de uma
+   * minissérie parava 33px longe do polegar; fixa no melhor, o de um livro
+   * vazava da tela. E com a seta removida não sobrou nada apontando para o
+   * polegar, então o balão fora do lugar deixou de ter conserto visual.
+   *
+   * Um observer, num elemento, que só reage quando o texto muda de largura.
+   */
+  const [balaoMeta, setBalaoMeta] = useState(0)
+  const medirBalao = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return
+    const observer = new ResizeObserver(([entrada]) => {
+      setBalaoMeta(entrada.contentRect.width / 2)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   // O último fim de temporada COINCIDE com o fim da série: um ponto ali seria
   // um ponto em cima da ponta da trilha, sem nada para marcar.
   const marcos = seasons.filter((s) => s.through > 0 && s.through < total)
@@ -145,16 +160,21 @@ export function SeasonSlider({
           um balão que empurra a trilha para baixo ao encostar no controle é a
           tela fugindo do dedo. */}
       <div className="relative h-9">
-        {/* O CORPO do balão é PRESO dentro da trilha, e a seta NÃO.
-            Centrado no polegar sem limite, metade dele fica fora da tela nos
-            extremos — foi o que aconteceu com "T5 E16" no fim de Breaking Bad.
-            O `clamp` para o corpo na borda; a seta continua no polegar, senão
-            ela apontaria para o lugar errado justamente quando o balão saiu
-            de cima dele. Por isso são irmãos, e não um dentro do outro. */}
+        {/* PRESO dentro da trilha: centrado no polegar sem limite, metade dele
+            fica fora da tela nos extremos — foi o que aconteceu com "T5 E16" no
+            fim de Breaking Bad.
+
+            SEM SETA. Havia uma, apontando para o polegar, e nas pontas ela
+            ficava esquisita justamente por fazer o certo: o corpo parava na
+            borda e a seta seguia o polegar, então o balão aparecia com um
+            espeto saindo de um canto. Flutuar acima já diz que o balão é do
+            polegar, e sem a seta o `clamp` deixa de ter efeito colateral
+            visível. */}
         <div
-          className="absolute bottom-1 -translate-x-1/2 transition-[left] duration-75"
+          ref={medirBalao}
+          className="absolute bottom-1 w-fit -translate-x-1/2 transition-[left] duration-75"
           style={{
-            left: `clamp(${BALAO_META_PX}px, ${posicao.left}, calc(100% - ${BALAO_META_PX}px))`,
+            left: `clamp(${balaoMeta}px, ${posicao.left}, calc(100% - ${balaoMeta}px))`,
           }}
         >
           {/* `primary`, a cor do próprio polegar — o balão pertence a ele. */}
@@ -209,11 +229,6 @@ export function SeasonSlider({
             />
           )}
         </div>
-        <span
-          aria-hidden
-          className="absolute bottom-0 h-2 w-2 -translate-x-1/2 rotate-45 bg-primary transition-[left] duration-75"
-          style={posicao}
-        />
       </div>
 
       <div className="relative">

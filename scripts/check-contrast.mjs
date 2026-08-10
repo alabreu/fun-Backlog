@@ -20,7 +20,17 @@ const CSS = readFileSync(
   'utf8',
 ).replace(/\/\*[\s\S]*?\*\//g, '')
 
-/** Pares a verificar: [primeiro plano, fundo, mínimo, o que é]. */
+/**
+ * Pares a verificar: [primeiro plano, fundo, mínimo, o que é].
+ *
+ * O FUNDO pode ser um token OU uma camada translúcida sobre outro token, escrita
+ * `['ink', 0.05, 'surface']` — "ink a 5% sobre surface". Isso existe porque o
+ * chip não é pintado com um token puro: ele é `bg-ink/5` sobre a superfície do
+ * sheet, e a diferença não é decorativa. O selo de status verde mede 5,02:1
+ * contra a `surface` limpa e 4,55:1 contra o fundo real do chip — o segundo
+ * número é o que a pessoa enxerga, e é a 0,05 do mínimo. Sem modelar a camada,
+ * a próxima mexida na paleta passaria por aqui com o par já reprovado.
+ */
 const PAIRS = [
   ['ink', 'bg', 4.5, 'texto principal no fundo'],
   ['ink', 'surface', 4.5, 'texto principal no card'],
@@ -51,6 +61,14 @@ const PAIRS = [
   // O véu (sheet, visualizador de imagem, tarja sobre a capa) é escuro nos DOIS
   // temas — não inverte, porque atrás dele há arte de qualquer cor.
   ['on-scrim', 'scrim', 4.5, 'texto sobre o véu'],
+  // O SELO DE STATUS, sobre o fundo real do chip (`bg-ink/5`) e não sobre a
+  // superfície limpa. A cor aqui é a única coisa que separa "terminada" de
+  // "abandonado" de relance — o rótulo continua escrito ao lado (1.4.1), mas o
+  // texto colorido é texto, e texto é 4.5.
+  ['muted', ['ink', 0.05, 'surface'], 4.5, 'selo de na fila / pausado'],
+  ['accent', ['ink', 0.05, 'surface'], 4.5, 'selo de em andamento'],
+  ['success', ['ink', 0.05, 'surface'], 4.5, 'selo de concluída'],
+  ['danger', ['ink', 0.05, 'surface'], 4.5, 'selo de abandonada'],
   // Cor por mídia: cada uma aparece de DOIS jeitos, e os dois têm mínimo
   // diferente. Como texto (cabeçalho de grupo na busca) precisa de 4.5; como
   // superfície preenchida (chip selecionado, badge, barra da linha) precisa de
@@ -97,6 +115,22 @@ const PAIRS = [
   // em 1.08:1 e a UI é perfeitamente legível). Um check sem critério real só
   // ensinaria a ignorar este script.
 ]
+
+/** Mistura `over` sobre `base` em sRGB, do jeito que o browser compõe alpha. */
+function overlay(baseHex, overHex, alpha) {
+  const [b, o] = [baseHex, overHex].map((h) => parseInt(h.slice(1), 16))
+  const canal = (shift) => {
+    const bc = (b >> shift) & 255
+    const oc = (o >> shift) & 255
+    return Math.round(bc * (1 - alpha) + oc * alpha)
+  }
+  return (
+    '#' +
+    [16, 8, 0]
+      .map((s) => canal(s).toString(16).padStart(2, '0'))
+      .join('')
+  )
+}
 
 function parseBlock(source) {
   const out = {}
@@ -161,9 +195,17 @@ for (const [themeName, tokens] of [
 ]) {
   for (const [fg, bg, min, what] of PAIRS) {
     const fgHex = resolve(tokens, fg)
-    const bgHex = resolve(tokens, bg)
+    const bgHex = Array.isArray(bg)
+      ? (() => {
+          const [over, alpha, base] = bg
+          const baseHex = resolve(tokens, base)
+          const overHex = resolve(tokens, over)
+          return baseHex && overHex ? overlay(baseHex, overHex, alpha) : null
+        })()
+      : resolve(tokens, bg)
+    const bgNome = Array.isArray(bg) ? `${bg[0]}/${bg[1] * 100}% em ${bg[2]}` : bg
     if (!fgHex || !bgHex) {
-      console.error(`✖ token não resolvido: ${fg} ou ${bg} (tema ${themeName})`)
+      console.error(`✖ token não resolvido: ${fg} ou ${bgNome} (tema ${themeName})`)
       failed = true
       continue
     }
@@ -171,7 +213,7 @@ for (const [themeName, tokens] of [
     const ok = r >= min
     if (!ok) failed = true
     report.push(
-      `  ${ok ? '✓' : '✖'} [${themeName}] ${fg} sobre ${bg}: ${r.toFixed(2)}:1 ` +
+      `  ${ok ? '✓' : '✖'} [${themeName}] ${fg} sobre ${bgNome}: ${r.toFixed(2)}:1 ` +
         `(mín ${min}) — ${what}`,
     )
   }

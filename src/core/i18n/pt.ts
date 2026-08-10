@@ -126,6 +126,7 @@ export const pt = {
   'item.progressOf': 'de {total}',
   'item.seasonEpisode': 'T{season} E{episode}',
   'item.typeExact': 'Digitar a posição exata',
+  'item.episodeShort': 'E{episode}',
   'item.seasonShort': 'T{season}',
   'item.finishedPrompt': 'Você chegou ao fim.',
   'item.newSeasonPrompt': 'Saiu coisa nova: agora são {total}.',

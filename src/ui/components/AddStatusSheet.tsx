@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { seasonProgress, locate, type SeasonInfo } from '@core/items/seasons'
+import { seasonProgress, type SeasonInfo } from '@core/items/seasons'
 import {
   hasRuler,
   progressUnitFor,
@@ -19,6 +19,7 @@ import {
   Sheet,
   Skeleton,
 } from '@ui/design'
+import { makeProgressFormat } from '@ui/progressFormat'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
 /** O que a tela precisa saber para criar o item já no ponto certo. */
@@ -171,15 +172,7 @@ export function AddStatusSheet({
                 total={total!}
                 seasons={seasonProgress(visto, seasons ?? [])}
                 ariaLabel={t('add.pickProgress')}
-                format={(v) => {
-                  const onde = locate(v, seasons ?? [])
-                  return onde
-                    ? t('item.seasonEpisode', {
-                        season: onde.season,
-                        episode: onde.episode,
-                      })
-                    : `${t(progressLabelKeyFor(result.mediaType))} ${v}`
-                }}
+                format={makeProgressFormat(t, result.mediaType, seasons)}
                 seasonLabel={(season) => t('item.seasonShort', { season })}
                 typeLabel={t('item.typeExact')}
                 onCommit={(v) => setPosicao({ chave, visto: v })}
@@ -229,9 +222,3 @@ export function AddStatusSheet({
   )
 }
 
-/** Evita importar `progressLabelKey` só para uma linha — o rótulo da unidade
- *  já é derivável da mídia. */
-function progressLabelKeyFor(media: MediaSearchResult['mediaType']) {
-  const unit = progressUnitFor(media)
-  return unit === 'page' ? 'item.progress.page' : 'item.progress.episode'
-}

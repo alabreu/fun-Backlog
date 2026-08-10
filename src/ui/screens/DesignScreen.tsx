@@ -30,7 +30,7 @@ import {
   Toast,
   Toggle,
 } from '@ui/design'
-import { MEDIA_TYPES, type MediaType } from '@core/items/types'
+import { ITEM_STATUSES, MEDIA_TYPES, type MediaType } from '@core/items/types'
 import { locate, seasonProgress, type SeasonInfo } from '@core/items/seasons'
 import { genreColorIndexes } from '@core/media/genres'
 import { FAMILY_LABEL, PLATFORM_FAMILIES } from '@core/media/platforms'
@@ -209,6 +209,23 @@ export function DesignScreen() {
                   </span>
                 </span>
               </Card>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">Badge por status</SectionTitle>
+          <p className="mb-3 text-body text-muted">
+            O selo do painel da obra. Fundo neutro e só o texto colorido:
+            preencher com a própria cor derruba o verde para 4,39:1 no tema
+            claro. "Na fila" e "Pausado" dividem o cinza — âmbar já é a estrela
+            e a cor de anime. O rótulo escrito nunca sai (WCAG 1.4.1).
+          </p>
+          <div className="mb-3 flex flex-wrap gap-2">
+            {ITEM_STATUSES.map((status) => (
+              <Badge key={status} status={status}>
+                {status}
+              </Badge>
             ))}
           </div>
         </section>

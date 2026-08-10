@@ -128,6 +128,7 @@ export const en: Record<keyof typeof pt, string> = {
   'item.progressOf': 'of {total}',
   'item.seasonEpisode': 'S{season} E{episode}',
   'item.typeExact': 'Type the exact position',
+  'item.episodeShort': 'E{episode}',
   'item.seasonShort': 'S{season}',
   'item.finishedPrompt': 'You have reached the end.',
   'item.newSeasonPrompt': 'There is more now: {total} in total.',

@@ -744,6 +744,49 @@ do iOS dá zoom na página ao focar campo menor que isso (`--text-input`), e o
 Escape dentro do campo **para ali** — sem isso ele subia até o listener do
 `Sheet` e fechava o painel inteiro.
 
+### Três ajustes de leitura (09/08/2026, mesma sessão)
+
+**A seta do balão saiu.** Ela apontava para o polegar e nas pontas ficava
+esquisita justamente por fazer o certo: o corpo parava na borda e a seta seguia
+o polegar, então o balão aparecia com um espeto saindo de um canto. Flutuar
+acima já diz de quem ele é.
+
+**A folga do balão passou a ser medida.** Era constante, e a constante não
+sobreviveu ao ajuste seguinte: o rótulo varia de "E0" (58px) a "Episódio 0"
+(123px). Fixa no pior caso, o balão de uma minissérie parava 33px longe do
+polegar; fixa no melhor, o de um livro vazava da tela. Um `ResizeObserver`, num
+elemento. Sem a seta, um balão fora do lugar deixou de ter conserto visual —
+por isso as duas coisas andaram juntas.
+
+**Obra de uma temporada só diz "E12", não "T1 E12".** Escrever a única
+temporada que existe em toda posição é repetir informação, e "Episódio 12" por
+extenso ocupa o balão inteiro sem dizer nada a mais. A regra mora em
+`makeProgressFormat`, compartilhada pelos dois painéis.
+
+**O selo ganhou cor e foi para a direita da linha.** Colado no título ele lia
+como continuação dele ("PROGRESSO Assistindo", numa frase só); nas pontas
+opostas os dois viram o que são. A cor é sutil de propósito: fundo neutro, só o
+texto colorido — preencher o selo com a própria cor foi medido e reprovado
+(verde a 10% cai para 4,39:1 no tema claro). A escala é de temperatura: nada
+acontecendo (cinza) → acontecendo (accent) → acabou bem (success) → acabou mal
+(danger).
+
+Pausado repete o cinza de "na fila" de propósito. A cor que a convenção pediria
+é âmbar, e âmbar já é `rating` (a estrela) e `media-anime` — um selo âmbar de
+"Pausado" ao lado de um selo âmbar de "Anime" seria a mesma cor dizendo duas
+coisas no mesmo painel. E os dois estados que dividem o cinza são justamente os
+dois em que nada está acontecendo.
+
+**Fica anotado:** no tema escuro, `accent` (rosa) e `danger` (vermelho) ficam
+próximos, e são "assistindo" e "abandonado". Distinguíveis, e o rótulo escrito
+está sempre junto — mas é tensão de PALETA, não do selo, e o lugar de resolver
+é a sessão de identidade visual.
+
+O `check-contrast.mjs` aprendeu a compor alpha para guardar isso: o fundo de um
+par agora pode ser `['ink', 0.05, 'surface']`. O selo verde mede 5,02:1 contra a
+superfície limpa e 4,56:1 contra o fundo real do chip — o segundo número é o que
+se enxerga, e é a 0,06 do mínimo.
+
 ### O que fica torto por um tempo
 
 Item gravado como "assistindo" com progresso zero — estado que existia antes
