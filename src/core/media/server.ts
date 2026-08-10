@@ -52,7 +52,18 @@ export async function callMediaFunction<T>(
 
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
-  if (!token) throw new Error(`${request.source}-unauthenticated`)
+
+  // A FICHA POR ID PASSA SEM SESSÃO (10/08/2026) — é o que faz um link
+  // compartilhado abrir para quem não tem conta. A function espelha esta regra:
+  // `detailId` dispensa usuário, busca não. Ver o portão em `supabase/functions/
+  // media/index.ts`.
+  //
+  // Sem sessão, o portador é a ANON KEY, e não porque ela autentique alguém:
+  // o `verify_jwt` da plataforma barra a requisição antes do nosso código rodar
+  // se não houver JWT nenhum do projeto, e a anon key é um. Ela já está no
+  // bundle — mandá-la aqui não revela nada que não estivesse à mão.
+  if (!token && !request.detailId)
+    throw new Error(`${request.source}-unauthenticated`)
 
   const response = await fetch(`${backendUrl}${MEDIA_FUNCTION_PATH}`, {
     method: 'POST',
@@ -60,7 +71,7 @@ export async function callMediaFunction<T>(
     headers: {
       'content-type': 'application/json',
       apikey: backendAnonKey,
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token ?? backendAnonKey}`,
     },
     body: JSON.stringify(request),
   })

@@ -11,6 +11,15 @@
 // entre as fontes — credencial, formato da query, forma da resposta — está
 // isolado em `searchIgdb` e `searchTmdb`, e uma requisição só toca uma delas.
 //
+// O PORTÃO TEM DUAS ALTURAS (10/08/2026, link compartilhado):
+//
+//   ficha por id (`detailId`) → SEM sessão, com teto por IP
+//   busca e id do IMDb        → exigem usuário de verdade
+//
+// A primeira é o que faz um link de obra abrir para quem não tem conta. A
+// segunda continua fechada porque busca é varredura, não pergunta pontual — o
+// raciocínio inteiro está escrito no passo 2 do handler, lá embaixo.
+//
 // A function é PASSA-ADIANTE de propósito: ela devolve a resposta da fonte quase
 // crua, e quem traduz para o formato do app é `core/media/{igdb,tmdb}.ts`. O
 // mapeamento é a parte que quebra quando a API de terceiro muda, então ele fica
@@ -52,6 +61,12 @@ const TMDB_URL = 'https://api.themoviedb.org/3'
 
 // Restrinja para a origin do app em produção (`supabase secrets set
 // ALLOWED_ORIGIN=https://seu-app.vercel.app`).
+//
+// E NÃO CONFIE NISTO COMO CONTROLE DE ACESSO. CORS é regra que o BROWSER
+// aplica: quem chama de servidor para servidor — curl, script, a nossa própria
+// função de Open Graph na Vercel — nunca vê este cabeçalho. Ele impede que uma
+// página de terceiro gaste nossa cota usando o navegador de quem a visita, e é
+// só isso que ele faz. Quem segura o caminho anônimo é o `ANON_LIMIT` abaixo.
 const ALLOWED_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') ?? '*'
 
 const CORS: Record<string, string> = {
@@ -102,6 +117,55 @@ function cacheSet(key: string, body: unknown): void {
     if (oldest !== undefined) cache.delete(oldest)
   }
   cache.set(key, { at: Date.now(), body })
+}
+
+// ---------------------------------------------------------------------------
+// Freio do caminho ANÔNIMO
+// ---------------------------------------------------------------------------
+
+/**
+ * Teto por IP para quem chega SEM login. Existe porque a ficha por id passou a
+ * abrir sem sessão (link compartilhado), e sem sessão não há a quem cobrar o
+ * abuso: a cota que se gasta é a NOSSA — a IGDB permite 4 req/s na aplicação
+ * inteira, não por pessoa.
+ *
+ * O QUE ELE É: uma barreira de altura razoável. Contagem em memória, então cada
+ * instância da function tem a sua, e o Supabase escala para várias — quem
+ * insistir de verdade consegue mais que 30/min no total. Vale mesmo assim,
+ * porque o custo é zero e ele mata o caso comum (script ingênuo em laço).
+ *
+ * O QUE ELE NÃO É: proteção contra alguém determinado. Isso exigiria contador
+ * no banco, e aí toda ficha de obra passaria a custar uma escrita — caro demais
+ * para o tamanho do risco. Se um dia a cota estourar de verdade, o degrau certo
+ * é esse, e não afinar o número aqui.
+ *
+ * 30/min é generoso de propósito: quem abre um link e navega pela franquia faz
+ * várias fichas em sequência, e a barreira não pode pegar o uso honesto.
+ */
+const ANON_LIMIT = { max: 30, windowMs: 60_000 }
+const anonHits = new Map<string, { count: number; resetAt: number }>()
+
+function anonAllowed(ip: string): boolean {
+  const agora = Date.now()
+  const atual = anonHits.get(ip)
+  if (!atual || agora > atual.resetAt) {
+    // O mapa é limpo junto com a janela em vez de crescer para sempre: sem
+    // isto, uma varredura de IPs vira vazamento de memória na instância.
+    if (anonHits.size > 5_000) anonHits.clear()
+    anonHits.set(ip, { count: 1, resetAt: agora + ANON_LIMIT.windowMs })
+    return true
+  }
+  atual.count += 1
+  return atual.count <= ANON_LIMIT.max
+}
+
+/** O IP de quem chamou. Atrás do proxy do Supabase o socket é do proxy, então
+ *  quem tem a informação é o `x-forwarded-for` — o PRIMEIRO da lista, que é o
+ *  cliente; o resto são os saltos. Sem cabeçalho, todo mundo cai no mesmo
+ *  balde, e o freio fica mais rígido em vez de sumir. */
+function clientIp(req: Request): string {
+  const encaminhado = req.headers.get('x-forwarded-for') ?? ''
+  return encaminhado.split(',')[0].trim() || 'desconhecido'
 }
 
 // ---------------------------------------------------------------------------
@@ -573,19 +637,11 @@ Deno.serve(async (req: Request) => {
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   if (!supabaseUrl || !serviceKey) return json(503, { error: 'unavailable' })
 
-  // 1. AUTH PRIMEIRO. `verify_jwt` do Supabase NÃO basta: a anon key também é
-  //    um JWT válido do projeto, então sem esta checagem qualquer pessoa com a
-  //    chave pública (que está no bundle) usaria a nossa cota da IGDB/TMDB.
-  const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
-  if (!jwt) return json(401, { error: 'unauthenticated' })
-
-  const admin = createClient(supabaseUrl, serviceKey, {
-    auth: { persistSession: false },
-  })
-  const { data: userData, error: userError } = await admin.auth.getUser(jwt)
-  if (userError || !userData?.user) return json(401, { error: 'unauthenticated' })
-
-  // 2. Validar o body antes de gastar rede com terceiro.
+  // 1. O CORPO PRIMEIRO, e não a autenticação — a ordem inverteu quando o link
+  //    compartilhado chegou (10/08/2026), porque agora é o PEDIDO que decide se
+  //    precisa de sessão. Ler JSON não toca a rede; `getUser` toca (é uma ida ao
+  //    Auth do Supabase), então esta ordem também poupa uma viagem em toda
+  //    ficha aberta por link.
   let body: {
     source?: unknown
     query?: unknown
@@ -626,6 +682,40 @@ Deno.serve(async (req: Request) => {
   } else {
     if (query.length < CONFIG.minQuery) return json(400, { error: 'query_too_short' })
     if (query.length > CONFIG.maxQuery) return json(400, { error: 'query_too_long' })
+  }
+
+  // 2. AUTENTICAÇÃO, e o portão agora tem DUAS alturas.
+  //
+  //    A FICHA POR ID ABRE SEM SESSÃO. É o que faz o link compartilhado
+  //    funcionar: quem recebe uma obra pelo WhatsApp abre e vê, sem conta e sem
+  //    instalar nada. Sem isto o link funcionaria para anime e livro (que o
+  //    browser busca direto na fonte) e quebraria para jogo e filme, que passam
+  //    por aqui — o mesmo botão gerando link que às vezes serve.
+  //
+  //    A BUSCA CONTINUA FECHADA, e a diferença entre as duas não é de grau. A
+  //    ficha por id é uma pergunta pontual sobre algo que quem pergunta JÁ
+  //    conhece — ele tem o id — e cabe no cache. A busca é varredura: texto
+  //    livre, duas consultas na IGDB por chamada, cache que quase nunca acerta
+  //    porque a próxima letra digitada muda a chave. Abrir a busca seria
+  //    entregar o catálogo inteiro das fontes de graça, com a nossa cota.
+  //
+  //    `verify_jwt` do Supabase NÃO substitui esta checagem: a anon key também
+  //    é um JWT válido do projeto e está no bundle, então "tem JWT" não quer
+  //    dizer "tem usuário".
+  const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
+  if (!detailId) {
+    if (!jwt) return json(401, { error: 'unauthenticated' })
+    const admin = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false },
+    })
+    const { data: userData, error: userError } = await admin.auth.getUser(jwt)
+    if (userError || !userData?.user)
+      return json(401, { error: 'unauthenticated' })
+  } else if (!anonAllowed(clientIp(req))) {
+    // O freio vale para TODA ficha, inclusive a de quem está logado. Distinguir
+    // exigiria justamente a ida ao Auth que este caminho existe para evitar, e
+    // 30/min não atrapalha ninguém navegando de verdade (ver `ANON_LIMIT`).
+    return json(429, { error: 'rate_limited' })
   }
 
   // 3. Cache antes da chamada externa (ver CONFIG.cacheTtlMs).
