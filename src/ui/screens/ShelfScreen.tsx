@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Navigate, useParams } from 'react-router'
 import { filterItems, sortForShelf } from '@core/items/filter'
-import { groupByFranchise } from '@core/items/franchise'
+import { groupByFranchise, type ShelfEntry } from '@core/items/franchise'
 import {
   datesForStatus,
   mediaLabelKey,
@@ -27,8 +27,10 @@ import { hasProviderFor } from '@core/media/search'
 import type { MediaSearchResult } from '@core/media/types'
 import {
   Badge,
+  CAROUSEL_ITEM,
   Cover,
   CoverAction,
+  CoverCarousel,
   CoverGrid,
   CoverMark,
   CoverStack,
@@ -143,6 +145,46 @@ export function ShelfScreen() {
 
   const { isOpen, toggle } = useSectionState(mediaType)
   const [flash, setFlash] = useFlash()
+
+  /**
+   * UMA CÉLULA DE CAPA — a mesma na grade e na prateleira horizontal.
+   *
+   * As duas mostram exatamente a mesma coisa e mudam só de recipiente; duas
+   * cópias divergiriam no primeiro ajuste, e o sintoma seria a mesma obra
+   * parecendo diferente conforme a seção em que caiu.
+   */
+  const celula = (entry: ShelfEntry, index: number, className?: string) =>
+    entry.kind === 'item' ? (
+      <ItemCell
+        key={entry.key}
+        item={entry.item}
+        lazy={index > 5}
+        className={className}
+        onOpen={() => setSelected(entry.item)}
+      />
+    ) : (
+      <li key={entry.key} className={className}>
+        <CoverStack
+          src={entry.items[0].coverUrl}
+          name={entry.name}
+          count={entry.items.length}
+          media={mediaType}
+          lazy={index > 5}
+          // A FAMÍLIA INTEIRA, não só a capa de cima: senão uma favorita
+          // agrupada sumia da estante. Na prática `sortForShelf` já traz a
+          // favorita como primeira do grupo, mas depender disso deixaria a
+          // marca à mercê da ordenação.
+          favoriteLabel={
+            entry.items.some((i) => i.favorite) ? t('item.favorite') : undefined
+          }
+          label={t('shelf.stack', {
+            name: entry.name,
+            count: String(entry.items.length),
+          })}
+          onClick={() => setPilhaAberta({ key: entry.key, open: true })}
+        />
+      </li>
+    )
 
   const visible = useMemo(
     () =>
@@ -315,10 +357,11 @@ export function ShelfScreen() {
                 emptyLabel={t('shelf.sectionEmpty')}
               >
                 {/* CADA SEÇÃO TEM O SEU PESO (ver `sectionDensity`): o que está
-                    em curso vem em duas colunas, a fila em três, e o arquivo em
-                    linhas. Buscando, a densidade NÃO muda — mudar de forma no
-                    meio de uma busca faria a mesma obra parecer outra coisa
-                    dependendo do que está escrito no campo. */}
+                    em curso vira uma prateleira horizontal, a fila uma grade de
+                    três, e o arquivo uma lista. Buscando, a densidade NÃO muda —
+                    mudar de forma no meio de uma busca faria a mesma obra
+                    parecer outra coisa dependendo do que está escrito no
+                    campo. */}
                 {density(value) === 'list' ? (
                   <ul className="flex flex-col gap-2 pt-1">
                     {entries.map((entry, index) => (
@@ -351,15 +394,15 @@ export function ShelfScreen() {
                             // O CORAÇÃO DA PILHA VAI PARA O MESMO CANTO da
                             // linha de obra solta — na lista as duas são
                             // vizinhas, e a marca em dois lugares diferentes
-                            // leria como duas coisas diferentes. Continua
-                            // olhando a FAMÍLIA inteira e não só a capa de
-                            // cima, senão uma favorita agrupada sumiria.
-                            trailing={
-                              <FavoriteValue
-                                on={entry.items.some((i) => i.favorite)}
-                                label={t('item.favorite')}
-                              />
-                            }
+                            // leria como duas coisas diferentes.
+                            //
+                            // E ELE CONTA (escolha do usuário, 11/08/2026): a
+                            // pergunta que a pilha responde não é "isto é
+                            // favorito", que não quer dizer nada sobre um
+                            // grupo — é QUANTAS lá dentro são. Sem o número, o
+                            // coração de uma pilha de onze obras diz o mesmo
+                            // que o de uma pilha de duas.
+                            trailing={<StackFavorites items={entry.items} />}
                             onOpen={() =>
                               setPilhaAberta({ key: entry.key, open: true })
                             }
@@ -368,45 +411,15 @@ export function ShelfScreen() {
                       </li>
                     ))}
                   </ul>
-                ) : (
-                  <CoverGrid featured={density(value) === 'featured'}>
+                ) : density(value) === 'carousel' ? (
+                  <CoverCarousel>
                     {entries.map((entry, index) =>
-                      entry.kind === 'item' ? (
-                        <ItemCell
-                          key={entry.key}
-                          item={entry.item}
-                          lazy={index > 5}
-                          onOpen={() => setSelected(entry.item)}
-                        />
-                      ) : (
-                        <li key={entry.key}>
-                          <CoverStack
-                            src={entry.items[0].coverUrl}
-                            name={entry.name}
-                            count={entry.items.length}
-                            media={mediaType}
-                            lazy={index > 5}
-                            // A FAMÍLIA INTEIRA, não só a capa de cima: senão
-                            // uma favorita agrupada sumia da estante. Na prática
-                            // `sortForShelf` já traz a favorita como primeira do
-                            // grupo, mas depender disso deixaria a marca à mercê
-                            // da ordenação.
-                            favoriteLabel={
-                              entry.items.some((i) => i.favorite)
-                                ? t('item.favorite')
-                                : undefined
-                            }
-                            label={t('shelf.stack', {
-                              name: entry.name,
-                              count: String(entry.items.length),
-                            })}
-                            onClick={() =>
-                              setPilhaAberta({ key: entry.key, open: true })
-                            }
-                          />
-                        </li>
-                      ),
+                      celula(entry, index, CAROUSEL_ITEM),
                     )}
+                  </CoverCarousel>
+                ) : (
+                  <CoverGrid>
+                    {entries.map((entry, index) => celula(entry, index))}
                   </CoverGrid>
                 )}
               </Section>
@@ -624,6 +637,25 @@ export function ShelfScreen() {
  * bom?" e "isto é meu"), e mantê-los na mesma ordem nas duas telas é o que
  * impede o coração de ser lido como uma sexta estrela.
  */
+/**
+ * QUANTAS FAVORITAS há dentro da pilha.
+ *
+ * Zero mantém o espaço reservado, e não some: a linha da pilha convive com
+ * linhas de obra solta na mesma lista, e é a largura constante à direita que
+ * mantém as duas alinhadas.
+ */
+function StackFavorites({ items }: { items: Item[] }) {
+  const { t } = useTranslation()
+  const quantas = items.filter((i) => i.favorite).length
+  return (
+    <FavoriteValue
+      on={quantas > 0}
+      count={quantas > 0 ? quantas : undefined}
+      label={t('item.favoriteCount', { count: String(quantas) })}
+    />
+  )
+}
+
 function RowTrailing({ item }: { item: Item }) {
   const { t } = useTranslation()
   return (
@@ -686,15 +718,18 @@ function ShelfRow({
 function ItemCell({
   item,
   lazy,
+  className = '',
   onOpen,
 }: {
   item: Item
   lazy: boolean
+  /** Largura e encaixe, quando a célula vai numa prateleira horizontal. */
+  className?: string
   onOpen: () => void
 }) {
   const { t } = useTranslation()
   return (
-    <li>
+    <li className={className}>
       {/* `relative` porque o `CoverMark` se ancora nele — sem isso o coração
           procura o ancestral posicionado mais próximo e vai parar no canto da
           TELA. */}

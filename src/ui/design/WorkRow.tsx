@@ -72,7 +72,11 @@ export function WorkRow({
       <span
         className={`relative block shrink-0 ${size === 'sm' ? 'w-10' : 'w-14'}`}
       >
-        <Cover src={coverUrl} title={title} media={media} lazy={lazy} />
+        {/* `row`: a capa aqui é miniatura e leva o raio menor. Vale nos DOIS
+            tamanhos — 40px na estante e 56px no painel de franquia —, porque o
+            que decide não é o tamanho e sim o papel: numa linha a capa
+            identifica, na grade ela é o conteúdo. */}
+        <Cover src={coverUrl} title={title} media={media} lazy={lazy} row />
         {mark && <CoverMark tone={mark.tone} label={mark.label} />}
       </span>
 

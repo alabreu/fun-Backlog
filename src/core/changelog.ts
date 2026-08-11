@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-11-prateleira',
+    date: '2026-08-11',
+    emoji: '🎞️',
+    title: {
+      pt: 'O que você está consumindo virou prateleira',
+      en: 'What you are in the middle of became a shelf',
+    },
+    items: {
+      pt: [
+        'A seção do que está em andamento agora corre para o lado, como uma prateleira. Tendo dez obras em curso, a fila continua logo abaixo em vez de ficar cinco fileiras longe.',
+        'Nas listas, o coração de favorita saiu da capa e foi para o fim da linha, ao lado da nota.',
+        'E numa pilha de franquia ele diz quantas obras ali dentro são favoritas.',
+      ],
+      en: [
+        'The section for what you are in the middle of now scrolls sideways, like a shelf. With ten works in progress, the queue stays right below instead of five rows away.',
+        'In lists, the favourite heart moved off the cover to the end of the row, next to the rating.',
+        'And on a franchise stack it says how many works inside are favourites.',
+      ],
+    },
+  },
+  {
     id: '2026-08-11-preferencias-na-conta',
     date: '2026-08-11',
     emoji: '☁️',

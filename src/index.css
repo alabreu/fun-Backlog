@@ -238,6 +238,11 @@
      Separar também desacopla os dois: mexer no raio dos cards deixou de mexer
      na estante inteira. */
   --radius-cover: 0.75rem; /* capas de obra (12px) */
+  /* A CAPA DENTRO DE UMA LINHA é miniatura, não pôster, e o raio acompanha
+     (escolha do usuário, 11/08/2026). O valor da capa grande é absoluto, então
+     na capa de 40px da lista ele comia 30% da largura contra 7% na de 173px —
+     a mesma forma lia como duas. Medido no navegador. */
+  --radius-cover-row: 0.5rem; /* capa de obra numa linha (8px) */
   --radius-sheet: 1.5rem; /* bottom sheets */
 
   /* --- Espaçamento: a margem lateral padrão das telas (px-gutter). --- */
@@ -490,6 +495,22 @@ body {
    cima de TUDO. Inclusive das capas: é a diferença que este modo existe para
    deixar sentir. z-60 fica acima do sheet e do toast (z-50), então não precisa
    de uma cópia dentro do sheet como a referência precisou. */
+/* Rolagem horizontal SEM a barra à mostra — a prateleira do que está em curso
+   (ver `CoverCarousel`). A capa cortada pela borda da tela já é o sinal de que
+   há mais para o lado, e uma barra atravessada embaixo dela seria ruído numa
+   tela que é toda arte.
+
+   NÃO tira o acesso: rolar com o dedo, com a roda (shift) e com o teclado
+   continua funcionando — as capas são botões, e dar foco na próxima faz o
+   navegador rolar o container. É a barra que some, não a rolagem. */
+.app-scroll-x {
+  scrollbar-width: none; /* Firefox */
+}
+
+.app-scroll-x::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
 .app-grain-overlay {
   position: fixed;
   inset: 0;

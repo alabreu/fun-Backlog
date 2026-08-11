@@ -84,8 +84,10 @@ describe('ordem das seções', () => {
 })
 
 describe('peso visual da seção', () => {
-  it('só o que está em curso ganha destaque', () => {
-    expect(sectionDensity('active')).toBe('featured')
+  // Horizontal, e não uma grade maior: em grade cada duas obras empurram a
+  // seção seguinte uma fileira para baixo; na horizontal a altura é fixa.
+  it('só o que está em curso vira carrossel', () => {
+    expect(sectionDensity('active')).toBe('carousel')
   })
 
   // "Não lançados" acompanha a fila apesar de não dar para fazer nada com ela:
@@ -104,9 +106,9 @@ describe('peso visual da seção', () => {
 
   // A estante de filme não tem "assistindo" nem "pausado" (decisão 16), então
   // ela nasce sem destaque nenhum — e isso é resultado válido, não um furo.
-  it('sem seção em curso, nada fica em destaque', () => {
+  it('sem seção em curso, nada vira carrossel', () => {
     const densidades = shelfSectionKeys('movie').map(sectionDensity)
-    expect(densidades).not.toContain('featured')
+    expect(densidades).not.toContain('carousel')
     expect(densidades).toContain('grid')
     expect(densidades).toContain('list')
   })

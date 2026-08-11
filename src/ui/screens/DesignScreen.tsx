@@ -13,7 +13,9 @@ import {
   RatingValue,
   ServiceLogo,
   Skeleton,
+  CAROUSEL_ITEM,
   Cover,
+  CoverCarousel,
   CoverGrid,
   CoverMark,
   CoverStack,
@@ -80,6 +82,8 @@ const TOKENS_RADIUS = [
   { name: 'control', cls: 'rounded-control' },
   { name: 'field', cls: 'rounded-field' },
   { name: 'card', cls: 'rounded-card' },
+  { name: 'cover', cls: 'rounded-cover' },
+  { name: 'cover-row', cls: 'rounded-cover-row' },
   { name: 'sheet', cls: 'rounded-sheet' },
 ] as const
 
@@ -438,19 +442,23 @@ export function DesignScreen() {
           <SectionTitle className="mb-2">Densidade da estante</SectionTitle>
           <p className="mb-3 text-body text-muted">
             Três pesos, e a régua é o que dá para FAZER agora (ver{' '}
-            <code>sectionDensity</code>): destaque para o que está em curso,
-            grade para o que dá para escolher, linha para o que já foi
+            <code>sectionDensity</code>): prateleira horizontal para o que está
+            em curso, grade para o que dá para escolher, linha para o que já foi
             resolvido. A lista não economiza rolagem — a grade custa 69px por
             item e a linha custa mais. Ela compra peso e informação.
           </p>
-          <p className="mb-2 text-label text-muted">destaque — 2 colunas</p>
-          <CoverGrid featured className="mb-4">
-            {MEDIA_TYPES.slice(0, 2).map((m) => (
-              <li key={m}>
-                <Cover title={`Em curso (${m})`} media={m} />
-              </li>
-            ))}
-          </CoverGrid>
+          <p className="mb-2 text-label text-muted">
+            prateleira horizontal — altura fixa, arraste para o lado
+          </p>
+          <div className="mb-4">
+            <CoverCarousel>
+              {[...MEDIA_TYPES, ...MEDIA_TYPES].map((m, i) => (
+                <li key={`${m}${i}`} className={CAROUSEL_ITEM}>
+                  <Cover title={`Em curso (${m})`} media={m} />
+                </li>
+              ))}
+            </CoverCarousel>
+          </div>
           <p className="mb-2 text-label text-muted">grade — 3 colunas</p>
           <CoverGrid className="mb-4">
             {MEDIA_TYPES.slice(0, 3).map((m) => (

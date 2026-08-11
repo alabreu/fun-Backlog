@@ -79,19 +79,43 @@ export function RatingValue({
  */
 export function FavoriteValue({
   on,
+  count,
   label,
 }: {
   on: boolean
-  /** A palavra escrita, ex.: "Favorita" — é ela que existe para o leitor de
-   *  tela, porque cor e forma sozinhas não dizem nada (WCAG 1.4.1). */
+  /**
+   * QUANTAS favoritas há aqui dentro — só faz sentido numa linha que
+   * representa um GRUPO, hoje a pilha de franquia.
+   *
+   * Ausente, o coração responde sim ou não, que é o que uma obra sozinha tem a
+   * dizer. Presente, ele responde quantas, no mesmo formato da nota ao lado
+   * (ícone + número) — e é o contexto da linha que separa os dois: um grupo já
+   * se anuncia como grupo pelo selo "N obras nesta franquia", então um número
+   * ali lê como "3 delas", não como "nota 3".
+   *
+   * Aparece MESMO VALENDO 1. "♥ 1" é estranho de ler solto, mas numa pilha ele
+   * é a resposta certa e a única que não é ambígua — sem o número, o coração
+   * diria "esta pilha é favorita", que é uma coisa que não existe.
+   */
+  count?: number
+  /** A frase escrita, ex.: "Favorita" ou "Favoritas: 3" — é ela que existe
+   *  para o leitor de tela, porque cor e forma sozinhas não dizem nada
+   *  (WCAG 1.4.1). */
   label: string
 }) {
   return (
     <span
-      className={`flex items-center ${on ? 'text-favorite' : 'invisible'}`}
+      className={`flex items-center gap-1 text-label font-semibold ${
+        on ? 'text-favorite' : 'invisible'
+      }`}
     >
       {on && <span className="sr-only">{label}</span>}
       <Heart size={14} weight="fill" aria-hidden />
+      {count !== undefined && (
+        <span aria-hidden className="tabular-nums">
+          {count}
+        </span>
+      )}
     </span>
   )
 }

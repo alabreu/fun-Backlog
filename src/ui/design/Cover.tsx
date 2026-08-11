@@ -37,6 +37,14 @@ export interface CoverProps {
    * `media`, e nunca carrega a informação sozinho: ver `MEDIA_GLOW`.
    */
   glow?: boolean
+  /**
+   * Esta capa está dentro de uma LINHA, e não numa grade.
+   *
+   * Muda só o raio, e o motivo é proporção: o raio é um valor absoluto, então
+   * numa capa de 40px ele come 30% da largura contra 7% numa de 173px — a
+   * mesma forma passa a ler como duas. Aqui ela é miniatura, não pôster.
+   */
+  row?: boolean
   className?: string
 }
 
@@ -46,6 +54,7 @@ export function Cover({
   media,
   lazy = true,
   glow = false,
+  row = false,
   className = '',
 }: CoverProps) {
   const [failed, setFailed] = useState(false)
@@ -53,7 +62,9 @@ export function Cover({
 
   return (
     <div
-      className={`relative aspect-[2/3] w-full overflow-hidden rounded-cover ring-1 ring-ink/10 ${
+      className={`relative aspect-[2/3] w-full overflow-hidden ring-1 ring-ink/10 ${
+        row ? 'rounded-cover-row' : 'rounded-cover'
+      } ${
         media ? MEDIA_TINT[media] : 'bg-ink/5'
       } ${className}`}
     >
@@ -95,36 +106,76 @@ export function Cover({
  * densidade é o ponto: o briefing quer a estante inteira à vista, não seis
  * cards gigantes.
  *
- * `featured` TIRA UMA COLUNA, e existe porque a estante passou a ter hierarquia
- * (ver `sectionDensity` em core/items/sections.ts): a seção do que está em
- * curso é maior que a da fila.
- *
- * DUAS COLUNAS, e não "um pouco maior", porque num grid o tamanho da capa é
- * consequência do número de colunas — não há meio-termo sem quebrar o
- * alinhamento. Medido a 390px: 111px de capa em três colunas, 173px em duas,
- * um salto de 56%. Uma diferença menor que isso não leria como sinal; leria
- * como erro de renderização.
- *
- * A largura de mesa acompanha na mesma proporção (4 → 3): o destaque é relativo
- * à seção vizinha, e ele desapareceria se as duas convergissem para o mesmo
- * número de colunas na tela grande.
+ * TEVE UMA VARIANTE `featured` de duas colunas, para a seção do que está em
+ * curso, e ela saiu em 11/08/2026 quando essa seção virou carrossel (ver
+ * `CoverCarousel` abaixo). Não foi trocada por um número diferente de colunas:
+ * o problema dela era vertical, e nenhuma contagem de colunas resolve isso.
  */
 export function CoverGrid({
   children,
-  featured = false,
   className = '',
 }: {
   children: React.ReactNode
-  featured?: boolean
+  className?: string
+}) {
+  return (
+    <ul className={`grid grid-cols-3 gap-3 sm:grid-cols-4 ${className}`}>
+      {children}
+    </ul>
+  )
+}
+
+/**
+ * A PRATELEIRA HORIZONTAL — para o que está em curso.
+ *
+ * Substituiu a grade de duas colunas (escolha do usuário, 11/08/2026), e a
+ * diferença que importa é de ALTURA. Em grade, cada duas obras em andamento
+ * empurram a seção seguinte uma fileira para baixo: medido em 10/08/2026, com
+ * seis obras a fila já nascia fora da primeira dobra. Na horizontal a seção
+ * tem altura fixa — duas obras ou vinte custam a mesma rolagem vertical.
+ *
+ * SANGRA ATÉ AS BORDAS (`-mx-gutter` + `px-gutter` por dentro). É o que faz a
+ * capa seguinte aparecer CORTADA pela borda da tela em vez de terminar antes
+ * dela: uma tira que respeita a margem parece uma lista que acabou, e o corte
+ * é justamente o que diz "tem mais para o lado". O padding interno devolve o
+ * alinhamento — a primeira capa continua na margem das outras seções.
+ *
+ * ENCAIXE (`snap`) alinhado à esquerda, com `scroll-pl-gutter`: soltando o
+ * arraste, a capa para na margem em vez de meio fora. Sem o `scroll-pl` ela
+ * pararia colada na borda da tela, desalinhada de tudo o que está acima.
+ *
+ * A BARRA DE ROLAGEM SOME (`app-scroll-x`) porque a capa cortada já é o sinal,
+ * e uma barra horizontal atravessada embaixo da prateleira é ruído numa tela
+ * que é toda arte. O teclado continua funcionando: as capas são botões, e o
+ * navegador rola o container ao dar foco na próxima.
+ *
+ * `-my-1 py-1` é folga para o anel de foco: `overflow-x-auto` corta no limite
+ * da caixa, e sem esses 4px o anel da capa focada aparece decepado em cima e
+ * embaixo.
+ */
+export function CoverCarousel({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode
   className?: string
 }) {
   return (
     <ul
-      className={`grid gap-3 ${
-        featured ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-3 sm:grid-cols-4'
-      } ${className}`}
+      className={`app-scroll-x -mx-gutter -my-1 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-pl-gutter px-gutter py-1 ${className}`}
     >
       {children}
     </ul>
   )
 }
+
+/**
+ * A largura de uma capa na prateleira horizontal.
+ *
+ * 160px é medido, não escolhido: numa tela de 390px com margem de 16, duas
+ * capas ocupam até 348 e a terceira começa em 360 — sobram 30px de capa
+ * aparecendo na borda, que é o suficiente para ler como "tem mais" sem que a
+ * segunda pareça espremida. Com 173px (o tamanho da grade de duas colunas que
+ * isto substituiu) sobrariam 4px, que lê como erro de alinhamento.
+ */
+export const CAROUSEL_ITEM = 'w-40 shrink-0 snap-start'

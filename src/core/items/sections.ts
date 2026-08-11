@@ -78,9 +78,20 @@ export function hidesWhenEmpty(key: ShelfSectionKey): boolean {
  * A RÉGUA É O QUE DÁ PARA FAZER AGORA, e não "o que é mais importante" — que é
  * vago e muda de pessoa para pessoa:
  *
- *   destaque → estou no meio disto
- *   grade    → posso escolher isto hoje  (a fila, e o que ainda vai estrear)
- *   lista    → já resolvi, ou parei      (pausado, concluído, abandonado)
+ *   carrossel → estou no meio disto
+ *   grade     → posso escolher isto hoje  (a fila, e o que ainda vai estrear)
+ *   lista     → já resolvi, ou parei      (pausado, concluído, abandonado)
+ *
+ * O QUE ESTÁ EM CURSO VIROU CARROSSEL (escolha do usuário, 11/08/2026), e não
+ * uma grade de duas colunas. A diferença que importa é de ALTURA: em grade,
+ * cada duas obras em andamento empurram a fila uma fileira para baixo, e com
+ * seis obras a seção seguinte já nascia fora da primeira dobra (medido em
+ * 10/08/2026: topo em 1034px numa janela de 844px). Na horizontal a seção tem
+ * altura FIXA — cabem duas, seis ou vinte sem custar um pixel a mais de
+ * rolagem vertical, e o que passa do fim se alcança arrastando.
+ *
+ * Isto resolve, de lado, o item "teto para a seção em destaque" que estava no
+ * backlog: não há mais teto a definir, porque não há mais crescimento vertical.
  *
  * PAUSADO FICA NA LISTA porque parado é parado: se a obra estivesse viva, ela
  * estaria em "assistindo". "Não lançados" fica na GRADE apesar de não dar para
@@ -94,10 +105,10 @@ export function hidesWhenEmpty(key: ShelfSectionKey): boolean {
  * 111px não cabe nada além da capa e do título). Quem resolve rolagem é o
  * colapso da seção, que já existe.
  */
-export type SectionDensity = 'featured' | 'grid' | 'list'
+export type SectionDensity = 'carousel' | 'grid' | 'list'
 
 export function sectionDensity(key: ShelfSectionKey): SectionDensity {
-  if (key === 'active') return 'featured'
+  if (key === 'active') return 'carousel'
   if (key === 'backlog' || key === 'unreleased') return 'grid'
   return 'list'
 }
