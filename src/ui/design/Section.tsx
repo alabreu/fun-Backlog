@@ -1,6 +1,5 @@
 import { CaretDown } from '@phosphor-icons/react'
 import { useId } from 'react'
-import { WaveDivider } from './WaveDivider'
 import type { ReactNode } from 'react'
 
 /**
@@ -79,30 +78,14 @@ export function Section({
   const id = useId()
   const aberta = open || !collapsible
 
-  // SEM `flex-1`: quem cresce agora é a onda. O título fica com a largura do
-  // texto e continua encolhendo (`shrink` é o padrão) quando não couber, então
-  // um nome longo trunca e a onda simplesmente some — que é a ordem certa de
-  // sacrifício entre um enfeite e o nome da seção.
   const nome = (
     <span
-      className={`min-w-0 truncate text-title font-bold tracking-tight ${
+      className={`min-w-0 flex-1 truncate text-title font-bold tracking-tight ${
         count > 0 ? 'text-ink' : 'text-muted'
       }`}
     >
       {title}
     </span>
-  )
-
-  // A ONDA preenche o vão entre o nome e a contagem. `basis-0` é o que a faz
-  // ficar com TODA a folga e nenhum encolhimento: com base zero ela não
-  // participa do aperto, e o truncamento cai inteiro sobre o título.
-  //
-  // Mais apagada numa seção vazia, junto com o título: uma onda viva ao lado
-  // de um nome cinza puxaria o olho para o enfeite.
-  const onda = (
-    <WaveDivider
-      className={`flex-1 basis-0 ${count > 0 ? 'text-ink/20' : 'text-ink/10'}`}
-    />
   )
   // `tabular-nums` para o contador não empurrar a seta ao trocar de 1 para
   // 10 — a seta é o alvo, e alvo que dança é alvo que erra.
@@ -133,7 +116,6 @@ export function Section({
             className="flex w-full items-center gap-3 py-2 text-left"
           >
             {nome}
-            {onda}
             {contador}
             <CaretDown
               size={18}
@@ -147,7 +129,6 @@ export function Section({
         ) : (
           <span className="flex w-full items-center gap-3 py-2">
             {nome}
-            {onda}
             {contador}
           </span>
         )}
