@@ -372,7 +372,14 @@ export function WorkDetail({
               não pode empurrar o botão para o meio. */}
           <div className="flex items-start gap-2">
             <h2 className="min-w-0 flex-1 text-title font-bold">{title}</h2>
-            <ShareButton target={shareTarget} className="-mr-1 -mt-1 shrink-0" />
+            {/* SEM MARGEM NEGATIVA NO TOPO. Ela existia para alinhar o botão
+                com a primeira linha do título, e custava 1px: o corpo do sheet
+                é `overflow-y-auto`, que CORTA no limite da caixa — e o `ring-1`
+                do `IconButton` é uma sombra desenhada 1px PARA FORA. Encostado
+                no topo, o anel ficava do lado de fora do corte e o círculo
+                aparecia achatado. À direita sobram 11px, então ali o recuo
+                continua (é ele que alinha o ícone com a margem da tela). */}
+            <ShareButton target={shareTarget} className="-mr-1 shrink-0" />
           </div>
           {detail?.originalTitle && detail.originalTitle !== title && (
             <p className="text-label text-muted">{detail.originalTitle}</p>
