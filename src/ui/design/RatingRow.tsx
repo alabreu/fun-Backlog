@@ -55,6 +55,47 @@ export function RatingValue({
   )
 }
 
+/**
+ * A FAVORITA COMO VALOR — o coração no fim da linha, para LER.
+ *
+ * Irmã da `RatingValue`, e pelo mesmo motivo: numa lista o coração é
+ * informação, não controle. Quem liga e desliga é a `RatingRow`, no painel da
+ * obra.
+ *
+ * SEM O DISCO BRANCO da `CoverMark`, e a diferença não é estética. O disco
+ * existe porque a arte da capa é imprevisível e nenhuma cor de traço sobrevive
+ * a todas elas — ele TROCA o fundo por um conhecido. Aqui o fundo já é
+ * conhecido: é a superfície da tela. Um disco branco flutuando sobre ela seria
+ * uma solução sem o problema, e ainda traria a cor "sobre claro" (`on-mark-*`)
+ * para um lugar onde o rosa do produto (`favorite`) é o certo — e passa, com o
+ * par `favorite`/`bg` já aferido no `check-contrast`.
+ *
+ * O ESPAÇO É RESERVADO MESMO SEM CORAÇÃO (`invisible`, não ausente). É o que
+ * mantém a nota numa coluna: com o coração entrando e saindo da linha, o "★ 5"
+ * de uma favorita ficaria alguns pixels à esquerda do "★ 5" da vizinha, e essa
+ * coluna é justamente o que a `WorkRow` existe para formar. `visibility:
+ * hidden` também tira o ícone da árvore de acessibilidade, então quem usa
+ * leitor de tela não ouve um coração que não está lá.
+ */
+export function FavoriteValue({
+  on,
+  label,
+}: {
+  on: boolean
+  /** A palavra escrita, ex.: "Favorita" — é ela que existe para o leitor de
+   *  tela, porque cor e forma sozinhas não dizem nada (WCAG 1.4.1). */
+  label: string
+}) {
+  return (
+    <span
+      className={`flex items-center ${on ? 'text-favorite' : 'invisible'}`}
+    >
+      {on && <span className="sr-only">{label}</span>}
+      <Heart size={14} weight="fill" aria-hidden />
+    </span>
+  )
+}
+
 export interface RatingRowProps {
   /** 1 a 5, ou ausente para "sem nota". */
   value?: number

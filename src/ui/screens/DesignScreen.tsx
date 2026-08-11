@@ -8,6 +8,7 @@ import {
   ConfirmDialog,
   ClampedText,
   ExternalLink,
+  FavoriteValue,
   RatingRow,
   RatingValue,
   ServiceLogo,
@@ -460,22 +461,57 @@ export function DesignScreen() {
           </CoverGrid>
           <p className="mb-2 text-label text-muted">linha — sm e md</p>
           <ul className="flex flex-col gap-2">
+            {/* Os três casos do fim da linha, um embaixo do outro de
+                propósito: é assim que dá para ver a nota formando coluna
+                mesmo quando o coração entra e sai. */}
             <li>
               <WorkRow
                 size="sm"
-                title="Concluído, com nota à direita"
+                title="Concluído, com nota e favorita"
                 media="anime"
-                trailing={<RatingValue value={4} label="4 de 5" />}
+                trailing={
+                  <span className="flex items-center gap-2">
+                    <RatingValue value={4} label="4 de 5" />
+                    <FavoriteValue on label="Favorita" />
+                  </span>
+                }
                 onOpen={() => {}}
               />
             </li>
             <li>
               <WorkRow
                 size="sm"
-                title="Pausado, com onde você parou"
+                title="Com nota, sem coração — a nota não sai do lugar"
+                media="book"
+                trailing={
+                  <span className="flex items-center gap-2">
+                    <RatingValue value={5} label="5 de 5" />
+                    <FavoriteValue on={false} label="Favorita" />
+                  </span>
+                }
+                onOpen={() => {}}
+              />
+            </li>
+            <li>
+              <WorkRow
+                size="sm"
+                title="Favorita sem nota, com onde você parou"
                 media="game"
                 line="Episódio 8/12"
-                mark={{ tone: 'favorite', label: 'Favorito' }}
+                trailing={
+                  <span className="flex items-center gap-2">
+                    <FavoriteValue on label="Favorita" />
+                  </span>
+                }
+                onOpen={() => {}}
+              />
+            </li>
+            <li>
+              <WorkRow
+                size="sm"
+                title="Marca na capa — ainda usada no painel de franquia"
+                media="movie"
+                mark={{ tone: 'shelved', label: 'Na estante' }}
                 onOpen={() => {}}
               />
             </li>

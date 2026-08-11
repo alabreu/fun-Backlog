@@ -32,6 +32,7 @@ import {
   CoverGrid,
   CoverMark,
   CoverStack,
+  FavoriteValue,
   RatingValue,
   Screen,
   ScreenBody,
@@ -347,10 +348,17 @@ export function ShelfScreen() {
                                 })}
                               </Badge>
                             }
-                            mark={
-                              entry.items.some((i) => i.favorite)
-                                ? { tone: 'favorite', label: t('item.favorite') }
-                                : undefined
+                            // O CORAÇÃO DA PILHA VAI PARA O MESMO CANTO da
+                            // linha de obra solta — na lista as duas são
+                            // vizinhas, e a marca em dois lugares diferentes
+                            // leria como duas coisas diferentes. Continua
+                            // olhando a FAMÍLIA inteira e não só a capa de
+                            // cima, senão uma favorita agrupada sumiria.
+                            trailing={
+                              <FavoriteValue
+                                on={entry.items.some((i) => i.favorite)}
+                                label={t('item.favorite')}
+                              />
                             }
                             onOpen={() =>
                               setPilhaAberta({ key: entry.key, open: true })
@@ -602,6 +610,35 @@ export function ShelfScreen() {
  * todas elas, e escrever de novo em cada linha é o mesmo ruído que fez o selo
  * de status sair de cima das capas.
  */
+/**
+ * O FIM DA LINHA: a nota e o coração, nesta ordem.
+ *
+ * O CORAÇÃO SAIU DA CAPA (escolha do usuário, 11/08/2026). Na grade ele fica
+ * sobre a arte porque não há outro lugar; na linha há — e sobre uma capa de
+ * 40px o disco branco cobria um terço do pôster para dizer o que cabe num
+ * ícone na margem. Aqui as duas marcas dividem o mesmo canto direito, que é
+ * para onde o olho já desce comparando as notas.
+ *
+ * A ORDEM é nota → coração, e ela repete a da `RatingRow` no painel da obra:
+ * estrelas à esquerda, favorita à direita. São dois eixos diferentes ("isto é
+ * bom?" e "isto é meu"), e mantê-los na mesma ordem nas duas telas é o que
+ * impede o coração de ser lido como uma sexta estrela.
+ */
+function RowTrailing({ item }: { item: Item }) {
+  const { t } = useTranslation()
+  return (
+    <span className="flex items-center gap-2">
+      {item.rating !== undefined && (
+        <RatingValue
+          value={item.rating}
+          label={t('item.ratingValue', { value: String(item.rating) })}
+        />
+      )}
+      <FavoriteValue on={item.favorite === true} label={t('item.favorite')} />
+    </span>
+  )
+}
+
 function ShelfRow({
   item,
   section,
@@ -635,17 +672,7 @@ function ShelfRow({
       coverUrl={item.coverUrl}
       media={item.mediaType}
       line={line}
-      mark={
-        item.favorite ? { tone: 'favorite', label: t('item.favorite') } : undefined
-      }
-      trailing={
-        item.rating !== undefined ? (
-          <RatingValue
-            value={item.rating}
-            label={t('item.ratingValue', { value: String(item.rating) })}
-          />
-        ) : undefined
-      }
+      trailing={<RowTrailing item={item} />}
       onOpen={onOpen}
     />
   )
