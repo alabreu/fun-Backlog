@@ -31,12 +31,18 @@ o coração da nota já grava em produção) e migração
 `0006_completed_at_optional.sql` (o check `items_completed_at_matches_status`
 foi derrubado — conferido no banco; a `main` destravou e subiu).
 
+Entregues em 11/08/2026: migrações `0008_items_franchise.sql` e
+`0009_profiles.sql` (rodadas por você no SQL Editor; conferidas no banco — a
+coluna existe, a tabela existe com RLS e três policies, e o Security Advisor
+não acusou nada novo). E o **deploy da Edge Function `media`**, feito pelo
+agente via MCP: a versão no ar saiu da **15** (de 10/08 12:40 UTC, que exigia
+sessão para tudo) para a **16**, com `verify_jwt` intacto e o conteúdo
+conferido contra o arquivo do git.
+
 | | Item | Por que importa | Onde |
 | --- | --- | --- | --- |
-| 🔴 | **Deploy da Edge Function `media`** | O link compartilhado de **jogo, filme e série** depende dele. A function passou a responder ficha por id sem sessão (10/08/2026); enquanto o deploy não roda, esses links abrem sem conteúdo para quem não tem conta — anime e livro já funcionam, porque o navegador busca direto na fonte. Retrocompatível: nada quebra antes | `supabase functions deploy media` |
-| 🔴 | **Migrações `0008` e `0009`** | `0008_items_franchise.sql` (coluna `franchise`, a pilha da estante deixa de depender do título) e `0009_profiles.sql` (tabela `profiles`, as preferências passam a seguir a conta). O código das duas está escrito e verde, e **segurado fora da `main` até você rodá-las** — subir antes abre uma janela em que gravar item ou preferência falha. Rodar as duas juntas, na ordem, no SQL Editor | Supabase → SQL Editor |
 | 🟡 | `OPENROUTER_API_KEY` como secret + **teto de gasto na chave** | Destrava "Me ajude a escolher". O teto é a única defesa que sobrevive a um bug no código | Supabase → Edge Functions → Secrets |
-| 🟡 | `ALLOWED_ORIGIN` das Edge Functions `media` e `llm` | Restringe o CORS à origin do app em vez de `*`. **Subiu de 🟢 para 🟡** em 10/08/2026: com a ficha por id aberta sem sessão, é ele que impede uma página de terceiro de gastar a cota da IGDB/TMDB pelo navegador de quem a visita. Não é proteção contra chamada de servidor (CORS é regra do browser) — para isso existe o teto por IP na própria function | Supabase → Edge Functions → Secrets |
+| 🟡 | `ALLOWED_ORIGIN` das Edge Functions `media` e `llm` | Restringe o CORS à origin do app em vez de `*`. **Subiu de 🟢 para 🟡** em 10/08/2026: com a ficha por id aberta sem sessão (e no ar desde 11/08), é ele que impede uma página de terceiro de gastar a cota da IGDB/TMDB pelo navegador de quem a visita. Não é proteção contra chamada de servidor (CORS é regra do browser) — para isso existe o teto por IP na própria function. **Decidir antes:** o código aceita UMA origin, então ligar isso derruba a busca nos previews da Vercel; se você usa preview, peça a lista antes | Supabase → Edge Functions → Secrets |
 | 🟢 | SMTP customizado (ex.: Resend) | O SMTP padrão do Supabase é lento e limitado — problema real antes de abrir para outras pessoas | Supabase → Auth → SMTP |
 | 🟢 | Rever o ícone do PWA | Já não é placeholder: é o marcador de página, escolhido como decisão provisória (08/08/2026). O gerador desenha a marca sem dependência e o `favicon.svg` repete a mesma forma. Rever junto da identidade visual — houve candidatos de "estante" (lombadas coloridas) que dizem mais sobre o produto | `scripts/generate-icons.mjs` + `public/favicon.svg` |
 | 🟢 | Logo do JustWatch no crédito | O crédito em texto já está na tela de Créditos e é o que a condição de uso pede. O guia de marca deles também oferece o logo — arte a baixar, mesmo caso do da TMDB | `src/ui/screens/CreditsScreen.tsx` |
