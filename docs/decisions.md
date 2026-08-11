@@ -1091,6 +1091,84 @@ busca; o filtro entrou na mesma condição.
 
 ---
 
+## 23. O "onde assistir" do anime volta, emprestado da TMDB
+
+**11/08/2026.** A decisão 19 tirou o "onde assistir" da ficha de anime porque a
+lista do AniList é global e mentia. Ela também escreveu o caminho de volta:
+casar o anime com a ficha da TMDB, que tem provider por país. É o que foi feito
+— em `core/media/watch.ts`.
+
+**Não há id em comum entre as duas fontes**, e é isso que define o problema. A
+TMDB indexa IMDb e TVDB; o AniList indexa MyAnimeList; nenhuma conhece a outra.
+Sobra o nome — o mesmo casamento que a decisão 19 chamou de frágil.
+
+### A fragilidade foi endereçada de um jeito só: errar para o silêncio
+
+O custo de errar é assimétrico, e a regra inteira sai disso. **Não achar** custa
+uma ficha sem a linha, que é exatamente o que ela tem hoje. **Achar errado** põe
+os streamings de OUTRA obra na ficha, com logo e link, com toda a cara de
+verdade, e manda a pessoa procurar onde não está.
+
+Por isso o casamento só aceita **nome idêntico depois de normalizado**. Não há
+distância de edição, não há "começa com", e não há aceitar o primeiro resultado
+só porque a busca foi feita com o nome certo.
+
+**Dois níveis de nome**, porque as fontes recortam a mesma história diferente: o
+AniList cataloga cada temporada como obra ("Attack on Titan Season 3"), a TMDB
+cataloga a série com temporadas dentro ("Attack on Titan"). Primeiro passe casa
+o título inteiro; segundo, o nome da série (o `stripSequelMarkers` que a estante
+já usava). Sem o segundo, nada casaria a partir da segunda temporada — metade
+da estante de quem assiste anime.
+
+**O ano só serve para uma pergunta**, e é a única que sobrevive ao recorte
+diferente: a série da TMDB não pode ter ESTREADO DEPOIS da temporada procurada.
+Igualdade rejeitaria o caso comum (a 3ª temporada de 2022 casa com a série de
+2013); o contrário continua impossível, e é o que descarta um remake de mesmo
+nome.
+
+**O "x" de crossover é caso à parte, e é real:** o AniList grafa "SPY×FAMILY" e
+"HUNTER×HUNTER" com sinal de multiplicação, a TMDB grafa "Spy x Family" e
+"Hunter x Hunter" com a letra. A normalização derruba o sinal e preserva a
+letra, então duas das séries mais populares da mídia não casariam nunca. A
+variante sem o "x" **do meio** entra no conjunto de nomes; na ponta ele fica,
+senão "X-Men" casaria com qualquer coisa chamada "Men".
+
+### Fora do provider, e em paralelo com a ficha
+
+`anilistProvider.detail()` poderia fazer isto sozinho e a tela nem saberia — mas
+aí a ficha de anime só apareceria depois de TRÊS idas à rede em fila (AniList,
+busca na TMDB, ficha da TMDB), e a sinopse pagaria pelo streaming. Como passo à
+parte (`useWhereToWatch`), ele só precisa do título, que a tela já tem antes de
+pedir qualquer coisa, e corre junto. A tela continua sem saber que isto é anime:
+ela pergunta por qualquer obra e recebe `null` quando não há o que acrescentar.
+
+O ano chega depois (a estante não guarda ano) e faz o gancho refazer a pergunta.
+A segunda resposta só pode ser mais certa que a primeira, e as duas idas saem do
+cache da Edge Function — a correção não custa cota.
+
+### O que isto custa
+
+**Exige login**, porque a busca da TMDB passa pela Edge Function (decisão 3).
+Quem abre um anime por link compartilhado, sem conta, não vê a linha — a ficha
+por id abre sem sessão, a busca não.
+
+**Anime cujo título em português na TMDB difere do título em inglês do AniList
+não casa** ("The Seven Deadly Sins" contra "Os Sete Pecados Capitais"). A
+resposta da TMDB vem em `pt-BR`, e o título original que ela devolve junto é o
+japonês em kanji, que não ajuda. O conserto é pedir esta busca específica em
+inglês — uma linha na Edge Function, e outro deploy. Ficou de fora porque o
+casamento conservador já cobre a maioria e porque nada aqui deveria depender de
+um deploy a mais.
+
+**E nada disto foi medido contra a fonte real.** A política de egresso do
+ambiente onde este código é escrito bloqueia AniList e TMDB — verificado de novo
+em 11/08/2026, com 403 no CONNECT das duas. É a mesma cegueira que derrubou a
+unificação de temporadas (decisão 18), e é por causa dela que a regra é
+conservadora em vez de esperta: a validação vai acontecer na estante do usuário,
+e o modo de falhar tinha que ser a linha faltando, não a linha errada.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A

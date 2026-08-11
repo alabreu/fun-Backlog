@@ -58,6 +58,7 @@ import {
 } from '@ui/design'
 import { ShareButton } from '@ui/components/ShareButton'
 import { useImageDownload } from '@ui/hooks/useImageDownload'
+import { useWhereToWatch } from '@ui/hooks/useWhereToWatch'
 import { makeProgressFormat } from '@ui/progressFormat'
 import { useItems } from '@ui/hooks/useItems'
 import { useTranslation } from '@ui/hooks/useTranslation'
@@ -280,6 +281,19 @@ export function WorkDetail({
   const coverUrl = detail?.coverUrl ?? matched?.coverUrl ?? subject.coverUrl
   const year = detail?.year ?? fromSearch?.year
 
+  // "ONDE ASSISTIR" DE QUEM NÃO TEM. Só o anime cai aqui hoje, e a decisão de
+  // quem empresta de quem é do núcleo — o painel pergunta por qualquer obra.
+  //
+  // Roda em paralelo com a ficha porque o título é tudo de que ele precisa, e o
+  // título já está em mãos. O ano chega depois (a estante não o guarda) e faz o
+  // gancho refazer a pergunta: a segunda resposta só pode ser mais certa que a
+  // primeira, porque é ela que sabe descartar um remake com o mesmo nome. As
+  // duas idas saem do cache da Edge Function, então a correção não custa cota.
+  const whereToWatch = useWhereToWatch(
+    { mediaType, title, altTitle: fromSearch?.subtitle, year },
+    region,
+  )
+
   // O ALVO DO LINK sai da fonte, nunca do item: o id do item é seu e protegido
   // por RLS, então mandá-lo não compartilharia nada. `null` numa obra digitada
   // à mão — sem fonte não há endereço, e o botão some.
@@ -463,6 +477,7 @@ export function WorkDetail({
         detail={detail}
         loading={loadingDetail}
         mediaType={mediaType}
+        borrowedFact={whereToWatch}
       />
 
       {matched && (
@@ -622,18 +637,31 @@ function SourceFacts({
   detail,
   loading,
   mediaType,
+  borrowedFact,
 }: {
   detail: MediaDetail | null
   loading: boolean
   /** Conhecida ANTES da resposta — é o que dimensiona o esqueleto. */
   mediaType: MediaType
+  /**
+   * Um fato que veio de OUTRA fonte que não a da obra (o "onde assistir" do
+   * anime, emprestado da TMDB). Chega separado porque chega DEPOIS, por um
+   * caminho próprio — ver `useWhereToWatch`.
+   */
+  borrowedFact?: MediaFact | null
 }) {
   const { t } = useTranslation()
 
   if (loading) return <SourceFactsSkeleton mediaType={mediaType} />
   if (!detail) return null
 
-  const facts = detail.facts ?? []
+  // O emprestado só entra se a própria ficha não trouxe um igual: a fonte da
+  // obra é sempre mais autoritativa que a que respondeu por ela.
+  const proprios = detail.facts ?? []
+  const facts =
+    borrowedFact && !proprios.some((f) => f.labelKey === borrowedFact.labelKey)
+      ? [borrowedFact, ...proprios]
+      : proprios
   // Os que IDENTIFICAM a obra sobem para antes da sinopse; o resto é contexto e
   // fica depois. Quem marca é o provider (ver `MediaFact.lead`) — a tela não
   // sabe, e não deve saber, que jogo é diferente de série nesse ponto.

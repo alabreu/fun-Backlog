@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-11-onde-assistir-anime',
+    date: '2026-08-11',
+    emoji: '📺',
+    title: {
+      pt: 'O anime voltou a dizer onde assistir',
+      en: 'Anime tells you where to watch again',
+    },
+    items: {
+      pt: [
+        'A ficha de anime mostra de novo em quais serviços dá para assistir — agora no SEU país. A lista antiga era global e oferecia Hulu no Brasil, por isso tinha saído.',
+        'A informação vem da mesma fonte de filmes e séries, casada pelo nome da obra. Quando o nome não bate exatamente, a ficha não mostra nada: é melhor faltar a linha do que mandar você procurar num serviço onde a obra não está.',
+        'Como toda busca no app, depende de estar logado.',
+      ],
+      en: [
+        'Anime pages tell you which services carry the show again — now in YOUR country. The old list was global and offered Hulu in Brazil, which is why it had been removed.',
+        'It comes from the same source as films and series, matched by the work’s name. When the name does not match exactly, nothing is shown: a missing line beats sending you to a service that does not have it.',
+        'Like every search in the app, it needs you to be signed in.',
+      ],
+    },
+  },
+  {
     id: '2026-08-10-hierarquia',
     date: '2026-08-10',
     emoji: '📚',

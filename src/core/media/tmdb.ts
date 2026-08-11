@@ -3,6 +3,7 @@ import { isUnreleasedTmdbStatus, releasesInFuture } from './release'
 import { DEFAULT_REGION } from '@core/region'
 import {
   SEARCH_LIMIT,
+  WHERE_TO_WATCH_FACT,
   type MediaDetail,
   type MediaFact,
   type MediaProvider,
@@ -282,7 +283,7 @@ export function mapTmdbDetail(
   // console" — e aquela sobe acima da sinopse desde a ficha de jogo.
   if (onde.length > 0)
     facts.unshift({
-      labelKey: 'fact.where',
+      labelKey: WHERE_TO_WATCH_FACT,
       value: onde.join(' · '),
       // O LOGO vem junto, e é o que resolve o reconhecimento: as cores das
       // marcas se agrupam em dois matizes só (Netflix, YouTube e Globoplay são

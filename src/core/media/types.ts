@@ -96,6 +96,16 @@ export interface MediaSearchResult {
  *
  * A tradução dos rótulos fica com a FONTE (via chave de i18n), não com a tela.
  */
+/**
+ * O rótulo do fato "onde assistir".
+ *
+ * Constante e não literal solto porque DOIS lugares dependem de serem a mesma
+ * string: a TMDB, que monta o fato, e `core/media/watch.ts`, que o pesca de
+ * dentro de uma ficha para emprestar ao anime. Divergir aqui não quebraria
+ * nada — só faria a linha sumir da ficha de anime, em silêncio.
+ */
+export const WHERE_TO_WATCH_FACT = 'fact.where'
+
 export interface MediaFact {
   /** Chave de i18n do rótulo — as fontes não inventam texto solto. */
   labelKey: string
