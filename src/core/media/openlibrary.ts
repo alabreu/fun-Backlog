@@ -58,6 +58,7 @@ export function mapOpenLibraryDoc(
 
 export const openLibraryProvider: MediaProvider = {
   id: 'openlibrary',
+  name: 'Open Library',
   mediaTypes: ['book'],
   requiresServer: false,
 

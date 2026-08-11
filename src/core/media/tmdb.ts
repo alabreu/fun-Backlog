@@ -345,6 +345,7 @@ export function mapTmdbDetail(
 
 export const tmdbProvider: MediaProvider = {
   id: 'tmdb',
+  name: 'TMDB',
   mediaTypes: ['movie', 'series'],
   requiresServer: true,
 

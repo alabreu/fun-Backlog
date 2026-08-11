@@ -280,6 +280,21 @@ export interface ProviderOptions {
 
 export interface MediaProvider {
   id: string
+  /**
+   * O nome da fonte como ela aparece NA TELA — "AniList", "TMDB".
+   *
+   * Existe porque a nota da ficha não dizia de quem era: um selo "89/100" ao
+   * lado de "Animes" e "2011" parece nota escolar, e nada ali dizia que 89 é a
+   * média da comunidade do AniList. O provider é quem sabe o próprio nome, e
+   * deixá-lo aqui é o que evita uma tabela de nomes numa tela qualquer.
+   *
+   * NÃO é o nome dos CRÉDITOS, que é outra coisa: lá vale a razão social que a
+   * licença pede ("The Movie Database (TMDB)"), aqui vale a sigla que cabe num
+   * selo. Os dois divergirem é o certo, não um descuido.
+   *
+   * Não passa por i18n: nome próprio não se traduz.
+   */
+  name: string
   /** Que mídias este provider cobre. */
   mediaTypes: MediaType[]
   /** Precisa passar por Edge Function (tem chave)? */

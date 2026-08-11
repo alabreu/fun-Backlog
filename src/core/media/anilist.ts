@@ -217,6 +217,7 @@ export function mapAniListMedia(media: AniListMedia): MediaSearchResult | null {
 
 export const anilistProvider: MediaProvider = {
   id: 'anilist',
+  name: 'AniList',
   mediaTypes: ['anime'],
   requiresServer: false,
 

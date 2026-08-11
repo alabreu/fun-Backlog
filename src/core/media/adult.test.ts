@@ -39,6 +39,7 @@ describe('o filtro na busca', () => {
   function comResultados(...results: MediaSearchResult[]) {
     const stub: MediaProvider = {
       id: 'stub',
+      name: 'Stub',
       mediaTypes: ['anime'],
       requiresServer: false,
       search: async () => results,

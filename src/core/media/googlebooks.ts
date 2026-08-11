@@ -144,6 +144,7 @@ export function stripBookHtml(text: string): string {
 
 export const googleBooksProvider: MediaProvider = {
   id: 'googlebooks',
+  name: 'Google Books',
   mediaTypes: ['book'],
   requiresServer: false,
 

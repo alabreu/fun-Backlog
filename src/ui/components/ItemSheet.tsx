@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Trash } from '@phosphor-icons/react'
 import { collectionState, sortByCollection } from '@core/media/collection'
 import { detailSourceFor, fetchDetail } from '@core/media/detail'
+import { providerName } from '@core/media/search'
 import { shareTargetFor } from '@core/media/share'
 import { genreColorIndexes } from '@core/media/genres'
 import { fullSizeCoverUrl } from '@core/media/image'
@@ -414,8 +415,23 @@ export function WorkDetail({
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             <Badge media={mediaType}>{t(mediaLabelKey(mediaType))}</Badge>
             {year !== undefined && <Badge>{year}</Badge>}
+            {/* A NOTA DA FONTE, COM O NOME DE QUEM DEU (escolha do usuário,
+                11/08/2026). Sozinho, "89/100" ao lado de "Animes" e "2011"
+                lia como nota escolar da obra — o próprio dono do app parou
+                para perguntar o que era. O nome resolve a pergunta inteira:
+                não é a nota dele (essa são as estrelas, lá embaixo), é a
+                média da comunidade daquela fonte.
+                A escala fica: sem o "/100", 89 poderia ser lido numa régua de
+                10 ou de 5, que é o que a maioria dos apps de catálogo usa. */}
             {detail?.score !== undefined && (
-              <Badge>{`${detail.score}/100`}</Badge>
+              <Badge
+                aria-label={t('item.sourceScore', {
+                  source: providerName(detail.provider) ?? '',
+                  value: String(detail.score),
+                })}
+              >
+                {`${providerName(detail.provider) ?? ''} ${detail.score}/100`.trim()}
+              </Badge>
             )}
             {/* Badge e não fato: "em cartaz" é um estado do filme AGORA, do
                 mesmo naipe do ano e da nota — e é uma informação com prazo de

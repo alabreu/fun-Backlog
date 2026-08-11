@@ -37,6 +37,7 @@ function result(over: Partial<MediaSearchResult> = {}): MediaSearchResult {
 function stubProvider(over: Partial<MediaProvider> = {}): MediaProvider {
   return {
     id: 'stub',
+    name: 'Stub',
     mediaTypes: ['anime'],
     requiresServer: false,
     search: async () => [result()],

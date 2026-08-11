@@ -154,6 +154,7 @@ export const pt = {
   'item.finishedConfirm': 'Marcar como concluída',
   'item.ratingLabel': 'Nota',
   'item.favorite': 'Favorito',
+  'item.sourceScore': 'Nota do {source}: {value} de 100',
   'item.favoriteCount': 'Favoritas: {count}',
   'item.favoriteAdd': 'Marcar como favorita',
   'item.favoriteRemove': 'Desmarcar como favorita',

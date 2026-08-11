@@ -299,3 +299,14 @@ export async function searchAll(
 
   return { groups, failed, skippedNeedingAuth }
 }
+
+/**
+ * O nome da fonte, para a tela mostrar de quem é o dado.
+ *
+ * `undefined` para id desconhecido — item antigo pode carregar o id de um
+ * provider que já não existe, e a tela cai em não dizer a origem em vez de
+ * escrever o id cru ("googlebooks") no meio da interface.
+ */
+export function providerName(id: string): string | undefined {
+  return PROVIDERS.find((p) => p.id === id)?.name
+}

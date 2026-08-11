@@ -90,6 +90,7 @@ export function mapIgdbGame(game: IgdbGame): MediaSearchResult | null {
 
 export const igdbProvider: MediaProvider = {
   id: 'igdb',
+  name: 'IGDB',
   mediaTypes: ['game'],
   requiresServer: true,
 
