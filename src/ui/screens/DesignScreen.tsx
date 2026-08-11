@@ -38,6 +38,7 @@ import {
   Textarea,
   Toast,
   Toggle,
+  WaveDivider,
   WorkRow,
 } from '@ui/design'
 import { ITEM_STATUSES, MEDIA_TYPES, type MediaType } from '@core/items/types'
@@ -447,6 +448,14 @@ export function DesignScreen() {
             resolvido. A lista não economiza rolagem — a grade custa 69px por
             item e a linha custa mais. Ela compra peso e informação.
           </p>
+          <p className="mb-2 text-label text-muted">
+            divisor ondulado — preenche o vão do cabeçalho de seção
+          </p>
+          <div className="mb-4 flex items-center gap-3">
+            <span className="text-title font-bold tracking-tight">Pausado</span>
+            <WaveDivider className="flex-1 basis-0 text-ink/20" />
+            <span className="text-body tabular-nums text-muted">3</span>
+          </div>
           <p className="mb-2 text-label text-muted">
             prateleira horizontal — altura fixa, arraste para o lado
           </p>
