@@ -731,9 +731,14 @@ export function DesignScreen() {
             O coração de favorita, no canto da capa. O ícone fica dentro de um
             disco branco porque a arte atrás é imprevisível: contorno escuro
             some em pôster escuro, contorno claro some em pôster claro. O disco
-            troca o fundo por um conhecido, e aí o contraste vira conta fechada
-            — <code>on-mark-favorite</code> sobre <code>mark</code> dá 6,29:1,
-            contra os 2,69:1 do coração direto sobre branco.
+            troca o fundo por um conhecido, e aí o contraste deixa de depender
+            da capa.
+          </p>
+          <p className="mb-3 text-label text-muted">
+            O rosa do coração é exceção assumida: 2,69:1 sobre o disco, abaixo
+            dos 3:1 da 1.4.11 — escolha de desenho, com a forma e o rótulo
+            escrito carregando a informação. Os outros dois tons passam
+            (<code>done</code> 5,02:1, <code>shelved</code> 6,29:1).
           </p>
           <CoverGrid className="mb-3">
             {(

@@ -58,7 +58,14 @@ const PAIRS = [
   // não. Sem estas três linhas, copiar os `on-mark-*` para o bloco escuro na
   // próxima troca de paleta passaria batido — e o ícone cairia para 2,7:1
   // sobre o branco, abaixo do mínimo da 1.4.11 para objeto gráfico.
-  ['on-mark-favorite', 'mark', 3, 'coração no disco da capa'],
+  // O CORAÇÃO TEM PISO MAIS BAIXO, e é exceção assumida — não esquecimento.
+  // `rose-400` sobre o disco branco dá 2,69:1, abaixo dos 3:1 da 1.4.11: o
+  // usuário viu o `rose-700` (6,29:1) na tela em 10/08/2026 e preferiu o rosa
+  // vivo. 2.5 é PISO, e não mínimo da norma: ele não promete conformidade,
+  // só impede que uma troca de paleta leve a marca para um rosa ainda mais
+  // lavado sem ninguém notar. O que ampara a informação aqui é a forma de
+  // coração mais o rótulo em texto (1.4.1), não a cor sozinha.
+  ['on-mark-favorite', 'mark', 2.5, 'coração no disco da capa (exceção)'],
   ['on-mark-done', 'mark', 3, 'concluída no disco da capa'],
   ['on-mark-shelved', 'mark', 3, 'na estante no disco da capa'],
   ['on-inverse', 'inverse', 4.5, 'texto do toast (superfície invertida)'],
@@ -229,7 +236,7 @@ for (const [themeName, tokens] of [
 }
 
 if (failed) {
-  console.error('\n✖ Contraste: par(es) abaixo do mínimo WCAG AA\n')
+  console.error('\n✖ Contraste: par(es) abaixo do mínimo definido\n')
   console.error(report.join('\n'))
   console.error(
     '\nAjuste o valor do PRIMITIVO em src/index.css (a camada semântica só\n' +
@@ -238,5 +245,8 @@ if (failed) {
   process.exit(1)
 }
 
-console.log('✓ Contraste: todos os pares passam AA nos dois temas.')
+// "o mínimo de cada par", e não "todos passam AA": desde 10/08/2026 existe UM
+// par com piso deliberadamente abaixo da norma (o coração da capa, ver a lista
+// acima). Anunciar AA para todos seria o script mentindo sobre o que conferiu.
+console.log('✓ Contraste: todos os pares passam o mínimo definido, nos dois temas.')
 if (process.argv.includes('--verbose')) console.log(report.join('\n'))

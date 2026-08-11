@@ -171,12 +171,21 @@
      acompanhar o tema. BRANCO NOS DOIS, e é por isso que os `on-mark-*` abaixo
      também não invertem: eles são sempre "sobre claro".
 
-     NÃO REPITA ESTES QUATRO nos blocos de tema escuro lá embaixo. O reflexo ao
-     mexer na paleta é copiar tudo para lá; aqui isso trocaria o vinho por rosa
-     claro sobre um disco que continua branco, e o ícone cairia de 6,3:1 para
-     2,7:1 — abaixo do mínimo da 1.4.11. O `check-contrast` pega. */
+     NÃO REPITA ESTES QUATRO nos blocos de tema escuro lá embaixo — eles são
+     fixos porque o disco é fixo. O reflexo ao mexer na paleta é copiar tudo
+     para lá, e ali isso significaria uma cor pensada para fundo escuro pousando
+     num disco que continua branco.
+
+     O CORAÇÃO É A EXCEÇÃO ASSUMIDA. `rose-400` sobre o disco branco dá 2,69:1,
+     abaixo dos 3:1 que a WCAG 1.4.11 pede de objeto gráfico — é escolha de
+     desenho do usuário (10/08/2026), depois de ver o `rose-700` (6,29:1) na
+     tela e preferir o rosa vivo. Fica registrado aqui e no `check-contrast`,
+     que guarda um piso mais baixo para este par em vez de fingir que ele passa.
+     O que ampara a marca de favorita é a FORMA (coração), o disco branco que a
+     separa da arte e o rótulo em texto para leitor de tela — a cor nunca foi a
+     única pista (1.4.1). */
   --color-mark: var(--palette-white);
-  --color-on-mark-favorite: var(--palette-rose-700);
+  --color-on-mark-favorite: var(--palette-rose-400);
   --color-on-mark-done: var(--palette-green-700);
   --color-on-mark-shelved: var(--palette-rose-700);
 
