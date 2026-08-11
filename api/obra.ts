@@ -1,14 +1,21 @@
+// A EXTENSÃO É `.js` E O ARQUIVO É `.ts`. Não é engano: é a convenção do
+// TypeScript em ESM — escreve-se o nome do arquivo COMPILADO, e o compilador
+// acha o fonte. É a única grafia que passa dos dois lados, e as outras duas
+// custaram nove deploys quebrados (10 e 11/08/2026):
+//
+//   '…/og.ts'  → TS5097 na Vercel (lá `allowImportingTsExtensions` é falso)
+//   '…/og'     → TS2835 na Vercel (lá `moduleResolution` é `node16`, que exige
+//                a extensão em import relativo de ESM)
+//   '…/og.js'  → passa na Vercel E aqui
+//
+// O `tsconfig.api.json` foi alinhado ao da Vercel para que o `npm run build`
+// reprove as duas primeiras. Antes ele era mais FROUXO que produção, e por isso
+// o gate dizia verde enquanto o deploy morria — ver o comentário lá.
 import {
   injectOgTags,
   trimDescription,
   type OgMeta,
-// SEM a extensão `.ts`, e isto derrubou oito deploys seguidos (11/08/2026). O
-// empacotador da Vercel compila esta pasta com a configuração DELE, onde
-// `allowImportingTsExtensions` é falso — e um import terminado em `.ts` vira
-// TS5097, que reprova o build inteiro. O `tsconfig.api.json` daqui ligava a
-// opção e por isso o `npm run build` passava: a rede local era mais frouxa que
-// a de produção, que é o pior jeito de uma rede errar. A opção saiu de lá.
-} from '../src/core/media/og'
+} from '../src/core/media/og.js'
 
 /**
  * A PRÉVIA DO LINK DA OBRA — o que o WhatsApp mostra antes de alguém tocar.

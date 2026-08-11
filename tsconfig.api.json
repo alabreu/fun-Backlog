@@ -2,22 +2,25 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2023", "DOM"],
-    "module": "ESNext",
+    /* ESTA CONFIGURAÇÃO ESPELHA A DA VERCEL, e o par abaixo é a razão de o
+     * arquivo existir separado do `tsconfig.app.json`.
+     *
+     * A pasta `api/` não é compilada pelo Vite: a Vercel a compila com a
+     * configuração DELA, que usa `node16` e não liga
+     * `allowImportingTsExtensions`. Em `node16`, import relativo de ESM exige
+     * a extensão do arquivo COMPILADO — `'./og.js'`, apontando para `og.ts`.
+     *
+     * Aqui isto era `bundler` + `allowImportingTsExtensions: true`, ou seja,
+     * uma rede local mais FROUXA que a de produção. O resultado foi nove
+     * deploys seguidos quebrados em 10 e 11/08/2026 com o `npm run build`
+     * dizendo verde o tempo todo — pior que não ter rede, porque dá confiança.
+     *
+     * Regra para quem mexer: se afrouxar isto faz o build passar, o problema é
+     * o código, não a configuração. */
+    "module": "node16",
+    "moduleResolution": "node16",
     "skipLibCheck": true,
 
-    "moduleResolution": "bundler",
-    /* SEM `allowImportingTsExtensions`, ao contrário do `tsconfig.app.json`.
-     *
-     * Não é preferência de estilo: a Vercel compila a pasta `api/` com a
-     * configuração DELA, onde a opção é falsa, e um import terminado em `.ts`
-     * vira TS5097 e reprova o build inteiro. Com a opção ligada aqui, o
-     * `npm run build` passava enquanto o deploy quebrava — oito deploys
-     * seguidos morreram assim em 10 e 11/08/2026, e ninguém viu, porque o
-     * gate local dizia verde. Uma rede local mais FROUXA que a de produção é
-     * pior que nenhuma: ela dá confiança falsa.
-     *
-     * Regra para quem mexer aqui: esta configuração espelha a da Vercel. Se
-     * ela precisar afrouxar para o build passar, o problema é o código. */
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
