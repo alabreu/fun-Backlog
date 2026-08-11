@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-10-hierarquia',
+    date: '2026-08-10',
+    emoji: '📚',
+    title: {
+      pt: 'Cada prateleira com o seu peso',
+      en: 'Each shelf gets its own weight',
+    },
+    items: {
+      pt: [
+        'As seções da estante deixaram de ter todas a mesma cara. O que você está consumindo agora vem com capas grandes, em duas colunas; a fila e o que ainda vai estrear continuam como estavam.',
+        'Pausado, concluído e abandonado viraram lista, com a capa pequena ao lado do título — dá para saber em que seção você está sem ler o cabeçalho.',
+        'E a lista mostra o que não cabia na capa: onde você parou, no que ficou pela metade, e a sua nota, à direita, formando uma coluna que dá para comparar de relance.',
+      ],
+      en: [
+        'Shelf sections no longer all look alike. What you are watching or playing now comes in big covers, two per row; the queue and what is yet to come stay as they were.',
+        'Paused, finished and dropped became lists, with a small cover beside the title — you can tell which section you are in without reading the heading.',
+        'And the list shows what did not fit on a cover: where you stopped on what is half-done, and your rating on the right, forming a column you can compare at a glance.',
+      ],
+    },
+  },
+  {
     id: '2026-08-10-compartilhar',
     date: '2026-08-10',
     emoji: '🔗',

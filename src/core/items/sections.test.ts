@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   hidesWhenEmpty,
+  sectionDensity,
   sectionOf,
   shelfSectionKeys,
 } from './sections'
@@ -79,5 +80,34 @@ describe('ordem das seções', () => {
     expect(hidesWhenEmpty('unreleased')).toBe(true)
     expect(hidesWhenEmpty('backlog')).toBe(false)
     expect(hidesWhenEmpty('done')).toBe(false)
+  })
+})
+
+describe('peso visual da seção', () => {
+  it('só o que está em curso ganha destaque', () => {
+    expect(sectionDensity('active')).toBe('featured')
+  })
+
+  // "Não lançados" acompanha a fila apesar de não dar para fazer nada com ela:
+  // é a estante da expectativa, e é onde a capa faz trabalho emocional.
+  it('a fila e o que ainda estreia ficam na grade', () => {
+    expect(sectionDensity('backlog')).toBe('grid')
+    expect(sectionDensity('unreleased')).toBe('grid')
+  })
+
+  // Pausado é o caso que se discute: parado é parado — se a obra estivesse
+  // viva, ela estaria em "assistindo".
+  it('o que parou ou acabou vira lista', () => {
+    for (const s of ['paused', 'done', 'abandoned'] as const)
+      expect(sectionDensity(s)).toBe('list')
+  })
+
+  // A estante de filme não tem "assistindo" nem "pausado" (decisão 16), então
+  // ela nasce sem destaque nenhum — e isso é resultado válido, não um furo.
+  it('sem seção em curso, nada fica em destaque', () => {
+    const densidades = shelfSectionKeys('movie').map(sectionDensity)
+    expect(densidades).not.toContain('featured')
+    expect(densidades).toContain('grid')
+    expect(densidades).toContain('list')
   })
 })

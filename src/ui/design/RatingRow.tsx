@@ -22,6 +22,39 @@ import { Heart, Star } from '@phosphor-icons/react'
  * linha ficou com uma coisa a menos. O que sustenta essa escolha é o
  * `labels.clear` — sem ele o gesto seria invisível para leitor de tela.
  */
+/**
+ * A NOTA COMO VALOR — uma estrela e o número, para LER e não para mexer.
+ *
+ * Existe porque a estante passou a mostrar as seções de arquivo em linha
+ * (`WorkRow`), e ali cabe a nota — informação que a célula de 111px do grid não
+ * tem onde pôr. As cinco estrelas não servem para isso: em cada linha de uma
+ * lista elas seriam cinco alvos falsos e um bloco de 120px de largura.
+ *
+ * O NÚMERO ACOMPANHA A ESTRELA de propósito. Uma estrela sozinha só diz "tem
+ * nota"; e distinguir 4 de 5 por preenchimento parcial não existe aqui. O
+ * `aria-label` diz a frase inteira, porque "★ 4" lido em voz alta não é frase.
+ */
+export function RatingValue({
+  value,
+  label,
+}: {
+  value: number
+  /** A frase pronta, ex.: "4 de 5". O componente não conhece i18n. */
+  label: string
+}) {
+  return (
+    <span
+      aria-label={label}
+      className="flex items-center gap-1 text-label font-semibold text-rating"
+    >
+      <Star size={14} weight="fill" aria-hidden />
+      <span aria-hidden className="tabular-nums">
+        {value}
+      </span>
+    </span>
+  )
+}
+
 export interface RatingRowProps {
   /** 1 a 5, ou ausente para "sem nota". */
   value?: number

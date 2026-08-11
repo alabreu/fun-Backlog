@@ -9,6 +9,7 @@ import {
   ClampedText,
   ExternalLink,
   RatingRow,
+  RatingValue,
   ServiceLogo,
   Skeleton,
   Cover,
@@ -34,6 +35,7 @@ import {
   Textarea,
   Toast,
   Toggle,
+  WorkRow,
 } from '@ui/design'
 import { ITEM_STATUSES, MEDIA_TYPES, type MediaType } from '@core/items/types'
 import { locate, seasonProgress, type SeasonInfo } from '@core/items/seasons'
@@ -429,6 +431,64 @@ export function DesignScreen() {
               {(id) => <Textarea id={id} rows={3} placeholder="Textarea" />}
             </Field>
           </div>
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">Densidade da estante</SectionTitle>
+          <p className="mb-3 text-body text-muted">
+            Três pesos, e a régua é o que dá para FAZER agora (ver{' '}
+            <code>sectionDensity</code>): destaque para o que está em curso,
+            grade para o que dá para escolher, linha para o que já foi
+            resolvido. A lista não economiza rolagem — a grade custa 69px por
+            item e a linha custa mais. Ela compra peso e informação.
+          </p>
+          <p className="mb-2 text-label text-muted">destaque — 2 colunas</p>
+          <CoverGrid featured className="mb-4">
+            {MEDIA_TYPES.slice(0, 2).map((m) => (
+              <li key={m}>
+                <Cover title={`Em curso (${m})`} media={m} />
+              </li>
+            ))}
+          </CoverGrid>
+          <p className="mb-2 text-label text-muted">grade — 3 colunas</p>
+          <CoverGrid className="mb-4">
+            {MEDIA_TYPES.slice(0, 3).map((m) => (
+              <li key={m}>
+                <Cover title={`Na fila (${m})`} media={m} />
+              </li>
+            ))}
+          </CoverGrid>
+          <p className="mb-2 text-label text-muted">linha — sm e md</p>
+          <ul className="flex flex-col gap-2">
+            <li>
+              <WorkRow
+                size="sm"
+                title="Concluído, com nota à direita"
+                media="anime"
+                trailing={<RatingValue value={4} label="4 de 5" />}
+                onOpen={() => {}}
+              />
+            </li>
+            <li>
+              <WorkRow
+                size="sm"
+                title="Pausado, com onde você parou"
+                media="game"
+                line="Episódio 8/12"
+                mark={{ tone: 'favorite', label: 'Favorito' }}
+                onOpen={() => {}}
+              />
+            </li>
+            <li>
+              <WorkRow
+                title="Tamanho md — o do painel de franquia"
+                media="series"
+                badge={<Badge>OVA</Badge>}
+                line="Na fila"
+                onOpen={() => {}}
+              />
+            </li>
+          </ul>
         </section>
 
         <section>

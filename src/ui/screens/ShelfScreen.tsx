@@ -5,13 +5,16 @@ import { groupByFranchise } from '@core/items/franchise'
 import {
   datesForStatus,
   mediaLabelKey,
+  progressLabelKey,
   progressUnitFor,
 } from '@core/items/status'
 import {
   hidesWhenEmpty,
+  sectionDensity as density,
   sectionLabelKey,
   sectionOf,
   shelfSectionKeys,
+  type ShelfSectionKey,
 } from '@core/items/sections'
 import {
   ITEM_STATUSES,
@@ -23,16 +26,19 @@ import { groupResultsByFranchise } from '@core/media/collection'
 import { hasProviderFor } from '@core/media/search'
 import type { MediaSearchResult } from '@core/media/types'
 import {
+  Badge,
   Cover,
   CoverAction,
   CoverGrid,
   CoverMark,
   CoverStack,
+  RatingValue,
   Screen,
   ScreenBody,
   SearchBar,
   Section,
   Toast,
+  WorkRow,
 } from '@ui/design'
 import {
   AddStatusSheet,
@@ -307,43 +313,94 @@ export function ShelfScreen() {
                 onToggle={() => toggle(value, found.length)}
                 emptyLabel={t('shelf.sectionEmpty')}
               >
-                <CoverGrid>
-                  {entries.map((entry, index) =>
-                    entry.kind === 'item' ? (
-                      <ItemCell
-                        key={entry.key}
-                        item={entry.item}
-                        lazy={index > 5}
-                        onOpen={() => setSelected(entry.item)}
-                      />
-                    ) : (
+                {/* CADA SEÇÃO TEM O SEU PESO (ver `sectionDensity`): o que está
+                    em curso vem em duas colunas, a fila em três, e o arquivo em
+                    linhas. Buscando, a densidade NÃO muda — mudar de forma no
+                    meio de uma busca faria a mesma obra parecer outra coisa
+                    dependendo do que está escrito no campo. */}
+                {density(value) === 'list' ? (
+                  <ul className="flex flex-col gap-2 pt-1">
+                    {entries.map((entry, index) => (
                       <li key={entry.key}>
-                        <CoverStack
-                          src={entry.items[0].coverUrl}
-                          name={entry.name}
-                          count={entry.items.length}
-                          media={mediaType}
-                          lazy={index > 5}
-                          // A FAMÍLIA INTEIRA, não só a capa de cima: senão
-                          // uma favorita agrupada sumia da estante. Na prática
-                          // `sortForShelf` já traz a favorita como primeira do
-                          // grupo, mas depender disso deixaria a marca à mercê
-                          // da ordenação.
-                          favoriteLabel={
-                            entry.items.some((i) => i.favorite)
-                              ? t('item.favorite')
-                              : undefined
-                          }
-                          label={t('shelf.stack', {
-                            name: entry.name,
-                            count: String(entry.items.length),
-                          })}
-                          onClick={() => setPilhaAberta({ key: entry.key, open: true })}
-                        />
+                        {entry.kind === 'item' ? (
+                          <ShelfRow
+                            item={entry.item}
+                            section={value}
+                            lazy={index > 8}
+                            onOpen={() => setSelected(entry.item)}
+                          />
+                        ) : (
+                          <WorkRow
+                            size="sm"
+                            lazy={index > 8}
+                            title={entry.name}
+                            coverUrl={entry.items[0].coverUrl}
+                            media={mediaType}
+                            // A CONTAGEM VIRA SELO. Na grade quem diz "isto é
+                            // uma pilha" é a capa empilhada com o número no
+                            // canto; numa linha não há folhas atrás para
+                            // empilhar, então o número passa a ser escrito.
+                            badge={
+                              <Badge>
+                                {t('shelf.stackCount', {
+                                  count: String(entry.items.length),
+                                })}
+                              </Badge>
+                            }
+                            mark={
+                              entry.items.some((i) => i.favorite)
+                                ? { tone: 'favorite', label: t('item.favorite') }
+                                : undefined
+                            }
+                            onOpen={() =>
+                              setPilhaAberta({ key: entry.key, open: true })
+                            }
+                          />
+                        )}
                       </li>
-                    ),
-                  )}
-                </CoverGrid>
+                    ))}
+                  </ul>
+                ) : (
+                  <CoverGrid featured={density(value) === 'featured'}>
+                    {entries.map((entry, index) =>
+                      entry.kind === 'item' ? (
+                        <ItemCell
+                          key={entry.key}
+                          item={entry.item}
+                          lazy={index > 5}
+                          onOpen={() => setSelected(entry.item)}
+                        />
+                      ) : (
+                        <li key={entry.key}>
+                          <CoverStack
+                            src={entry.items[0].coverUrl}
+                            name={entry.name}
+                            count={entry.items.length}
+                            media={mediaType}
+                            lazy={index > 5}
+                            // A FAMÍLIA INTEIRA, não só a capa de cima: senão
+                            // uma favorita agrupada sumia da estante. Na prática
+                            // `sortForShelf` já traz a favorita como primeira do
+                            // grupo, mas depender disso deixaria a marca à mercê
+                            // da ordenação.
+                            favoriteLabel={
+                              entry.items.some((i) => i.favorite)
+                                ? t('item.favorite')
+                                : undefined
+                            }
+                            label={t('shelf.stack', {
+                              name: entry.name,
+                              count: String(entry.items.length),
+                            })}
+                            onClick={() =>
+                              setPilhaAberta({ key: entry.key, open: true })
+                            }
+                          />
+                        </li>
+                      ),
+                    )}
+                  </CoverGrid>
+                )}
               </Section>
             ))}
           </div>
@@ -526,6 +583,71 @@ export function ShelfScreen() {
 
       <ItemSheet subject={openSubject} onClose={() => setSelected(null)} />
     </Screen>
+  )
+}
+
+/**
+ * A OBRA EM LINHA, nas seções de arquivo — pausado, concluído, abandonado.
+ *
+ * Ela mostra o que a célula do grid não tem onde pôr, e é isso que impede a
+ * lista de ser um rebaixamento:
+ *
+ *   · ONDE VOCÊ PAROU, para o que ficou pela metade. É a pergunta que se faz
+ *     sobre uma obra pausada, e no grid ela custava abrir o painel.
+ *   · A NOTA, à direita. Numa lista de concluídos ela vira uma coluna que o
+ *     olho percorre sem ler o resto — é a única tela do app onde dá para
+ *     comparar suas notas de relance.
+ *
+ * O ESTADO NÃO É REPETIDO na linha. O título da seção já diz "Concluído" para
+ * todas elas, e escrever de novo em cada linha é o mesmo ruído que fez o selo
+ * de status sair de cima das capas.
+ */
+function ShelfRow({
+  item,
+  section,
+  lazy,
+  onOpen,
+}: {
+  item: Item
+  section: ShelfSectionKey
+  lazy: boolean
+  onOpen: () => void
+}) {
+  const { t } = useTranslation()
+
+  // PROGRESSO SÓ ONDE ELE AINDA SIGNIFICA ALGO. Num concluído a régua está
+  // cheia por definição, e "Episódio 12/12" seria uma linha inteira gasta para
+  // dizer o que a seção já disse.
+  const unit = progressUnitFor(item.mediaType)
+  const progresso = item.progress
+  const line =
+    section !== 'done' && unit && progresso && progresso.current > 0
+      ? `${t(progressLabelKey(unit))} ${progresso.current}${
+          progresso.total ? `/${progresso.total}` : ''
+        }`
+      : undefined
+
+  return (
+    <WorkRow
+      size="sm"
+      lazy={lazy}
+      title={item.title}
+      coverUrl={item.coverUrl}
+      media={item.mediaType}
+      line={line}
+      mark={
+        item.favorite ? { tone: 'favorite', label: t('item.favorite') } : undefined
+      }
+      trailing={
+        item.rating !== undefined ? (
+          <RatingValue
+            value={item.rating}
+            label={t('item.ratingValue', { value: String(item.rating) })}
+          />
+        ) : undefined
+      }
+      onOpen={onOpen}
+    />
   )
 }
 

@@ -66,3 +66,38 @@ export function sectionLabelKey(
 export function hidesWhenEmpty(key: ShelfSectionKey): boolean {
   return key === 'unreleased'
 }
+
+/**
+ * O PESO VISUAL DE CADA SEÇÃO (escolha do usuário, 10/08/2026).
+ *
+ * Antes toda seção tinha exatamente a mesma cara, e o único jeito de saber onde
+ * você estava era LER o título. Densidades diferentes dizem isso antes da
+ * leitura — é o mesmo argumento que trocou os chips por seções e a expansão no
+ * grid por painel: a estrutura tem de ser vista, não decifrada.
+ *
+ * A RÉGUA É O QUE DÁ PARA FAZER AGORA, e não "o que é mais importante" — que é
+ * vago e muda de pessoa para pessoa:
+ *
+ *   destaque → estou no meio disto
+ *   grade    → posso escolher isto hoje  (a fila, e o que ainda vai estrear)
+ *   lista    → já resolvi, ou parei      (pausado, concluído, abandonado)
+ *
+ * PAUSADO FICA NA LISTA porque parado é parado: se a obra estivesse viva, ela
+ * estaria em "assistindo". "Não lançados" fica na GRADE apesar de não dar para
+ * fazer nada com ela — é a estante da expectativa, o único lugar onde a capa
+ * faz trabalho emocional, e são uma ou duas obras.
+ *
+ * O QUE ISTO NÃO É: economia de rolagem. Medido na estante real, a grade de 3
+ * colunas custa 69px de altura por item e uma linha compacta custa mais que
+ * isso — a lista troca três itens por fileira por um. O que ela compra é peso
+ * e informação (na linha cabe o estado, o progresso e a nota; na célula de
+ * 111px não cabe nada além da capa e do título). Quem resolve rolagem é o
+ * colapso da seção, que já existe.
+ */
+export type SectionDensity = 'featured' | 'grid' | 'list'
+
+export function sectionDensity(key: ShelfSectionKey): SectionDensity {
+  if (key === 'active') return 'featured'
+  if (key === 'backlog' || key === 'unreleased') return 'grid'
+  return 'list'
+}

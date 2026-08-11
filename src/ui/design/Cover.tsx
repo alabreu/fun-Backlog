@@ -94,16 +94,36 @@ export function Cover({
  * O grid de capas. Três colunas no celular, mais conforme a tela cresce — a
  * densidade é o ponto: o briefing quer a estante inteira à vista, não seis
  * cards gigantes.
+ *
+ * `featured` TIRA UMA COLUNA, e existe porque a estante passou a ter hierarquia
+ * (ver `sectionDensity` em core/items/sections.ts): a seção do que está em
+ * curso é maior que a da fila.
+ *
+ * DUAS COLUNAS, e não "um pouco maior", porque num grid o tamanho da capa é
+ * consequência do número de colunas — não há meio-termo sem quebrar o
+ * alinhamento. Medido a 390px: 111px de capa em três colunas, 173px em duas,
+ * um salto de 56%. Uma diferença menor que isso não leria como sinal; leria
+ * como erro de renderização.
+ *
+ * A largura de mesa acompanha na mesma proporção (4 → 3): o destaque é relativo
+ * à seção vizinha, e ele desapareceria se as duas convergissem para o mesmo
+ * número de colunas na tela grande.
  */
 export function CoverGrid({
   children,
+  featured = false,
   className = '',
 }: {
   children: React.ReactNode
+  featured?: boolean
   className?: string
 }) {
   return (
-    <ul className={`grid grid-cols-3 gap-3 sm:grid-cols-4 ${className}`}>
+    <ul
+      className={`grid gap-3 ${
+        featured ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-3 sm:grid-cols-4'
+      } ${className}`}
+    >
       {children}
     </ul>
   )

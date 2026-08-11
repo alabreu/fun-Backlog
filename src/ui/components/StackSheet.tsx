@@ -1,5 +1,5 @@
 import type { MediaType } from '@core/items/types'
-import { Badge, Cover, CoverMark, Sheet, type CoverMarkTone } from '@ui/design'
+import { Badge, Sheet, WorkRow, type CoverMarkTone } from '@ui/design'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
 /**
@@ -73,44 +73,21 @@ export function StackSheet({
       <ul className="flex flex-col gap-2 pb-4">
         {rows.map((row) => (
           <li key={row.key}>
-            <button
-              type="button"
-              onClick={row.onOpen}
-              className="flex w-full items-center gap-3 rounded-card text-left transition active:scale-95"
-            >
-              {/* Capa pequena: aqui ela reconhece, não é o assunto. `w-14` dá
-                  84px de altura na proporção 2:3 — acima dos 44px de alvo de
-                  toque com folga, e a linha inteira é clicável de qualquer
-                  forma. `relative` porque a marca se ancora nele. */}
-              <span className="relative block w-14 shrink-0">
-                <Cover
-                  src={row.coverUrl}
-                  title={row.title}
-                  media={row.media}
-                  lazy={false}
-                />
-                {row.mark && (
-                  <CoverMark tone={row.mark.tone} label={row.mark.label} />
-                )}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="line-clamp-2 block text-body font-semibold">
-                  {row.title}
-                </span>
-                <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  {/* O SELO VEM ANTES do estado: ele responde "o que é isto",
-                      e essa pergunta vem antes de "onde eu parei" numa lista em
-                      que os títulos se parecem. Temporada comum não tem selo —
-                      a ausência é que diz que é uma (ver `formatLabelKey`). */}
-                  {row.badge && <Badge>{row.badge}</Badge>}
-                  {row.line && (
-                    <span className="line-clamp-1 text-label text-muted">
-                      {row.line}
-                    </span>
-                  )}
-                </span>
-              </span>
-            </button>
+            {/* A linha mora no design system desde 10/08/2026 — a estante
+                passou a usar a mesma peça nas seções de arquivo. Aqui ela vai
+                no tamanho `md`, que é o padrão: neste painel a linha É o
+                conteúdo, e há folga para uma capa maior. Temporada comum não
+                tem selo — a ausência é que diz que é uma (ver
+                `formatLabelKey`). */}
+            <WorkRow
+              title={row.title}
+              coverUrl={row.coverUrl}
+              media={row.media}
+              line={row.line}
+              badge={row.badge && <Badge>{row.badge}</Badge>}
+              mark={row.mark}
+              onOpen={row.onOpen}
+            />
           </li>
         ))}
       </ul>
