@@ -19,6 +19,44 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-11-preferencias-na-conta',
+    date: '2026-08-11',
+    emoji: '☁️',
+    title: {
+      pt: 'Suas preferências vão junto',
+      en: 'Your preferences come with you',
+    },
+    items: {
+      pt: [
+        'Como você quer ser chamado, o idioma, o país, o filtro de conteúdo adulto e as suas categorias agora ficam na conta. Entrar num celular novo traz o app do jeito que você deixou.',
+        'Sem conta, tudo continua funcionando exatamente como antes, guardado no aparelho.',
+      ],
+      en: [
+        'How you want to be addressed, the language, the country, the adult-content filter and your categories now live in your account. Signing in on a new phone brings the app back the way you left it.',
+        'Without an account everything keeps working exactly as before, stored on the device.',
+      ],
+    },
+  },
+  {
+    id: '2026-08-11-franquia',
+    date: '2026-08-11',
+    emoji: '🗂️',
+    title: {
+      pt: 'A pilha da estante ficou mais esperta',
+      en: 'Shelf stacks got smarter',
+    },
+    items: {
+      pt: [
+        'Jogos e filmes agora guardam a franquia que a fonte declara, em vez de a estante adivinhar pelo título. É o que junta obras que se chamam de jeitos diferentes.',
+        'O que já está catalogado se preenche sozinho, aos poucos, conforme você abre a estante.',
+      ],
+      en: [
+        'Games and films now record the franchise their source declares, instead of the shelf guessing from the title. That is what brings together works that go by different names.',
+        'What is already catalogued fills itself in gradually, as you open the shelf.',
+      ],
+    },
+  },
+  {
     id: '2026-08-11-onde-assistir-anime',
     date: '2026-08-11',
     emoji: '📺',

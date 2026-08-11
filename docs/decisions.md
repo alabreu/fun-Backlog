@@ -1169,6 +1169,104 @@ e o modo de falhar tinha que ser a linha faltando, não a linha errada.
 
 ---
 
+## 24. Franquia gravada no item, e a varredura que a preenche
+
+**11/08/2026.** A estante já empilhava franquia, mas a família saía do TÍTULO.
+Isso erra exatamente onde dói: quando a franquia muda de nome entre as obras.
+"Shingeki no Kyojin" e "Attack on Titan" nunca se encontravam. A migração
+`0008` grava o campo que a fonte declara — `franchises` na IGDB,
+`belongs_to_collection` na TMDB.
+
+**Só jogo e filme.** Série, anime e livro ficam sem para sempre: a TMDB não
+modela franquia para TV e as fontes de livro não têm série confiável. Para as
+três, o título continua sendo a única resposta possível — e continua sendo
+usado, porque a chave é `franquia ?? título`.
+
+**A MESMA NORMALIZAÇÃO NOS DOIS CAMINHOS**, e não é detalhe: durante a
+varredura a estante tem itens preenchidos e não preenchidos ao mesmo tempo. É
+ela que faz "The Legend of Zelda" (gravado) continuar na pilha de "The Legend of
+Zelda: Ocarina of Time" (ainda não gravado). Sem isso, a estante se desmontaria
+e remontaria por algumas visitas, que leria como defeito.
+
+**O RÓTULO DA PILHA passou a sair do mesmo campo.** Com a franquia juntando
+títulos que não se parecem, o título do primeiro membro viraria um rótulo
+mentiroso: "Super Mario Odyssey" escrito sobre uma pilha que também tem Mario
+Kart nomeia um MEMBRO, não a família. A palavra "coleção" que a TMDB põe no nome
+da saga sai na leitura — na pilha o cabeçalho já é a coleção, e repetir é o app
+narrando a própria estrutura.
+
+**A varredura é a do `useReleaseBackfill`, generalizada** (escolha do usuário
+entre três opções, 11/08/2026): seis obras por abertura de estante, em segundo
+plano. UM gancho e não dois, e é o que importa aqui — dois ganchos varrendo a
+mesma estante fariam DUAS requisições por obra para ler dois campos que vêm na
+MESMA resposta. A marca de "já perguntei" subiu para o módulo: com ela por
+montagem, navegar entre estantes re-perguntava tudo.
+
+**O que custa:** um item cuja fonte não tem franquia é perguntado uma vez por
+carga do app, para sempre — a resposta "não sei" não é gravável sem um valor
+sentinela, e um sentinela numa coluna de texto é pior que a requisição. O freio
+das mídias (só jogo e filme) é o que mantém isso pequeno.
+
+---
+
+## 25. As preferências seguem a conta; a nuvem ganha ao entrar
+
+**11/08/2026, com a regra de conflito escolhida pelo usuário.** Tema, vocativo,
+idioma, país, filtro de conteúdo adulto e categorias viviam só no localStorage:
+trocar de celular perdia os seis. A migração `0009` cria a tabela `profiles`,
+uma linha por pessoa.
+
+**O gatilho era a terceira preferência**, e ele chegou com as categorias. Com
+uma preferência só, uma tabela no banco não se pagava; com seis, uma tabela para
+todas custa o mesmo que uma tabela para uma.
+
+**Colunas tipadas, `jsonb` só nas categorias.** As colunas dão validação no
+banco (SECURITY.md) — um cliente com bug não grava tema "roxo". As categorias
+são duas listas de mídia e um check legível para isso não existe; ali a
+validação fica no `normalizePreferences`, que já punha de pé o que vinha do
+localStorage.
+
+**O localStorage CONTINUA sendo escrito, e vira cache.** É ele que faz o app
+abrir já no idioma certo sem esperar a rede, e é ele que serve quem está sem
+conta — o modo convidado não muda em nada.
+
+### A regra de conflito: a nuvem ganha
+
+Entrar na conta num aparelho novo traz o app do jeito que você deixou — é a
+promessa inteira da feature. As duas alternativas foram descartadas: "o mais
+recente vence" depende do relógio do celular estar certo e é invisível quando
+escolhe errado; perguntar no login cobra uma decisão de quem só queria entrar,
+no momento mais frágil do app.
+
+**A exceção é a primeira vez.** Sem linha na conta, quem manda é o aparelho, e o
+que está nele vira o perfil. Sem isso, o primeiro login de quem já usava o app
+como convidado apagaria as escolhas dele com os padrões de fábrica.
+
+**Leitura que falha NÃO grava nada.** É a única forma de perder dado aqui: uma
+falha de rede lida como "esta conta não tem perfil" faria o aparelho
+sobrescrever a nuvem. O estado "ilegível" existe só para isso.
+
+### Dois campos com semântica própria
+
+1. **O país só viaja quando foi ESCOLHIDO.** Deduzido não é preferência — o app
+   refaz o palpite a cada boot (fuso, depois idioma), e sincronizá-lo faria o
+   palpite de um aparelho virar escolha em todos os outros, e quem se mudasse
+   carregaria o país antigo para sempre. Nulo na coluna é "nunca escolheu", e é
+   a única ausência que significa alguma coisa nesta tabela.
+2. **O vocativo vazio é string vazia, não nulo.** Com nulo, "apaguei meu
+   apelido" seria indistinguível de "nunca preenchi", e a limpeza não
+   atravessaria para o outro aparelho.
+
+**O tema viaja mas não faz nada hoje**, porque `LOCKED_THEME` o trava no escuro
+(decisão 10). Fica gravado e é ignorado na leitura, pelo mesmo motivo que o
+`App.tsx` ignora o do localStorage: ninguém pode ficar preso num tema que o app
+não oferece mais.
+
+**Meio segundo de espera antes de gravar.** O vocativo é digitado letra a letra,
+e sem o debounce cada tecla viraria um UPDATE.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A

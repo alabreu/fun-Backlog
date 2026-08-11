@@ -13,10 +13,10 @@ import {
  *
  * Mesma forma do `nicknameStore` e do `localeStore`: o "cérebro" guarda só o
  * valor e as transições; a camada web semeia do localStorage e persiste (ver
- * App.tsx). Fica no aparelho, como as outras preferências de apresentação —
- * o trade-off é não sincronizar entre celular e computador, e a saída dele
- * seria uma tabela `profiles` no banco. Quando houver sincronia de
- * preferências, ela leva todas juntas.
+ * App.tsx). Desde 11/08/2026 SEGUE A CONTA junto das outras preferências —
+ * `useProfileSync` e a tabela `profiles` da migração 0009. Foi esta store que
+ * puxou a sincronia: com uma preferência só a tabela não se pagava, com a
+ * terceira ela passou a se pagar.
  *
  * As transições chamam as funções puras de `core/media/preferences` em vez de
  * mexer no estado à mão: a trava do "pelo menos uma ligada" mora lá, e store

@@ -24,6 +24,7 @@ import { DEFAULT_THEME, LOCKED_THEME, normalizeTheme } from '@core/theme'
 import { applyGrainMode, applyTheme, GRAIN_MODE } from '@ui/theme'
 import { UpdateToast } from '@ui/components/UpdateToast'
 import { useAuthInit } from '@ui/hooks/useAuth'
+import { useProfileSync } from '@ui/hooks/useProfileSync'
 import { useTranslation } from '@ui/hooks/useTranslation'
 import { CompletionCelebration } from '@ui/components/CompletionCelebration'
 import { AddScreen } from '@ui/screens/AddScreen'
@@ -165,6 +166,12 @@ export function App() {
 
   // Restaura + observa a sessão (no-op quando o backend não está configurado).
   useAuthInit()
+
+  // AS PREFERÊNCIAS SEGUEM A CONTA. Depois do `useAuthInit` porque é dele que
+  // vem o usuário, e depois da semeadura acima porque o que está no aparelho é
+  // o que vira o perfil no primeiro login desta conta. Sem sessão não faz nada,
+  // e o localStorage continua sendo a única casa — o modo convidado não muda.
+  useProfileSync()
 
   // Um evento de sessão por carga do app, para os KPIs do /admin.
   useEffect(() => {

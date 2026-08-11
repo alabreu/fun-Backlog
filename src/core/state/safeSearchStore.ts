@@ -9,9 +9,10 @@ import { create } from 'zustand'
  * protege o caso de alguém pegar o celular emprestado.
  *
  * Mesma forma dos outros stores de preferência: o "cérebro" guarda só o valor,
- * e a camada web semeia do localStorage e persiste (ver App.tsx). Vai junto na
- * dívida já registrada de levar as preferências para a conta — hoje trocar de
- * aparelho recomeça com o filtro ligado, que é o lado seguro de errar.
+ * e a camada web semeia do localStorage e persiste (ver App.tsx). Desde
+ * 11/08/2026 ele também SEGUE A CONTA (`useProfileSync`, migração 0009); quem
+ * está sem conta continua recomeçando com o filtro ligado a cada aparelho, que
+ * é o lado seguro de errar.
  */
 interface SafeSearchState {
   safeSearch: boolean
