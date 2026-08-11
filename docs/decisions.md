@@ -1267,6 +1267,58 @@ e sem o debounce cada tecla viraria um UPDATE.
 
 ---
 
+## 26. A pasta `api/` compila com a configuração da Vercel, não com a nossa
+
+**11/08/2026, depois de nove deploys quebrados que ninguém viu.**
+
+A produção ficou congelada no commit `affbc93` por cerca de cinco horas. Nove
+deploys seguidos deram ERROR, começando no commit que criou `api/obra.ts` — a
+função de Open Graph. O motivo era um import:
+
+```
+api/obra.ts(5,8): error TS5097: An import path can only end with a '.ts'
+extension when 'allowImportingTsExtensions' is enabled.
+```
+
+**O QUE TORNA ISTO UMA DECISÃO, e não um bug corrigido:** o `npm run build`
+passava. O gate local — que o `CLAUDE.md` chama de "a única rede que existe" —
+dizia verde enquanto o deploy morria, porque o `tsconfig.api.json` era mais
+FROUXO que a configuração da Vercel. Uma rede mais frouxa que produção é pior
+que rede nenhuma: ela não deixa de pegar o erro, ela AFIRMA que não há erro.
+
+**A pasta `api/` não é compilada pelo Vite.** A Vercel a compila por conta
+própria, com `moduleResolution: node16` e sem `allowImportingTsExtensions`. Em
+`node16`, import relativo de ESM exige a extensão do arquivo COMPILADO. As três
+grafias possíveis, e o que cada uma faz:
+
+| Import | Vercel |
+| --- | --- |
+| `'../src/core/media/og.ts'` | TS5097 |
+| `'../src/core/media/og'` | TS2835 |
+| `'../src/core/media/og.js'` | passa (resolve para `og.ts`) |
+
+A terceira é a convenção do TypeScript em ESM: escreve-se o nome do arquivo
+compilado e o compilador acha o fonte. O `tsconfig.api.json` passou a usar
+`node16` também, e a correção foi verificada nos dois sentidos — devolvendo a
+extensão errada, o `npm run build` local agora reprova com o mesmo código de
+erro que a Vercel devolvia. Na primeira execução ele já pegou um segundo caso, o
+import do arquivo de teste.
+
+**A regra que fica:** configuração de build local espelha a de produção. Se
+afrouxar a local faz o build passar, o problema é o código.
+
+**Efeito colateral do conserto:** é por isso que o cartão de Open Graph nunca
+apareceu no WhatsApp. Não era o robô do Facebook, nem cache, nem as meta tags —
+a função nunca esteve no ar.
+
+**Uma observação para depois:** o deploy relatou `lambdaRuntimeStats:
+{"nodejs":1}`, ou seja, a função subiu no runtime **Node** e não na borda, apesar
+do `export const config = { runtime: 'edge' }`. Funciona — a assinatura web
+(`Request` → `Response`) é aceita nos dois —, mas contraria o que está escrito no
+arquivo. Vale conferir na primeira vez que a prévia for exercitada de verdade.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A

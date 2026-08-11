@@ -55,6 +55,7 @@ conferido contra o arquivo do git.
 
 | | Item | Notas |
 | --- | --- | --- |
+| 🟡 | Conferir o cartão de link no WhatsApp | A função de Open Graph **nunca esteve no ar**: ela derrubava o build da Vercel desde o commit que a criou, e produção ficou cinco horas congelada sem ninguém ver (decisão 26). Corrigido em 11/08/2026 e o deploy está `READY`. Agora dá para testar de verdade — mande um link de obra para si mesmo. Se o cartão não aparecer, o caminho é o debugger do Facebook, para ver o HTML que o robô recebeu. Vale conferir junto se a função subiu na borda ou no Node: o deploy relatou Node, contrariando o `runtime: 'edge'` declarado |
 | 🟡 | Mood picker + recomendação | Feature 4, a assinatura do produto. O mood picker não pode ser formulário. Depende da chave do OpenRouter para funcionar de fato |
 | 🟡 | Identidade visual | Paleta, ícones e a linguagem do grid. As cinco cores de mídia já entraram (decisão 9) e são o primeiro pedaço dela — falta o resto. Rever ali o âmbar do tema claro, que puxa para o marrom |
 | 🟡 | Eventos de analytics do produto | `track()` em adicionar, concluir e recomendar — hoje só existe `session_start`, então o `/admin` não conta nada de útil |
