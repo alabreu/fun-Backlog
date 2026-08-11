@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import handler from './obra.ts'
+import handler from './obra'
 
 /**
  * A função da prévia, com a rede simulada.

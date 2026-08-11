@@ -2,7 +2,13 @@ import {
   injectOgTags,
   trimDescription,
   type OgMeta,
-} from '../src/core/media/og.ts'
+// SEM a extensão `.ts`, e isto derrubou oito deploys seguidos (11/08/2026). O
+// empacotador da Vercel compila esta pasta com a configuração DELE, onde
+// `allowImportingTsExtensions` é falso — e um import terminado em `.ts` vira
+// TS5097, que reprova o build inteiro. O `tsconfig.api.json` daqui ligava a
+// opção e por isso o `npm run build` passava: a rede local era mais frouxa que
+// a de produção, que é o pior jeito de uma rede errar. A opção saiu de lá.
+} from '../src/core/media/og'
 
 /**
  * A PRÉVIA DO LINK DA OBRA — o que o WhatsApp mostra antes de alguém tocar.

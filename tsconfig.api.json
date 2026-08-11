@@ -6,7 +6,18 @@
     "skipLibCheck": true,
 
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
+    /* SEM `allowImportingTsExtensions`, ao contrário do `tsconfig.app.json`.
+     *
+     * Não é preferência de estilo: a Vercel compila a pasta `api/` com a
+     * configuração DELA, onde a opção é falsa, e um import terminado em `.ts`
+     * vira TS5097 e reprova o build inteiro. Com a opção ligada aqui, o
+     * `npm run build` passava enquanto o deploy quebrava — oito deploys
+     * seguidos morreram assim em 10 e 11/08/2026, e ninguém viu, porque o
+     * gate local dizia verde. Uma rede local mais FROUXA que a de produção é
+     * pior que nenhuma: ela dá confiança falsa.
+     *
+     * Regra para quem mexer aqui: esta configuração espelha a da Vercel. Se
+     * ela precisar afrouxar para o build passar, o problema é o código. */
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
