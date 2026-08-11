@@ -53,7 +53,7 @@ export function Cover({
 
   return (
     <div
-      className={`relative aspect-[2/3] w-full overflow-hidden rounded-card ring-1 ring-ink/10 ${
+      className={`relative aspect-[2/3] w-full overflow-hidden rounded-cover ring-1 ring-ink/10 ${
         media ? MEDIA_TINT[media] : 'bg-ink/5'
       } ${className}`}
     >

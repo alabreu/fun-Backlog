@@ -35,7 +35,7 @@ const RULES = [
   {
     // Raio cru do Tailwind (inclui as variantes de canto: rounded-t-2xl etc).
     pattern: /\brounded(-[trbl][lr]?)?-(sm|md|lg|xl|[2-9]xl|full)\b/g,
-    fix: 'use os tokens de raio: rounded-control, rounded-field, rounded-card ou rounded-sheet',
+    fix: 'use os tokens de raio: rounded-control, rounded-field, rounded-card, rounded-cover ou rounded-sheet',
   },
   {
     // Raio arbitrário.

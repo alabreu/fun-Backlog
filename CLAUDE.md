@@ -108,6 +108,7 @@ Como trabalhar aqui:
   | `rounded-full` | `rounded-control` |
   | `rounded-2xl` (input) | `rounded-field` |
   | `rounded-2xl` (card) | `rounded-card` |
+  | `rounded-xl` (capa de obra) | `rounded-cover` |
   | `px-4` (margem de tela) | `px-gutter` |
   | `<button>` estilizado na mão | `Button` / `IconButton` / `Chip` |
   | `<input>`/`<textarea>` na mão | `Input` / `Textarea`, dentro de `Field` |

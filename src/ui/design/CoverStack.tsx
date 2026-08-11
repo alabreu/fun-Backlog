@@ -87,8 +87,8 @@ export function CoverStack({
             cor do fundo, e as folhas sumiam — medido, não suposto. `ink` com
             alfa é a única que contrasta nos DOIS temas, porque inverte junto
             com o fundo. */}
-        <span className="absolute inset-0 -rotate-3 rounded-card bg-ink/15 ring-1 ring-ink/20" />
-        <span className="absolute inset-0 rotate-2 rounded-card bg-ink/25 ring-1 ring-ink/20" />
+        <span className="absolute inset-0 -rotate-3 rounded-cover bg-ink/15 ring-1 ring-ink/20" />
+        <span className="absolute inset-0 rotate-2 rounded-cover bg-ink/25 ring-1 ring-ink/20" />
       </span>
 
       {/* A capa por cima das folhas, no fluxo normal — é ela que dá a altura da

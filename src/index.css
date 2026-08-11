@@ -230,6 +230,14 @@
   --radius-logo: 0.25rem; /* selo de marca de terceiro (4px) */
   --radius-field: 1rem; /* inputs, textareas */
   --radius-card: 1rem; /* cards e blocos de conteúdo */
+  /* A CAPA TEM RAIO PRÓPRIO, e menor que o do card (escolha do usuário,
+     11/08/2026). Ela tomava emprestado o `card`, e os dois não são a mesma
+     coisa: um card é um recipiente desenhado por nós, cuja borda é o próprio
+     desenho; a capa é ARTE de terceiro, e o raio ali é um corte nela. Quanto
+     mais arredondado, mais pôster some no canto.
+     Separar também desacopla os dois: mexer no raio dos cards deixou de mexer
+     na estante inteira. */
+  --radius-cover: 0.75rem; /* capas de obra (12px) */
   --radius-sheet: 1.5rem; /* bottom sheets */
 
   /* --- Espaçamento: a margem lateral padrão das telas (px-gutter). --- */

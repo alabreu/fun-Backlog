@@ -29,7 +29,7 @@ const SHAPES: Record<NonNullable<SkeletonProps['shape']>, string> = {
   block: 'rounded-card',
   line: 'rounded-control',
   // Capa 2:3, o mesmo enquadramento do `Cover`.
-  cover: 'aspect-[2/3] w-full rounded-card',
+  cover: 'aspect-[2/3] w-full rounded-cover',
 }
 
 export function Skeleton({ shape = 'block', className = '' }: SkeletonProps) {
