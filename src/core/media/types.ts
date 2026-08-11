@@ -180,6 +180,15 @@ export interface MediaDetail {
   format?: string
   /** Ver `MediaSearchResult.adult`. */
   adult?: boolean
+  /**
+   * Ver `MediaSearchResult.franchise`.
+   *
+   * Repetida aqui, e não herdada, porque é DELA que sai o valor gravado no
+   * item: a IGDB manda a franquia já no resultado de busca, mas a TMDB só
+   * conhece a coleção do filme na ficha. Sem este campo, filme nunca teria
+   * franquia gravada — e é justamente a saga de cinema que o título erra.
+   */
+  franchise?: string
   synopsis?: string
   genres?: string[]
   facts?: MediaFact[]

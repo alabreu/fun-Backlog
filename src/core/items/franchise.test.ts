@@ -181,3 +181,77 @@ describe('agrupamento da seção', () => {
     expect(entradas.every((e) => e.kind === 'item')).toBe(true)
   })
 })
+
+/**
+ * O CAMPO DA FONTE (migração 0008). Ele existe para o caso que o título não
+ * resolve: a franquia que muda de nome entre as obras.
+ */
+describe('família pelo campo da fonte', () => {
+  it('junta obras cujos títulos não se parecem', () => {
+    // O caso que motivou a coluna: os dois nomes da mesma franquia.
+    const entradas = groupByFranchise([
+      item('Shingeki no Kyojin', { franchise: 'Attack on Titan' }),
+      item('Attack on Titan: The Final Season', { franchise: 'Attack on Titan' }),
+    ])
+    expect(entradas).toHaveLength(1)
+    expect(entradas[0].kind).toBe('stack')
+  })
+
+  it('o campo da fonte ganha do título', () => {
+    // Mesma franquia declarada, prefixos de título diferentes.
+    const kart = item('Mario Kart 8 Deluxe', {
+      mediaType: 'game',
+      franchise: 'Mario',
+    })
+    const odyssey = item('Super Mario Odyssey', {
+      mediaType: 'game',
+      franchise: 'Mario',
+    })
+    expect(shelfFamilyKey(kart)).toBe(shelfFamilyKey(odyssey))
+  })
+
+  it('sem o campo, o título continua mandando', () => {
+    // Série, anime e livro nunca terão o campo — e nada muda para eles.
+    expect(shelfFamilyKey(item('Zelda: Ocarina of Time'))).toBe(
+      shelfFamilyKey(item('Zelda: Breath of the Wild')),
+    )
+  })
+
+  /**
+   * A COEXISTÊNCIA DURANTE A VARREDURA é o risco real desta mudança: por
+   * algumas visitas a estante tem itens preenchidos e itens não preenchidos ao
+   * mesmo tempo, e uma pilha que se desmonta no meio disso leria como defeito.
+   */
+  it('preenchido e não preenchido continuam na mesma pilha', () => {
+    const preenchido = item('The Legend of Zelda: Ocarina of Time', {
+      mediaType: 'game',
+      franchise: 'The Legend of Zelda',
+    })
+    const pendente = item('The Legend of Zelda: Breath of the Wild', {
+      mediaType: 'game',
+    })
+    expect(shelfFamilyKey(preenchido)).toBe(shelfFamilyKey(pendente))
+  })
+
+  it('o rótulo da pilha sai do campo da fonte quando ele existe', () => {
+    const jogo = item('Mario Kart 8 Deluxe', {
+      mediaType: 'game',
+      franchise: 'Mario',
+    })
+    // E não "Mario Kart 8 Deluxe", que nomearia um membro e não a família.
+    expect(shelfFamilyName(jogo)).toBe('Mario')
+  })
+
+  it('tira a palavra "coleção" que a TMDB põe no nome da saga', () => {
+    const nomes = ['Coleção Duna', 'Duna - Coleção', 'Dune Collection']
+    for (const franchise of nomes)
+      expect(shelfFamilyName(item('Duna', { mediaType: 'movie', franchise })))
+        .toMatch(/^(Duna|Dune)$/)
+  })
+
+  it('não esvazia um nome que é só a palavra', () => {
+    expect(
+      shelfFamilyName(item('X', { mediaType: 'movie', franchise: 'Coleção' })),
+    ).toBe('Coleção')
+  })
+})

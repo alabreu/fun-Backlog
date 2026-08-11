@@ -115,6 +115,7 @@ interface ItemRow {
   rating: number | null
   favorite: boolean | null
   notes: string | null
+  franchise: string | null
   tags: string[] | null
   releases_at: string | null
   added_at: string
@@ -135,6 +136,7 @@ function fromRow(row: ItemRow): Item {
     rating: row.rating ?? undefined,
     favorite: row.favorite ?? undefined,
     notes: row.notes ?? undefined,
+    franchise: row.franchise ?? undefined,
     tags: row.tags ?? [],
     releasesAt: row.releases_at ?? undefined,
     addedAt: row.added_at,
@@ -181,6 +183,10 @@ export function toRow(
   // junto a mudança de status ou de progresso que a pessoa queria salvar.
   if ('favorite' in patch) row.favorite = patch.favorite ?? false
   if ('notes' in patch) row.notes = patch.notes ?? null
+  // Mesmo cuidado do `favorite` e do `releasesAt`: a coluna nasce na migração
+  // 0008, e mandá-la sempre faria todo update falhar num banco que ainda não a
+  // tem — levando junto a mudança de status que a pessoa realmente pediu.
+  if ('franchise' in patch) row.franchise = patch.franchise ?? null
   if ('tags' in patch) row.tags = patch.tags
   // Mesmo cuidado do `favorite` acima: a coluna nasce na migração 0007, e
   // mandá-la sempre faria todo update falhar num banco que ainda não a tem.

@@ -103,6 +103,9 @@ export function mapTmdbResult(
 interface TmdbDetailBody extends TmdbResult {
   /** "Planned", "In Production", "Released", "Ended"… — ver `release.ts`. */
   status?: string
+  /** A saga a que o filme pertence, quando pertence a alguma. Só id e nome — os
+   *  MEMBROS exigem outra chamada, que é o `collectionParts` abaixo. */
+  belongs_to_collection?: { name?: string } | null
   /** Sintético: os membros da saga, montados pela Edge Function a partir de
    *  `belongs_to_collection`. Não é campo da TMDB — ver `collectionPartsTmdb`
    *  em supabase/functions/media. Série nunca traz: lá não existe coleção. */
@@ -300,6 +303,12 @@ export function mapTmdbDetail(
 
   return {
     ...base,
+    // A SAGA, para a estante empilhar. É o nome da coleção como a TMDB o
+    // escreve ("Coleção Duna"), e ele serve de CHAVE de agrupamento, não de
+    // rótulo — o nome que a pilha mostra continua saindo do título das obras,
+    // que é o que a pessoa reconhece. Série nunca tem: a TMDB não modela
+    // franquia para TV.
+    franchise: body.belongs_to_collection?.name || undefined,
     // Só quando é `true`: um `false` explícito não muda nada na tela e faria a
     // ficha carregar um campo que ninguém lê.
     inTheaters: isInTheaters(body, region) || undefined,

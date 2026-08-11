@@ -251,15 +251,25 @@ export function WorkDetail({
     //
     // Só escreve quando MUDA: sem essa comparação, toda abertura de ficha
     // viraria um UPDATE.
-    const gravarEstreia = (found: MediaDetail | null) => {
-      if (found?.releaseDate && matched && matched.releasesAt !== found.releaseDate)
-        void update(matched.id, { releasesAt: found.releaseDate })
+    // A FRANQUIA PEGA A MESMA CARONA, e por isso as duas escritas viraram um
+    // patch só: dois `update` seguidos na mesma abertura seriam duas idas ao
+    // banco para gravar dois campos que chegaram na mesma resposta.
+    const gravarDaFicha = (found: MediaDetail | null) => {
+      if (!found || !matched) return
+      const patch: { releasesAt?: string; franchise?: string } = {}
+      if (found.releaseDate && matched.releasesAt !== found.releaseDate)
+        patch.releasesAt = found.releaseDate
+      if (found.franchise && matched.franchise !== found.franchise)
+        patch.franchise = found.franchise
+      // Só escreve quando MUDA: sem esta comparação, toda abertura de ficha
+      // viraria um UPDATE.
+      if (Object.keys(patch).length > 0) void update(matched.id, patch)
     }
 
-    // Ficha já em mãos: nada a buscar, mas a carona da data continua valendo —
-    // quem abre o próprio link também merece a correção.
+    // Ficha já em mãos: nada a buscar, mas a carona continua valendo — quem
+    // abre o próprio link também merece a correção.
     if (initialDetail) {
-      gravarEstreia(initialDetail)
+      gravarDaFicha(initialDetail)
       return
     }
 
@@ -271,7 +281,7 @@ export function WorkDetail({
       if (controller.signal.aborted) return
       setDetail(found)
       setLoadingDetail(false)
-      gravarEstreia(found)
+      gravarDaFicha(found)
     })
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -337,6 +347,9 @@ export function WorkDetail({
         // A ficha ganha do resultado: ela é mais nova, e numa obra anunciada a
         // data é justamente o que muda.
         releasesAt: detail?.releaseDate ?? fromSearch.releaseDate,
+        // A FRANQUIA, para a estante empilhar sem depender do título. A IGDB
+        // manda já na busca; a TMDB só na ficha — daí a ficha vir primeiro.
+        franchise: detail?.franchise ?? fromSearch.franchise,
       })
     } catch {
       setFailed(true)

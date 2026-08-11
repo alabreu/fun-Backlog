@@ -34,25 +34,58 @@ import type { Item } from './types'
 /**
  * A FAMÍLIA de um item da estante.
  *
- * É o prefixo antes dos dois pontos MAIS a normalização de temporada — e é a
- * segunda parte que separa esta chave da chave da busca (`familyKey` em
- * `core/media/search.ts`). O caso que a motivou é o anime: "Dandadan 2nd
- * Season" não tem dois pontos, então só o prefixo devolvia uma família por
- * temporada, que é exatamente o problema que este agrupamento veio resolver.
+ * DUAS FONTES, nesta ordem:
  *
- * O item da estante NÃO guarda o campo de franquia da fonte — ele nem existe na
- * tabela. Gravá-lo é o passo seguinte planejado (precisa de migração e de um
- * backfill do que já está catalogado); enquanto isso, o título é o que temos, e
- * ele resolve a maioria.
+ * 1. O CAMPO DA FONTE (`item.franchise`), quando ele existe. É o melhor que
+ *    pode haver: alguém catalogou aquilo como pertencente àquela série, e é a
+ *    única coisa capaz de juntar obras cujos TÍTULOS não se parecem — "Shingeki
+ *    no Kyojin" e "Attack on Titan" são o caso que motivou a coluna.
+ * 2. O TÍTULO, como antes: prefixo antes dos dois pontos mais a normalização
+ *    de temporada. É o que sobra para série, anime e livro, cujas fontes não
+ *    têm o conceito, e para tudo que foi catalogado antes da migração 0008.
+ *
+ * A MESMA NORMALIZAÇÃO NOS DOIS CAMINHOS, e não é detalhe: durante o backfill a
+ * estante tem itens dos dois tipos ao mesmo tempo, e é ela que faz um jogo já
+ * preenchido ("The Legend of Zelda") continuar na mesma pilha do vizinho que
+ * ainda não foi ("The Legend of Zelda: Ocarina of Time" → mesmo prefixo). Sem
+ * isso, a estante se desmontaria e remontaria enquanto a varredura roda.
  */
 export function shelfFamilyKey(item: Item): string {
-  return normalizeTitle(stripSequelMarkers(familyPrefix(item.title)))
+  return normalizeTitle(stripSequelMarkers(familyPrefix(item.franchise ?? item.title)))
 }
 
-/** O nome da família como ele aparece na tela — sem normalizar, que é a versão
- *  para comparar, não para ler. */
+/**
+ * O nome da família como ele aparece na tela — sem normalizar, que é a versão
+ * para comparar, não para ler.
+ *
+ * SAI DA MESMA FONTE DA CHAVE, e tinha que sair: é o campo da fonte que permite
+ * uma pilha juntar títulos que não se parecem, e nessa pilha o título do
+ * primeiro membro seria um rótulo mentiroso — "Super Mario Odyssey" escrito
+ * sobre uma pilha que também tem Mario Kart nomeia um membro, não a família.
+ */
 export function shelfFamilyName(item: Item): string {
-  return stripSequelMarkers(familyPrefix(item.title))
+  return item.franchise
+    ? stripCollectionWord(item.franchise)
+    : stripSequelMarkers(familyPrefix(item.title))
+}
+
+/**
+ * Tira a palavra "coleção" do nome que a fonte deu.
+ *
+ * A TMDB batiza as sagas assim — "Coleção Duna", "Duna - Coleção" —, porque
+ * lá o nome é o de uma entidade do catálogo. Numa pilha da estante o cabeçalho
+ * já É a coleção, e repetir a palavra em cada uma delas é o app narrando a
+ * própria estrutura. A IGDB não faz isso, e passa intacta.
+ *
+ * Só na ponta e só a palavra inteira: "Coleção" no meio de um nome de verdade
+ * fica, e um nome que é SÓ essa palavra volta inteiro em vez de virar vazio.
+ */
+function stripCollectionWord(name: string): string {
+  const limpo = name
+    .replace(/^\s*(?:cole[çc][ãa]o|collection|saga)\s*[-–—:]?\s*/i, '')
+    .replace(/\s*[-–—:]?\s*(?:cole[çc][ãa]o|collection|saga)\s*$/i, '')
+    .trim()
+  return limpo.length > 0 ? limpo : name.trim()
 }
 
 /**

@@ -107,6 +107,13 @@ describe('toRow', () => {
     expect('favorite' in row).toBe(false)
     expect('tags' in row).toBe(false)
     expect('added_at' in row).toBe(false)
+    // `franchise` nasce na 0008 e é a mais nova a entrar nesta armadilha.
+    expect('franchise' in row).toBe(false)
+  })
+
+  it('grava e apaga a franquia', () => {
+    expect(toRow({ franchise: 'Mario' })).toEqual({ franchise: 'Mario' })
+    expect(toRow({ franchise: undefined })).toEqual({ franchise: null })
   })
 
   it('traduz o nome do campo para a coluna', () => {

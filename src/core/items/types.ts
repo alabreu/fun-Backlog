@@ -65,6 +65,23 @@ export interface Item {
    */
   favorite?: boolean
   notes?: string
+  /**
+   * A FRANQUIA, dita pela fonte — não deduzida do título.
+   *
+   * A estante empilha obras da mesma família, e a família saía só do título: o
+   * prefixo antes dos dois pontos mais a normalização de temporada. Isso erra
+   * exatamente onde dói, que é quando a franquia MUDA DE NOME entre as obras —
+   * "Shingeki no Kyojin" e "Attack on Titan" nunca se encontram assim.
+   *
+   * Só jogo e filme chegam com isto preenchido: `franchises` na IGDB e
+   * `belongs_to_collection` na TMDB. Série, anime e livro ficam `undefined`
+   * para sempre, porque a fonte deles não tem o conceito — e ali o título
+   * continua sendo a única resposta possível, que é o que `shelfFamilyKey` faz.
+   *
+   * AUSENTE NÃO É "NÃO TEM FRANQUIA": é "ninguém perguntou ainda, ou a fonte
+   * não sabe". Os dois casos caem no título, que é o comportamento anterior.
+   */
+  franchise?: string
   tags: string[]
   /**
    * Quando a obra sai — o que faz a seção "Não lançados" existir.

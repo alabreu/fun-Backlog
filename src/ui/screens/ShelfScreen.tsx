@@ -52,7 +52,7 @@ import { useSectionState } from '@ui/hooks/useSectionState'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
 import { useFlash } from '@ui/hooks/useFlash'
 import { useItems } from '@ui/hooks/useItems'
-import { useReleaseBackfill } from '@ui/hooks/useReleaseBackfill'
+import { useShelfBackfill } from '@ui/hooks/useShelfBackfill'
 import { useTranslation } from '@ui/hooks/useTranslation'
 
 function isMediaType(value: string | undefined): value is MediaType {
@@ -135,10 +135,10 @@ export function ShelfScreen() {
     enabled: Boolean(mediaType),
   })
 
-  // Descobre a data de estreia do que está na fila sem ela — é o que preenche
-  // "Não lançados" para quem já tinha estante antes da coluna existir. Ver os
-  // freios no próprio hook.
-  useReleaseBackfill(items, mediaType, update, signedIn)
+  // Descobre, em segundo plano, o que os itens antigos não têm: a data de
+  // estreia do que está na fila (preenche "Não lançados") e a franquia de jogo
+  // e filme (preenche a pilha da estante). Ver os freios no próprio hook.
+  useShelfBackfill(items, mediaType, update, signedIn)
 
   const { isOpen, toggle } = useSectionState(mediaType)
   const [flash, setFlash] = useFlash()
