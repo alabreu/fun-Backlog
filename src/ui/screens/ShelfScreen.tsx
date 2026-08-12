@@ -51,6 +51,7 @@ import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import { SearchStackSheet } from '@ui/components/SearchStackSheet'
 import { ShelfStackSheet } from '@ui/components/ShelfStackSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
+import { SignInPrompt } from '@ui/components/SignInPrompt'
 import { useSectionState } from '@ui/hooks/useSectionState'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
 import { useFlash } from '@ui/hooks/useFlash'
@@ -470,7 +471,7 @@ export function ShelfScreen() {
               noSource
                 ? signedIn
                   ? t('add.noSource', { media: t(mediaLabelKey(mediaType)) })
-                  : t('add.needsLogin')
+                  : <SignInPrompt />
                 : searching
                   ? t('add.searching')
                   : t('add.noResults', { query: trimmed })

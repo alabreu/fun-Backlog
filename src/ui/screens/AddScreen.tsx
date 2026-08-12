@@ -24,6 +24,7 @@ import {
   type AddChoice,
 } from '@ui/components/AddStatusSheet'
 import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
+import { SignInPrompt } from '@ui/components/SignInPrompt'
 import {
   Badge,
   Button,
@@ -366,9 +367,9 @@ export function AddScreen() {
             {/* Convidado buscando jogo ou filme: dizer "nada encontrado" seria
                 mentira — ninguém procurou, a fonte exige login (decisão 3). */}
             {searched && shown.skippedNeedingAuth.length > 0 && (
-              <p className="mt-4 text-body text-muted">
-                {t('add.needsLogin')}
-              </p>
+              <div className="mt-4">
+                <SignInPrompt />
+              </div>
             )}
 
             {searched &&

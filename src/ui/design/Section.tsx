@@ -49,8 +49,11 @@ export interface SectionProps {
   /** Só faz sentido com `collapsible`: sem ele a seção está sempre aberta. */
   open?: boolean
   onToggle?: () => void
-  /** Mostrado no lugar do conteúdo quando não há nada. */
-  emptyLabel: string
+  /** Mostrado no lugar do conteúdo quando não há nada. `ReactNode` e não
+   *  string porque o vazio às vezes precisa oferecer uma AÇÃO — a estante sem
+   *  sessão diz "entre para buscar jogos" e agora traz o botão de entrar
+   *  junto. Um texto que nomeia o conserto sem oferecê-lo é um beco. */
+  emptyLabel: ReactNode
   /**
    * `false` tira o botão e a seta: o título vira só um título, e o conteúdo
    * fica sempre à mostra. É o caso da BUSCA — uma seção que só está ali porque
