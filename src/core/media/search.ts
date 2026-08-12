@@ -45,8 +45,6 @@ export interface SearchOutcome {
 export interface SearchOptions {
   /** Restringe a uma mídia; ausente busca em todas. */
   mediaType?: MediaType
-  /** Sem sessão, providers com chave nem são chamados (dariam 401). */
-  signedIn?: boolean
   /** País da pessoa — o Google Books usa para saber a loja e a disponibilidade. */
   region?: string
   /**
@@ -206,16 +204,18 @@ const GROUP_ORDER: MediaType[] = ['game', 'movie', 'series', 'anime', 'book']
 /**
  * Existe alguma fonte capaz de buscar esta mídia agora? Serve ao estado vazio
  * da tela: "nada encontrado" seria mentira quando o problema é que ninguém
- * procurou — jogos, filmes e séries ainda não têm provider registrado. A conta
- * inclui a sessão porque provider com chave não conta para quem está sem login.
+ * procurou.
+ *
+ * NÃO OLHA MAIS A SESSÃO (11/08/2026): a busca com chave passou a abrir sem
+ * conta, com teto por IP na Edge Function. Ver a nota em `searchAll`.
+ *
+ * Com isso ela devolve `true` para as cinco mídias de hoje, e o estado vazio
+ * que depende dela nunca aparece. FICA como rede: é a mídia SEM fonte que ela
+ * pega, e uma sexta mídia entraria exatamente assim — cadastrada na lista antes
+ * de existir provider para ela.
  */
-export function hasProviderFor(
-  mediaType: MediaType,
-  signedIn: boolean,
-): boolean {
-  return PROVIDERS.some(
-    (p) => p.mediaTypes.includes(mediaType) && (!p.requiresServer || signedIn),
-  )
+export function hasProviderFor(mediaType: MediaType): boolean {
+  return PROVIDERS.some((p) => p.mediaTypes.includes(mediaType))
 }
 
 export async function searchAll(
@@ -228,13 +228,25 @@ export async function searchAll(
 
   const {
     mediaType,
-    signedIn = false,
     enabled = GROUP_ORDER,
     region,
     safeSearch = true,
     signal,
   } = options
   const failed: string[] = []
+  /**
+   * SEMPRE VAZIO desde 11/08/2026, e o campo fica.
+   *
+   * A busca de jogo, filme e série exigia login (decisão 3): o provider com
+   * chave era filtrado aqui e o id dele caía nesta lista, para a tela poder
+   * dizer "entre para buscar" em vez de "nada encontrado" — que seria mentira,
+   * porque ninguém tinha procurado.
+   *
+   * Agora ela abre sem conta, com teto por IP na Edge Function (o mesmo molde
+   * da ficha por id, no ar desde 10/08). O campo continua no tipo porque a
+   * porta pode voltar a fechar — por mídia, por cota, por decisão — e quando
+   * voltar é aqui que ela fecha, com a tela já sabendo o que mostrar.
+   */
   const skippedNeedingAuth: string[] = []
 
   const eligible = PROVIDERS.filter((p) => {
@@ -243,10 +255,6 @@ export async function searchAll(
     // atende duas mídias (a TMDB faz filme e série) continua valendo enquanto
     // UMA delas estiver ligada — os resultados da outra caem no agrupamento.
     if (!p.mediaTypes.some((m) => enabled.includes(m))) return false
-    if (p.requiresServer && !signedIn) {
-      skippedNeedingAuth.push(p.id)
-      return false
-    }
     return true
   })
 

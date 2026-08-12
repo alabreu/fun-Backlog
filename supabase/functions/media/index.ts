@@ -11,14 +11,19 @@
 // entre as fontes — credencial, formato da query, forma da resposta — está
 // isolado em `searchIgdb` e `searchTmdb`, e uma requisição só toca uma delas.
 //
-// O PORTÃO TEM DUAS ALTURAS (10/08/2026, link compartilhado):
+// NINGUÉM PRECISA DE CONTA, e o que segura a cota é TETO POR IP:
 //
-//   ficha por id (`detailId`) → SEM sessão, com teto por IP
-//   busca e id do IMDb        → exigem usuário de verdade
+//   ficha por id (`detailId`) → 30/min por IP
+//   busca e id do IMDb        → 20/min por IP para quem NÃO tem sessão
 //
-// A primeira é o que faz um link de obra abrir para quem não tem conta. A
-// segunda continua fechada porque busca é varredura, não pergunta pontual — o
-// raciocínio inteiro está escrito no passo 2 do handler, lá embaixo.
+// A ficha abriu em 10/08/2026, para o link compartilhado funcionar. A busca
+// abriu em 11/08/2026, revertendo a metade da decisão 3 que exigia login: um
+// testador procurou o jogo Blasphemous sem conta e recebeu uma estante de
+// livros, e a incoerência já era visível — ele podia RECEBER o link daquele
+// mesmo jogo e ver a ficha inteira, mas não podia procurá-lo.
+//
+// A busca tem teto menor porque é mais cara (duas consultas na IGDB) e quase
+// não acerta o cache. Ver `ANON_SEARCH_LIMIT`, e o passo 2 do handler.
 //
 // A function é PASSA-ADIANTE de propósito: ela devolve a resposta da fonte quase
 // crua, e quem traduz para o formato do app é `core/media/{igdb,tmdb}.ts`. O
@@ -124,10 +129,10 @@ function cacheSet(key: string, body: unknown): void {
 // ---------------------------------------------------------------------------
 
 /**
- * Teto por IP para quem chega SEM login. Existe porque a ficha por id passou a
- * abrir sem sessão (link compartilhado), e sem sessão não há a quem cobrar o
- * abuso: a cota que se gasta é a NOSSA — a IGDB permite 4 req/s na aplicação
- * inteira, não por pessoa.
+ * Teto por IP para a FICHA POR ID, que abre sem conta desde 10/08/2026 (link
+ * compartilhado). Sem sessão não há a quem cobrar o abuso, e a cota que se
+ * gasta é a NOSSA — a IGDB permite 4 req/s na aplicação inteira, não por
+ * pessoa.
  *
  * O QUE ELE É: uma barreira de altura razoável. Contagem em memória, então cada
  * instância da function tem a sua, e o Supabase escala para várias — quem
@@ -143,20 +148,51 @@ function cacheSet(key: string, body: unknown): void {
  * várias fichas em sequência, e a barreira não pode pegar o uso honesto.
  */
 const ANON_LIMIT = { max: 30, windowMs: 60_000 }
+
+/**
+ * O TETO DA BUSCA SEM CONTA — mais baixo que o da ficha, e por três motivos
+ * mensuráveis (11/08/2026, quando a busca abriu para convidado).
+ *
+ * 1. Ela é MAIS CARA: uma busca de jogo dispara DUAS consultas na IGDB
+ *    (`buscaIgdb`), contra uma da ficha.
+ * 2. Ela quase não acerta o CACHE: a chave inclui o texto digitado, e a
+ *    próxima letra muda a chave. A ficha por id acerta quase sempre.
+ * 3. O recurso escasso é a IGDB, que permite 4 req/s para a APLICAÇÃO
+ *    INTEIRA — não por pessoa. São ~120 buscas de jogo por minuto no total,
+ *    para todo mundo, incluindo quem está logado.
+ *
+ * 20/min cabe folgado num humano procurando de verdade (com o debounce de
+ * 350ms do cliente, digitar um título dá uma ou duas buscas) e precisaria de
+ * seis IPs simultâneos no talo para encostar no limite da IGDB.
+ *
+ * Vale o mesmo aviso do teto da ficha: é CERCA, não muro. A contagem vive na
+ * memória da instância e o Supabase escala para várias.
+ */
+const ANON_SEARCH_LIMIT = { max: 20, windowMs: 60_000 }
+
 const anonHits = new Map<string, { count: number; resetAt: number }>()
 
-function anonAllowed(ip: string): boolean {
+/**
+ * `key` é o BALDE, não o IP puro: busca e ficha contam separado (`q:` e `d:`).
+ * Compartilhando um balde, abrir um link compartilhado e navegar pela franquia
+ * gastaria a franquia de busca da mesma pessoa — dois usos legítimos e
+ * independentes disputando o mesmo teto.
+ */
+function anonAllowed(
+  key: string,
+  limit: { max: number; windowMs: number },
+): boolean {
   const agora = Date.now()
-  const atual = anonHits.get(ip)
+  const atual = anonHits.get(key)
   if (!atual || agora > atual.resetAt) {
     // O mapa é limpo junto com a janela em vez de crescer para sempre: sem
     // isto, uma varredura de IPs vira vazamento de memória na instância.
     if (anonHits.size > 5_000) anonHits.clear()
-    anonHits.set(ip, { count: 1, resetAt: agora + ANON_LIMIT.windowMs })
+    anonHits.set(key, { count: 1, resetAt: agora + limit.windowMs })
     return true
   }
   atual.count += 1
-  return atual.count <= ANON_LIMIT.max
+  return atual.count <= limit.max
 }
 
 /** O IP de quem chamou. Atrás do proxy do Supabase o socket é do proxy, então
@@ -638,10 +674,10 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !serviceKey) return json(503, { error: 'unavailable' })
 
   // 1. O CORPO PRIMEIRO, e não a autenticação — a ordem inverteu quando o link
-  //    compartilhado chegou (10/08/2026), porque agora é o PEDIDO que decide se
-  //    precisa de sessão. Ler JSON não toca a rede; `getUser` toca (é uma ida ao
-  //    Auth do Supabase), então esta ordem também poupa uma viagem em toda
-  //    ficha aberta por link.
+  //    compartilhado chegou (10/08/2026), porque é o PEDIDO que decide o freio.
+  //    Ler JSON não toca a rede; `getUser` toca (é uma ida ao Auth do
+  //    Supabase), então esta ordem poupa uma viagem em toda ficha aberta por
+  //    link, que nem chega a perguntar quem é.
   let body: {
     source?: unknown
     query?: unknown
@@ -684,38 +720,52 @@ Deno.serve(async (req: Request) => {
     if (query.length > CONFIG.maxQuery) return json(400, { error: 'query_too_long' })
   }
 
-  // 2. AUTENTICAÇÃO, e o portão agora tem DUAS alturas.
+  // 2. O FREIO. Nenhum caminho exige conta; o que muda entre eles é o teto.
   //
-  //    A FICHA POR ID ABRE SEM SESSÃO. É o que faz o link compartilhado
+  //    A FICHA POR ID abriu em 10/08/2026, para o link compartilhado
   //    funcionar: quem recebe uma obra pelo WhatsApp abre e vê, sem conta e sem
-  //    instalar nada. Sem isto o link funcionaria para anime e livro (que o
-  //    browser busca direto na fonte) e quebraria para jogo e filme, que passam
-  //    por aqui — o mesmo botão gerando link que às vezes serve.
+  //    instalar nada. Sem isso o link serviria para anime e livro (que o
+  //    browser busca direto na fonte) e quebraria para jogo e filme.
   //
-  //    A BUSCA CONTINUA FECHADA, e a diferença entre as duas não é de grau. A
-  //    ficha por id é uma pergunta pontual sobre algo que quem pergunta JÁ
-  //    conhece — ele tem o id — e cabe no cache. A busca é varredura: texto
-  //    livre, duas consultas na IGDB por chamada, cache que quase nunca acerta
-  //    porque a próxima letra digitada muda a chave. Abrir a busca seria
-  //    entregar o catálogo inteiro das fontes de graça, com a nossa cota.
+  //    A BUSCA abriu em 11/08/2026, e o que a derrubou foi essa mesma
+  //    incoerência vista de fora: um testador procurou o jogo Blasphemous sem
+  //    conta e recebeu uma estante de livros — podendo, ao mesmo tempo, abrir
+  //    o link daquele jogo e ver a ficha inteira.
   //
-  //    `verify_jwt` do Supabase NÃO substitui esta checagem: a anon key também
-  //    é um JWT válido do projeto e está no bundle, então "tem JWT" não quer
-  //    dizer "tem usuário".
+  //    ELA CONTINUA SENDO A MAIS CARA, e por isso tem o teto menor: texto
+  //    livre, duas consultas na IGDB por chamada, e um cache que quase nunca
+  //    acerta porque a próxima letra digitada muda a chave. A ficha por id é
+  //    pergunta pontual sobre algo que quem pergunta já conhece, e cacheia.
+  //
+  //    QUEM TEM SESSÃO BUSCA SEM TETO, e é só para isso que a ida ao Auth
+  //    sobreviveu aqui. `verify_jwt` da plataforma não responde essa pergunta:
+  //    a anon key também é um JWT válido do projeto e está no bundle, então
+  //    "tem JWT" não quer dizer "tem usuário".
   const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
-  if (!detailId) {
-    if (!jwt) return json(401, { error: 'unauthenticated' })
-    const admin = createClient(supabaseUrl, serviceKey, {
-      auth: { persistSession: false },
-    })
-    const { data: userData, error: userError } = await admin.auth.getUser(jwt)
-    if (userError || !userData?.user)
-      return json(401, { error: 'unauthenticated' })
-  } else if (!anonAllowed(clientIp(req))) {
+  if (detailId) {
     // O freio vale para TODA ficha, inclusive a de quem está logado. Distinguir
     // exigiria justamente a ida ao Auth que este caminho existe para evitar, e
     // 30/min não atrapalha ninguém navegando de verdade (ver `ANON_LIMIT`).
-    return json(429, { error: 'rate_limited' })
+    if (!anonAllowed(`d:${clientIp(req)}`, ANON_LIMIT))
+      return json(429, { error: 'rate_limited' })
+  } else {
+    // AQUI SIM VALE PERGUNTAR QUEM É, e é a única razão de a ida ao Auth
+    // sobreviver: quem tem conta busca sem teto, quem não tem busca com. Sem
+    // essa distinção, ou o teto aperta quem se identificou ou ele é frouxo
+    // demais para servir de freio.
+    //
+    // A anon key também é um JWT válido do projeto e está no bundle, então
+    // "tem token" não quer dizer "tem usuário" — quem responde é o `getUser`.
+    let temUsuario = false
+    if (jwt) {
+      const admin = createClient(supabaseUrl, serviceKey, {
+        auth: { persistSession: false },
+      })
+      const { data: userData, error: userError } = await admin.auth.getUser(jwt)
+      temUsuario = !userError && Boolean(userData?.user)
+    }
+    if (!temUsuario && !anonAllowed(`q:${clientIp(req)}`, ANON_SEARCH_LIMIT))
+      return json(429, { error: 'rate_limited' })
   }
 
   // 3. Cache antes da chamada externa (ver CONFIG.cacheTtlMs).

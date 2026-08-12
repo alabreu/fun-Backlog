@@ -57,7 +57,12 @@ da CSP no `vercel.json`.
 
 ## 3. Login obrigatório para busca e recomendação
 
-**Decidido em:** 04/08/2026.
+**Decidido em:** 04/08/2026. **PARCIALMENTE REVERTIDA em 11/08/2026 — ver a
+decisão 27.** A busca deixou de exigir conta: o freio virou teto por IP na Edge
+Function, o mesmo que a ficha por id já usava. O texto abaixo fica como está
+porque o RACIOCÍNIO continua valendo — é ele que explica por que a chave não
+pode ir para o cliente, e por que ainda existe um freio. O que caiu foi a
+conclusão de que esse freio tinha de ser o login.
 
 O boilerplate manda preservar "sem env vars o app roda 100% local". O Fun
 Backlog preserva isso apenas parcialmente: em modo convidado dá para adicionar
@@ -1316,6 +1321,72 @@ a função nunca esteve no ar.
 do `export const config = { runtime: 'edge' }`. Funciona — a assinatura web
 (`Request` → `Response`) é aceita nos dois —, mas contraria o que está escrito no
 arquivo. Vale conferir na primeira vez que a prévia for exercitada de verdade.
+
+---
+
+## 27. A busca abre sem conta, com teto por IP
+
+**11/08/2026.** Reverte a metade da **decisão 3** que exigia login para buscar
+jogo, filme e série. O catálogo manual, esse, nunca dependeu de conta.
+
+**O QUE DERRUBOU A DECISÃO NÃO FOI O ARGUMENTO — FOI UM TESTADOR.** Ele
+procurou o jogo *Blasphemous* sem conta e recebeu uma estante de livros, mais a
+frase "entre para buscar jogos, filmes e séries" sem nada em que tocar. Duas
+falhas de uma vez: o beco (corrigido à parte, com o botão de entrar) e a porta.
+
+**A INCOERÊNCIA JÁ ESTAVA NA TELA.** Desde 10/08 a ficha por id abre sem
+sessão, para o link compartilhado funcionar. Ou seja: ele podia RECEBER o link
+daquele mesmo jogo no WhatsApp e ver a ficha inteira — capa, sinopse, onde
+comprar — e não podia procurá-lo. Mesma function, mesma chave, mesma cota,
+regra diferente.
+
+**O argumento de 04/08 era binário porque na época só havia dois estados.** A
+decisão 3 dizia, com razão, que um endpoint sem auth seria "um proxy grátis de
+IGDB/TMDB para a internet inteira". O que não existia ali era o meio-termo:
+anônimo COM teto. Ele foi construído em 10/08 para a ficha, rodou, e é o mesmo
+que a busca passa a usar.
+
+### Os tetos, e por que são diferentes
+
+| Caminho | Teto |
+| --- | --- |
+| Ficha por id | 30/min por IP |
+| Busca e id do IMDb, **sem sessão** | 20/min por IP |
+| Busca, **com sessão** | sem teto |
+
+A busca é a mais cara das duas e por isso tem o teto menor: ela dispara DUAS
+consultas na IGDB por chamada (`buscaIgdb`) e quase não acerta o cache, porque
+a chave inclui o texto e a próxima letra digitada muda a chave. A ficha por id
+é pergunta pontual sobre algo que quem pergunta já conhece, e cacheia.
+
+**20/min sai de uma conta, não do gosto.** A IGDB permite 4 req/s para a
+APLICAÇÃO INTEIRA — não por pessoa —, o que dá ~120 buscas de jogo por minuto
+no total, para todo mundo. Com o debounce de 350ms do cliente, digitar um
+título dá uma ou duas buscas; 20/min cabe folgado num humano e precisaria de
+seis IPs simultâneos no talo para encostar no limite da fonte.
+
+**Quem tem sessão busca sem teto**, e é só para isso que a ida ao Auth
+sobreviveu na function. Sem essa distinção, ou o teto aperta quem se
+identificou, ou ele é frouxo demais para servir de freio.
+
+**Uma letra a mais sem conta:** a busca dispara com 3 caracteres para convidado
+e 2 para quem entrou. "up" e "os" não são busca — são o caminho até ela.
+
+### O que isto custa, e o que fazer se doer
+
+**A cerca não é muro**, e vale repetir: a contagem vive na memória da instância
+e o Supabase escala para várias, então quem insistir consegue mais que 20/min
+no total. O degrau seguinte é contador no banco, e ele custa uma escrita por
+busca — caro demais para o tamanho do risco hoje.
+
+**O `ALLOWED_ORIGIN` ficou mais importante** e continua valendo `*`. Ele é o que
+impede uma página de terceiro de gastar a nossa cota pelo navegador de quem a
+visita, e agora há mais superfície para isso. Segue no backlog manual.
+
+**Como fechar de novo, se a cota doer:** uma linha em `searchAll`, devolvendo o
+filtro de `requiresServer`. O campo `skippedNeedingAuth` e o `SignInPrompt`
+FICAM no código por isso — hoje eles nunca disparam, e são o caminho de volta
+inteiro, já escrito.
 
 ---
 

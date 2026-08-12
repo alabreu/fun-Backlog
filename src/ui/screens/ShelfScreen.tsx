@@ -51,7 +51,6 @@ import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import { SearchStackSheet } from '@ui/components/SearchStackSheet'
 import { ShelfStackSheet } from '@ui/components/ShelfStackSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
-import { SignInPrompt } from '@ui/components/SignInPrompt'
 import { useSectionState } from '@ui/hooks/useSectionState'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
 import { useFlash } from '@ui/hooks/useFlash'
@@ -330,7 +329,7 @@ export function ShelfScreen() {
     }
   }
 
-  const noSource = !hasProviderFor(mediaType, signedIn)
+  const noSource = !hasProviderFor(mediaType)
 
   return (
     <Screen media={mediaType}>
@@ -469,9 +468,7 @@ export function ShelfScreen() {
             collapsible={false}
             emptyLabel={
               noSource
-                ? signedIn
-                  ? t('add.noSource', { media: t(mediaLabelKey(mediaType)) })
-                  : <SignInPrompt />
+                ? t('add.noSource', { media: t(mediaLabelKey(mediaType)) })
                 : searching
                   ? t('add.searching')
                   : t('add.noResults', { query: trimmed })

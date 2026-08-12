@@ -209,20 +209,16 @@ describe('searchAll', () => {
     expect(outcome.groups).toHaveLength(1)
   })
 
-  it('não chama provider com chave quando não há sessão', async () => {
-    const search = vi.fn()
-    PROVIDERS.push(stubProvider({ id: 'igdb', requiresServer: true, search }))
-
-    const outcome = await searchAll('hollow knight')
-    expect(search).not.toHaveBeenCalled()
-    expect(outcome.skippedNeedingAuth).toEqual(['igdb'])
-  })
-
-  it('chama provider com chave quando há sessão', async () => {
+  // A BUSCA COM CHAVE DEIXOU DE EXIGIR SESSÃO (11/08/2026). Antes havia um par
+  // de testes aqui — "não chama sem sessão" e "chama com sessão" —, e o
+  // primeiro guardava justamente o beco que um testador encontrou: procurar um
+  // jogo sem conta devolvia uma estante de livros. Quem segura a cota agora é
+  // o teto por IP na Edge Function, e não o cliente.
+  it('chama provider com chave mesmo sem sessão', async () => {
     const search = vi.fn(async () => [result({ provider: 'igdb' })])
     PROVIDERS.push(stubProvider({ id: 'igdb', requiresServer: true, search }))
 
-    const outcome = await searchAll('hollow knight', { signedIn: true })
+    const outcome = await searchAll('hollow knight')
     expect(search).toHaveBeenCalledOnce()
     expect(outcome.skippedNeedingAuth).toEqual([])
   })

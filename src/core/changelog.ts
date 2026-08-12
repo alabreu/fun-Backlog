@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-08-11-busca-sem-conta',
+    date: '2026-08-11',
+    emoji: '🔎',
+    title: {
+      pt: 'Buscar jogo, filme e série sem criar conta',
+      en: 'Search games, films and series without an account',
+    },
+    items: {
+      pt: [
+        'A busca dessas três exigia login e agora não exige mais: dá para experimentar o app inteiro antes de decidir se quer uma conta.',
+        'Anime e livro já funcionavam assim, e o catálogo à mão sempre funcionou.',
+        'A conta continua valendo a pena por outros motivos: ela sincroniza a estante entre aparelhos e não tem limite de buscas por minuto.',
+      ],
+      en: [
+        'Searching those three required signing in and no longer does: you can try the whole app before deciding whether you want an account.',
+        'Anime and books already worked this way, and adding by hand always did.',
+        'An account is still worth it for other reasons: it syncs your shelf across devices and has no per-minute search limit.',
+      ],
+    },
+  },
+  {
     id: '2026-08-11-prateleira',
     date: '2026-08-11',
     emoji: '🎞️',
@@ -89,12 +110,12 @@ export const CHANGELOG: ChangelogEntry[] = [
       pt: [
         'A ficha de anime mostra de novo em quais serviços dá para assistir — agora no SEU país. A lista antiga era global e oferecia Hulu no Brasil, por isso tinha saído.',
         'A informação vem da mesma fonte de filmes e séries, casada pelo nome da obra. Quando o nome não bate exatamente, a ficha não mostra nada: é melhor faltar a linha do que mandar você procurar num serviço onde a obra não está.',
-        'Como toda busca no app, depende de estar logado.',
+        'Funciona com ou sem conta, como o resto da busca.',
       ],
       en: [
         'Anime pages tell you which services carry the show again — now in YOUR country. The old list was global and offered Hulu in Brazil, which is why it had been removed.',
         'It comes from the same source as films and series, matched by the work’s name. When the name does not match exactly, nothing is shown: a missing line beats sending you to a service that does not have it.',
-        'Like every search in the app, it needs you to be signed in.',
+        'Works with or without an account, like the rest of search.',
       ],
     },
   },

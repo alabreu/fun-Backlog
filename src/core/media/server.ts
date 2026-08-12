@@ -53,17 +53,19 @@ export async function callMediaFunction<T>(
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
 
-  // A FICHA POR ID PASSA SEM SESSÃO (10/08/2026) — é o que faz um link
-  // compartilhado abrir para quem não tem conta. A function espelha esta regra:
-  // `detailId` dispensa usuário, busca não. Ver o portão em `supabase/functions/
-  // media/index.ts`.
+  // NADA AQUI EXIGE SESSÃO desde 11/08/2026. A ficha por id abriu em 10/08
+  // (link compartilhado) e a busca abriu no dia seguinte, quando ficou claro
+  // que procurar um jogo sem conta devolvia uma estante de livros — sendo que o
+  // link daquele mesmo jogo já abria. Quem segura a cota é o teto por IP na
+  // function, e não este `if`.
   //
   // Sem sessão, o portador é a ANON KEY, e não porque ela autentique alguém:
   // o `verify_jwt` da plataforma barra a requisição antes do nosso código rodar
   // se não houver JWT nenhum do projeto, e a anon key é um. Ela já está no
   // bundle — mandá-la aqui não revela nada que não estivesse à mão.
-  if (!token && !request.detailId)
-    throw new Error(`${request.source}-unauthenticated`)
+  //
+  // A sessão, quando existe, continua indo: é ela que a function usa para
+  // dispensar o teto de quem se identificou.
 
   const response = await fetch(`${backendUrl}${MEDIA_FUNCTION_PATH}`, {
     method: 'POST',

@@ -45,7 +45,11 @@ export function useExternalSearch(
   const [searching, setSearching] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
 
-  const active = enabled && query.length >= 2
+  // TRÊS LETRAS SEM CONTA, DUAS COM. A busca com chave abriu para convidado
+  // (11/08/2026) e o teto por IP é o que segura a cota; esta letra a mais é o
+  // freio barato do outro lado, porque "up" e "os" não são busca — são o
+  // caminho até ela. Quem entrou já é identificável, e não precisa do freio.
+  const active = enabled && query.length >= (signedIn ? 2 : 3)
 
   useEffect(() => {
     if (!active) return
@@ -59,7 +63,6 @@ export function useExternalSearch(
       searchAll(query, {
         mediaType,
         enabled: enabledMedia,
-        signedIn,
         region,
         safeSearch,
         signal: controller.signal,

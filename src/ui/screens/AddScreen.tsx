@@ -130,7 +130,7 @@ export function AddScreen() {
   // Mídia escolhida que ainda não tem fonte: "nada encontrado" seria mentira,
   // porque ninguém chegou a procurar.
   const noSource =
-    !link && media !== undefined && !hasProviderFor(media, signedIn)
+    !link && media !== undefined && !hasProviderFor(media)
 
   // O que já está na estante, casando com o mesmo texto. Local e instantâneo:
   // não passa por rede nem espera o debounce.
@@ -172,7 +172,6 @@ export function AddScreen() {
           : searchAll(searchQuery, {
               mediaType: searchMedia,
               enabled,
-              signedIn,
               region,
               safeSearch,
               signal: controller.signal,
@@ -188,14 +187,11 @@ export function AddScreen() {
         .catch(() => {
           if (!controller.signal.aborted) {
             // Só o caminho do IMDb chega aqui — `searchAll` já engole a falha
-            // de cada provider. Sem sessão a Edge Function recusa, e dizer
-            // "pulado por falta de login" é a verdade; com sessão, é a fonte
-            // que caiu.
-            setOutcome({
-              groups: [],
-              failed: signedIn ? ['tmdb'] : [],
-              skippedNeedingAuth: signedIn ? [] : ['tmdb'],
-            })
+            // de cada provider. Deixou de depender de sessão em 11/08/2026:
+            // a function responde a quem não tem conta, então quem chega aqui
+            // é fonte fora do ar ou teto por IP estourado, e nos dois casos a
+            // verdade é "a fonte não respondeu".
+            setOutcome({ groups: [], failed: ['tmdb'], skippedNeedingAuth: [] })
             setSearching(false)
           }
         })
@@ -364,8 +360,12 @@ export function AddScreen() {
               </p>
             )}
 
-            {/* Convidado buscando jogo ou filme: dizer "nada encontrado" seria
-                mentira — ninguém procurou, a fonte exige login (decisão 3). */}
+            {/* NUNCA DISPARA HOJE, e fica de propósito. A busca com chave
+                abriu para convidado em 11/08/2026 (decisão 27), então
+                `skippedNeedingAuth` vem sempre vazio. Este bloco e o
+                `SignInPrompt` são o caminho de VOLTA já escrito: se o teto por
+                IP não segurar a cota, fechar a porta é uma linha em
+                `searchAll` — e a tela já sabe o que dizer quando ela fechar. */}
             {searched && shown.skippedNeedingAuth.length > 0 && (
               <div className="mt-4">
                 <SignInPrompt />

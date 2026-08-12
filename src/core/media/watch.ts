@@ -167,9 +167,9 @@ function borrowsWatchProviders(mediaType: MediaType): boolean {
 /**
  * O fato "onde assistir" desta obra, emprestado da TMDB — ou `null`.
  *
- * `null` em todo desfecho ruim, e nunca uma exceção: sem sessão (a busca da
- * TMDB exige login, decisão 3), sem casamento, com a fonte fora do ar ou com a
- * obra sem streaming no país da pessoa. Quem chama é uma tela que já está
+ * `null` em todo desfecho ruim, e nunca uma exceção: sem casamento, com a
+ * fonte fora do ar, com o teto por IP estourado (decisão 27) ou com a obra sem
+ * streaming no país da pessoa. Quem chama é uma tela que já está
  * desenhada, e nenhum desses casos muda o que ela deve mostrar.
  *
  * DUAS IDAS À REDE, em fila: a busca acha a obra, a ficha traz os serviços.

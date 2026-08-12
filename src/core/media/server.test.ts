@@ -70,16 +70,18 @@ describe('ficha por id', () => {
 })
 
 describe('busca', () => {
-  it('sem sessão nem sai daqui', async () => {
+  // ANTES ELA NEM SAÍA DAQUI, e este teste guardava o beco: sem sessão o
+  // cliente recusava a busca de jogo, filme e série (decisão 3). Em 11/08/2026
+  // a porta abriu com teto por IP na function, e o que se guarda agora é o
+  // contrário — que a requisição ACONTECE, levando a anon key.
+  it('sem sessão, sai levando a anon key', async () => {
     getSession.mockResolvedValue(semSessao())
     const chamou = respondeOk()
 
-    await expect(
-      callMediaFunction({ source: 'igdb', query: 'zelda' }),
-    ).rejects.toThrow('igdb-unauthenticated')
-    // O ponto não é só o erro: é que a requisição NÃO acontece. Deixar sair e
-    // colher o 401 gastaria uma ida à rede para descobrir o que já se sabia.
-    expect(chamou).not.toHaveBeenCalled()
+    await callMediaFunction({ source: 'igdb', query: 'zelda' })
+
+    expect(chamou).toHaveBeenCalledOnce()
+    expect(portador(chamou)).toBe('Bearer anon-key')
   })
 
   it('com sessão, passa', async () => {
@@ -91,15 +93,15 @@ describe('busca', () => {
     expect(portador(chamou)).toBe('Bearer jwt-do-usuario')
   })
 
-  // O id do IMDb é "colei um link", não "abri o que me mandaram": continua
-  // sendo ação de quem já está dentro.
-  it('busca por id do IMDb também exige sessão', async () => {
+  // Colar um link do IMDb passa pelo mesmo caminho da busca, e abriu junto:
+  // quem chega sem conta e cola um link tem tanto direito à resposta quanto
+  // quem recebe o link de uma obra pronto.
+  it('id do IMDb também sai sem sessão', async () => {
     getSession.mockResolvedValue(semSessao())
     const chamou = respondeOk()
 
-    await expect(
-      callMediaFunction({ source: 'tmdb', imdbId: 'tt0111161' }),
-    ).rejects.toThrow('tmdb-unauthenticated')
-    expect(chamou).not.toHaveBeenCalled()
+    await callMediaFunction({ source: 'tmdb', imdbId: 'tt0111161' })
+
+    expect(chamou).toHaveBeenCalledOnce()
   })
 })
