@@ -53,7 +53,12 @@ import { useTranslation } from '@ui/hooks/useTranslation'
  *  instantâneo, longo o bastante para não disparar uma request por letra. */
 const DEBOUNCE_MS = 350
 
-const EMPTY: SearchOutcome = { groups: [], failed: [], skippedNeedingAuth: [] }
+const EMPTY: SearchOutcome = {
+  groups: [],
+  failed: [],
+  skippedNeedingAuth: [],
+  rateLimited: false,
+}
 
 /**
  * Buscar e adicionar — a mesma intenção vista de dois ângulos: se a obra já
@@ -166,6 +171,7 @@ export function AddScreen() {
                       ],
                       failed: [],
                       skippedNeedingAuth: [],
+                      rateLimited: false,
                     }
                   : EMPTY,
             )
@@ -191,7 +197,12 @@ export function AddScreen() {
             // a function responde a quem não tem conta, então quem chega aqui
             // é fonte fora do ar ou teto por IP estourado, e nos dois casos a
             // verdade é "a fonte não respondeu".
-            setOutcome({ groups: [], failed: ['tmdb'], skippedNeedingAuth: [] })
+            setOutcome({
+              groups: [],
+              failed: ['tmdb'],
+              skippedNeedingAuth: [],
+              rateLimited: false,
+            })
             setSearching(false)
           }
         })
@@ -354,10 +365,20 @@ export function AddScreen() {
               <p className="mt-4 text-body text-muted">{t('add.searching')}</p>
             )}
 
-            {shown.failed.length > 0 && (
-              <p className="mt-2 text-label text-muted">
-                {t('add.someFailed')}
-              </p>
+            {/* O TETO GANHA DO "não respondeu": os dois nascem do mesmo
+                resultado vazio, mas só um tem conserto do lado de quem lê.
+                Mostrar os dois seria dar duas explicações para a mesma tela
+                sem resposta, e a genérica enterraria a acionável. */}
+            {shown.rateLimited ? (
+              <div className="mt-4">
+                <SignInPrompt reason="rateLimited" />
+              </div>
+            ) : (
+              shown.failed.length > 0 && (
+                <p className="mt-2 text-label text-muted">
+                  {t('add.someFailed')}
+                </p>
+              )
             )}
 
             {/* NUNCA DISPARA HOJE, e fica de propósito. A busca com chave
@@ -372,8 +393,13 @@ export function AddScreen() {
               </div>
             )}
 
+            {/* "Nada encontrado" SOME quando o teto explica o vazio: não é
+                que a obra não exista, é que ninguém chegou a procurar. Dois
+                motivos para a mesma tela vazia, e o segundo desmentiria o
+                primeiro. */}
             {searched &&
               shown.groups.length === 0 &&
+              !shown.rateLimited &&
               shown.skippedNeedingAuth.length === 0 && (
                 <p className="mt-4 text-body text-muted">
                   {link

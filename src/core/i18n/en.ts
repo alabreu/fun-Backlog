@@ -95,6 +95,7 @@ export const en: Record<keyof typeof pt, string> = {
     'Searching {media} is not available here yet. You can add it by hand.',
   'add.onShelf': 'On your shelf',
   'add.needsLogin': 'Sign in to search games, movies and series.',
+  'add.rateLimited': 'You have hit the search limit for guests. Sign in to search freely.',
   'add.fromLink': 'Link recognised — searching by title.',
   'add.linkNotFound': 'We could not find that from the link.',
   'add.manualLink': 'Not there? Add it by hand',

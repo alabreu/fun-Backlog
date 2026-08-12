@@ -51,6 +51,7 @@ import { ItemSheet, type SheetSubject } from '@ui/components/ItemSheet'
 import { SearchStackSheet } from '@ui/components/SearchStackSheet'
 import { ShelfStackSheet } from '@ui/components/ShelfStackSheet'
 import { ScreenHeader } from '@ui/components/ScreenHeader'
+import { SignInPrompt } from '@ui/components/SignInPrompt'
 import { useSectionState } from '@ui/hooks/useSectionState'
 import { useExternalSearch } from '@ui/hooks/useExternalSearch'
 import { useFlash } from '@ui/hooks/useFlash'
@@ -466,12 +467,19 @@ export function ShelfScreen() {
             title={t('shelf.notOnShelf')}
             count={fresh.length}
             collapsible={false}
+            // O TETO VEM ANTES do "nada encontrado", e é a razão de o vazio
+            // desta seção aceitar um nó em vez de uma string: sem conta e
+            // acima do limite, a lista fica vazia por um motivo que TEM
+            // conserto, e dizer "nada encontrado" seria descrever o sintoma e
+            // esconder a causa (decisão 27).
             emptyLabel={
               noSource
                 ? t('add.noSource', { media: t(mediaLabelKey(mediaType)) })
                 : searching
                   ? t('add.searching')
-                  : t('add.noResults', { query: trimmed })
+                  : outcome.rateLimited
+                    ? <SignInPrompt reason="rateLimited" />
+                    : t('add.noResults', { query: trimmed })
             }
           >
             {/* PILHA AQUI TAMBÉM (10/08/2026), e por um motivo medido em

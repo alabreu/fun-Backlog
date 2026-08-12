@@ -4,6 +4,7 @@ import { anilistProvider } from './anilist'
 import { googleBooksProvider } from './googlebooks'
 import { igdbProvider } from './igdb'
 import { openLibraryProvider } from './openlibrary'
+import { ANON_RATE_LIMITED } from './server'
 import { tmdbProvider } from './tmdb'
 import { SEARCH_LIMIT, type MediaProvider, type MediaSearchResult } from './types'
 
@@ -38,8 +39,18 @@ export interface SearchOutcome {
   groups: SearchGroup[]
   /** Providers que falharam — a UI avisa sem esconder o que deu certo. */
   failed: string[]
-  /** Providers pulados por exigirem login. */
+  /** Providers pulados por exigirem login. Sempre vazio hoje — ver a nota
+   *  dentro de `searchAll`. */
   skippedNeedingAuth: string[]
+  /**
+   * A pessoa bateu no TETO DE BUSCAS de quem está sem conta (decisão 27).
+   *
+   * Separado de `failed` porque é o único desfecho ruim que tem conserto do
+   * lado de quem usa: entrar tira o teto. A tela oferece o login em vez de
+   * dizer que a fonte não respondeu — que seria verdade sobre o sintoma e
+   * mentira sobre a causa.
+   */
+  rateLimited: boolean
 }
 
 export interface SearchOptions {
@@ -224,7 +235,7 @@ export async function searchAll(
 ): Promise<SearchOutcome> {
   const trimmed = query.trim()
   if (trimmed.length < 2)
-    return { groups: [], failed: [], skippedNeedingAuth: [] }
+    return { groups: [], failed: [], skippedNeedingAuth: [], rateLimited: false }
 
   const {
     mediaType,
@@ -234,6 +245,14 @@ export async function searchAll(
     signal,
   } = options
   const failed: string[] = []
+  /**
+   * A PESSOA bateu no teto de buscas sem conta (decisão 27).
+   *
+   * Booleano e não lista de providers: o teto é por IP na NOSSA function, não
+   * por fonte — se a IGDB levou 429 por causa dele, a TMDB levou também. Uma
+   * lista aqui sugeriria que uma fonte falhou e a outra não, que é falso.
+   */
+  let rateLimited = false
   /**
    * SEMPRE VAZIO desde 11/08/2026, e o campo fica.
    *
@@ -266,8 +285,15 @@ export async function searchAll(
         return await provider.search(trimmed, { signal, region, mediaType })
       } catch (error) {
         // Cancelamento não é falha: quem digitou de novo abortou de propósito.
-        if (!(error instanceof DOMException && error.name === 'AbortError'))
-          failed.push(provider.id)
+        if (error instanceof DOMException && error.name === 'AbortError')
+          return [] as MediaSearchResult[]
+        // O TETO NÃO ENTRA EM `failed`, e não é detalhe: as duas coisas viram
+        // recados diferentes na tela, e somados diriam "a fonte não respondeu"
+        // logo acima de "você atingiu o limite" — dois motivos para o mesmo
+        // resultado vazio, sendo que só um é verdade.
+        if (error instanceof Error && error.message === ANON_RATE_LIMITED)
+          rateLimited = true
+        else failed.push(provider.id)
         return [] as MediaSearchResult[]
       }
     }),
@@ -305,7 +331,7 @@ export async function searchAll(
       results: sortByFranchise(dedupe(byType.get(type) as MediaSearchResult[])),
     }))
 
-  return { groups, failed, skippedNeedingAuth }
+  return { groups, failed, skippedNeedingAuth, rateLimited }
 }
 
 /**

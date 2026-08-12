@@ -16,6 +16,10 @@
 //   ficha por id (`detailId`) → 30/min por IP
 //   busca e id do IMDb        → 20/min por IP para quem NÃO tem sessão
 //
+// Só o teto da BUSCA SEM SESSÃO responde `anon_rate_limited`, e é o único 429
+// que uma conta resolve — a tela usa isso para oferecer o login em vez de
+// dizer "a fonte não respondeu".
+//
 // A ficha abriu em 10/08/2026, para o link compartilhado funcionar. A busca
 // abriu em 11/08/2026, revertendo a metade da decisão 3 que exigia login: um
 // testador procurou o jogo Blasphemous sem conta e recebeu uma estante de
@@ -764,8 +768,13 @@ Deno.serve(async (req: Request) => {
       const { data: userData, error: userError } = await admin.auth.getUser(jwt)
       temUsuario = !userError && Boolean(userData?.user)
     }
+    // CÓDIGO PRÓPRIO, e não o `rate_limited` genérico: este é o ÚNICO 429 que
+    // uma conta resolve. O outro — `mapUpstream(429)`, quando a IGDB ou a TMDB
+    // é que está ocupada — sai com o código genérico de propósito, porque
+    // mandar alguém criar conta para consertar aquilo seria mandar fazer uma
+    // coisa que não conserta nada.
     if (!temUsuario && !anonAllowed(`q:${clientIp(req)}`, ANON_SEARCH_LIMIT))
-      return json(429, { error: 'rate_limited' })
+      return json(429, { error: 'anon_rate_limited' })
   }
 
   // 3. Cache antes da chamada externa (ver CONFIG.cacheTtlMs).

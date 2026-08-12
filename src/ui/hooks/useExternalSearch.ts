@@ -8,7 +8,12 @@ import { useSafeSearchStore } from '@core/state/safeSearchStore'
  *  instantâneo, longo o bastante para não disparar uma request por letra. */
 export const DEBOUNCE_MS = 350
 
-const EMPTY: SearchOutcome = { groups: [], failed: [], skippedNeedingAuth: [] }
+const EMPTY: SearchOutcome = {
+  groups: [],
+  failed: [],
+  skippedNeedingAuth: [],
+  rateLimited: false,
+}
 
 /**
  * Busca nas fontes externas, com debounce e cancelamento.

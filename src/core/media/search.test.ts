@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mapAniListDetail, mapAniListMedia, stripHtml } from './anilist'
+import { ANON_RATE_LIMITED } from './server'
 import {
   mapOpenLibraryDoc,
   mapOpenLibraryWork,
@@ -134,6 +135,7 @@ describe('searchAll', () => {
       groups: [],
       failed: [],
       skippedNeedingAuth: [],
+      rateLimited: false,
     })
     expect(search).not.toHaveBeenCalled()
   })
@@ -207,6 +209,41 @@ describe('searchAll', () => {
     const outcome = await searchAll('bebop')
     expect(outcome.failed).toEqual(['quebrado'])
     expect(outcome.groups).toHaveLength(1)
+  })
+
+  // O TETO DE QUEM ESTÁ SEM CONTA (decisão 27) não é "a fonte falhou": é o
+  // único desfecho ruim da busca que entrar conserta, e a tela oferece o login
+  // por causa deste campo.
+  it('o teto de buscas não conta como fonte que falhou', async () => {
+    PROVIDERS.push(
+      stubProvider({
+        id: 'igdb',
+        search: async () => {
+          throw new Error(ANON_RATE_LIMITED)
+        },
+      }),
+    )
+
+    const outcome = await searchAll('hollow knight')
+    expect(outcome.rateLimited).toBe(true)
+    // Se entrasse aqui também, a tela mostraria os dois recados: "a fonte não
+    // respondeu" logo acima de "você atingiu o limite".
+    expect(outcome.failed).toEqual([])
+  })
+
+  it('falha comum continua sendo falha comum', async () => {
+    PROVIDERS.push(
+      stubProvider({
+        id: 'igdb',
+        search: async () => {
+          throw new Error('igdb-unavailable')
+        },
+      }),
+    )
+
+    const outcome = await searchAll('hollow knight')
+    expect(outcome.rateLimited).toBe(false)
+    expect(outcome.failed).toEqual(['igdb'])
   })
 
   // A BUSCA COM CHAVE DEIXOU DE EXIGIR SESSÃO (11/08/2026). Antes havia um par

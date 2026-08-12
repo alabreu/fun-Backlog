@@ -23,12 +23,32 @@ import { useTranslation } from '@ui/hooks/useTranslation'
  * obra, e um botão cheio aqui competiria com os resultados que a pessoa
  * conseguiu — livro e anime aparecem sem conta nenhuma.
  */
-export function SignInPrompt() {
+/**
+ * POR QUE estamos pedindo. O botão é o mesmo; a frase, não.
+ *
+ * `needsLogin` — a fonte exige conta. Não acontece desde a decisão 27, e o
+ *                caminho de volta continua escrito (ver `AddScreen`).
+ * `rateLimited` — a pessoa bateu no teto de buscas de quem está sem conta. É o
+ *                 único desfecho ruim da busca que entrar de fato conserta, e
+ *                 por isso o único que vale interromper para oferecer login.
+ */
+export type SignInReason = 'needsLogin' | 'rateLimited'
+
+export interface SignInPromptProps {
+  reason?: SignInReason
+}
+
+const MOTIVOS: Record<SignInReason, 'add.needsLogin' | 'add.rateLimited'> = {
+  needsLogin: 'add.needsLogin',
+  rateLimited: 'add.rateLimited',
+}
+
+export function SignInPrompt({ reason = 'needsLogin' }: SignInPromptProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   return (
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      <span className="text-body text-muted">{t('add.needsLogin')}</span>
+      <span className="text-body text-muted">{t(MOTIVOS[reason])}</span>
       <Button size="sm" variant="secondary" onClick={() => navigate('/login')}>
         {t('menu.login')}
       </Button>

@@ -100,6 +100,7 @@ export const pt = {
     'Ainda não dá para buscar {media} por aqui. Você pode adicionar à mão.',
   'add.onShelf': 'Na sua estante',
   'add.needsLogin': 'Entre para buscar jogos, filmes e séries.',
+  'add.rateLimited': 'Você chegou ao limite de buscas sem conta. Entre para buscar à vontade.',
   'add.fromLink': 'Link reconhecido — procurando pelo título.',
   'add.linkNotFound': 'Não encontramos essa obra a partir do link.',
   'add.manualLink': 'Não achou? Adicione à mão',

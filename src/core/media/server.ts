@@ -17,6 +17,17 @@ import {
  */
 export const MEDIA_FUNCTION_PATH = '/functions/v1/media'
 
+/**
+ * O ERRO QUE TEM CONSERTO: quem está sem conta bateu no teto de buscas por
+ * minuto (decisão 27).
+ *
+ * É o único que sobe com nome próprio, porque é o único em que a tela tem algo
+ * a oferecer — entrar tira o teto. Constante e não string solta porque três
+ * arquivos precisam concordar sobre ela, e um erro de digitação aqui não
+ * quebraria nada: só faria o convite a entrar nunca aparecer, em silêncio.
+ */
+export const ANON_RATE_LIMITED = 'anon-rate-limited'
+
 export type MediaSource = 'igdb' | 'tmdb'
 
 interface MediaRequest {
@@ -78,9 +89,41 @@ export async function callMediaFunction<T>(
     body: JSON.stringify(request),
   })
 
-  if (!response.ok) throw new Error(`${request.source}-unavailable`)
+  if (!response.ok) {
+    // UM ÚNICO ERRO É NOMEADO, e é o que a tela sabe consertar: o teto de
+    // buscas de quem está sem conta (`anon_rate_limited`, decisão 27). Todo o
+    // resto continua genérico de propósito — para quem chamou, "a IGDB caiu",
+    // "a chave venceu" e "o corpo estava torto" pedem a mesma coisa da tela
+    // (nada) e distinguir só encheria a interface de motivos que ninguém pode
+    // resolver.
+    //
+    // NÃO cai aqui o 429 da FONTE: a function o devolve com o código genérico,
+    // porque conta nenhuma conserta a IGDB estar ocupada.
+    const code = await errorCode(response)
+    throw new Error(
+      code === 'anon_rate_limited'
+        ? ANON_RATE_LIMITED
+        : `${request.source}-unavailable`,
+    )
+  }
 
   const body = (await response.json()) as { results?: T }
   if (body?.results === undefined) throw new Error(`${request.source}-unavailable`)
   return body.results
+}
+
+/**
+ * O `error` do corpo, quando ele existe.
+ *
+ * Engole a falha de leitura: um corpo que não é JSON já é o caminho do erro
+ * genérico, e estourar aqui trocaria "a fonte falhou" por um erro sem nome
+ * vindo de dentro do tratamento de erro.
+ */
+async function errorCode(response: Response): Promise<string | null> {
+  try {
+    const body = (await response.json()) as { error?: unknown }
+    return typeof body?.error === 'string' ? body.error : null
+  } catch {
+    return null
+  }
 }
