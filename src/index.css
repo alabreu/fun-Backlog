@@ -434,8 +434,7 @@
 }
 
 html,
-body,
-#root {
+body {
   height: 100%;
 }
 
@@ -465,8 +464,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Respeita notch / safe areas no PWA instalado. */
+/* Respeita notch / safe areas no PWA instalado.
+ *
+ * A ALTURA MORA AQUI, e não na coluna do shell — foi a troca que consertou uma
+ * busca invisível. A coluna era `h-dvh` (a janela INTEIRA) dentro deste padding:
+ * ela começava 59px abaixo do topo e terminava 59px abaixo do fim da tela. No
+ * navegador ninguém via, porque a barra de endereço ocupa a área do indicador de
+ * home e os dois `env()` valem 0; no PWA instalado eles passam a valer de
+ * verdade e tudo que se ancora no RODAPÉ da tela (a `SearchBar` da estante, o
+ * `Fab`) descia para fora do visível. Medido: barra em y=839..887 numa janela de
+ * 844, `elementFromPoint` no centro dela devolvendo nada.
+ *
+ * Com `100dvh` + `border-box` aqui, a caixa de conteúdo do #root já é a janela
+ * menos as áreas seguras, e a coluna vira `h-full` — 100% de uma altura
+ * definida. O `dvh` continua sendo dvh (é ele que acompanha a barra de endereço
+ * encolhendo no navegador); ele só deixou de ignorar o notch. */
 #root {
+  height: 100dvh;
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
   box-sizing: border-box;
@@ -478,6 +492,15 @@ body {
    de tela para o botão não colar no topo em aparelho sem notch. */
 .pt-safe {
   padding-top: calc(env(safe-area-inset-top) + var(--spacing-gutter));
+}
+
+/* O par de baixo, pela mesma razão: o `Toast` é `fixed` (ele sobrevive à
+   navegação, então não pode morar dentro de uma tela) e por isso não herda o
+   recuo do #root. Colado no rodapé da JANELA, ele ficava por baixo do
+   indicador de home no PWA instalado — inclusive o aviso de versão nova, que é
+   justamente o toast que precisa ser tocado. */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--spacing-gutter));
 }
 
 /* Superfícies opacas (card, linha, sheet) escondem o grão do body — elas

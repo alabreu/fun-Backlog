@@ -39,7 +39,10 @@ export function Toast({
   return (
     <div
       role="status"
-      className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-gutter"
+      // `pb-safe` no lugar de `bottom-4`: os mesmos 16px de folga em aparelho
+      // sem indicador de home, e 16px ACIMA dele onde ele existe (ver
+      // index.css). Sendo `fixed`, o toast não herda o recuo do #root.
+      className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-gutter pb-safe"
     >
       <div className="flex max-w-md items-center gap-3 rounded-card bg-inverse px-4 py-3 text-on-inverse shadow-xl">
         <span className="min-w-0 flex-1 text-body">{children}</span>

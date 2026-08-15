@@ -226,7 +226,12 @@ export function App() {
 
   return (
     <BrowserRouter>
-      <div className="mx-auto h-dvh max-w-md overflow-hidden">
+      {/* `h-full` e não `h-dvh`: a altura da janela já é resolvida pelo #root,
+          que desconta as áreas seguras (ver index.css). Com `h-dvh` aqui a
+          coluna media a janela INTEIRA de dentro do recuo do notch, e no PWA
+          instalado o rodapé dela — a busca da estante, o `Fab` — ficava abaixo
+          da tela. */}
+      <div className="mx-auto h-full max-w-md overflow-hidden">
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/estante/:media" element={<ShelfScreen />} />

@@ -1390,6 +1390,43 @@ inteiro, já escrito.
 
 ---
 
+## 28. A altura do app mora no `#root`, e ela já desconta as áreas seguras
+
+**15/08/2026.** O shell era `h-dvh` (a janela inteira) DENTRO do `#root`, que
+tem `padding: env(safe-area-inset-*)`. A soma não fecha: a coluna começava
+59px abaixo do topo e media 100% da janela, então terminava 59px abaixo do fim
+da tela — e tudo que se ancora no RODAPÉ dela ia junto.
+
+**Só o PWA instalado via.** No navegador os quatro `env()` valem 0, porque a
+barra de endereço já ocupa a faixa do indicador de home. Instalado, eles passam
+a valer de verdade. Foi assim que a busca da estante — que é `absolute
+bottom-0` dentro do `Screen`, por causa da coluna centralizada — sumiu para
+quem instalou o app e continuou aparecendo para quem abria no navegador. O
+`Fab` tinha o mesmo destino.
+
+**Medido antes de mexer**, com os `env()` forçados aos valores de um iPhone
+(59 em cima, 34 embaixo) numa janela de 844: a barra ficava em `y=839..887` e
+`elementFromPoint` no centro dela devolvia `null`. Depois: `y=746..794`,
+alcançável.
+
+**O conserto é onde a altura é resolvida**, não em quem se ancora nela. O
+`#root` passou a ser `height: 100dvh` + `border-box`, então a caixa de conteúdo
+dele já É a janela menos as áreas seguras; a coluna virou `h-full`. Continua
+sendo `dvh` (é ele que acompanha a barra de endereço encolhendo no navegador) —
+só deixou de ignorar o notch. Um `calc(100dvh - env(...) - env(...))` na coluna
+daria o mesmo número e espalharia a conta por dois arquivos.
+
+**Quem é `fixed` não herda esse recuo** e precisa resolver sozinho: é para isso
+que existem `.pt-safe` (já usada pelo `ImageViewer`) e agora `.pb-safe`, que o
+`Toast` usa. O toast é `fixed` porque sobrevive à navegação, e colado no rodapé
+da janela ele caía por baixo do indicador de home — inclusive o aviso de versão
+nova, que é justamente o que precisa ser tocado.
+
+**Regra que fica:** dentro da coluna, altura de tela é `h-full`. `h-dvh` e
+`100dvh` só valem para elementos `fixed`, que se medem pela janela mesmo.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A
