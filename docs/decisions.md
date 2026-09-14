@@ -1601,6 +1601,83 @@ guardam — as duas coisas que uma mudança futura quebra sem perceber.
 
 ---
 
+## 32. O trailer aparece na ficha, e abre FORA do app
+
+**14/09/2026.** Escolha do usuário depois de um levantamento de viabilidade:
+trailer agora, screenshots só se o trailer pedir.
+
+### O que cada fonte tem
+
+| Mídia | Trailer | Galeria |
+| --- | --- | --- |
+| Jogo (IGDB) | sim | sim — fica para depois |
+| Filme e série (TMDB) | sim | sim — fica para depois |
+| Anime (AniList) | sim, YouTube **ou Dailymotion** | não tem |
+| Livro | **não, e nunca vai ter** | não |
+
+Livro não é omissão nossa: nem a Open Library nem o Google Books catalogam
+vídeo. A tela simplesmente não desenha o bloco — nada de seção vazia
+anunciando ausência.
+
+### Por que não embutir o player
+
+A CSP do `vercel.json` **não tem `frame-src`**, então vale `default-src 'self'`
+e todo iframe é bloqueado. Embutir custaria abrir isso, e junto viriam os
+cookies do Google dentro do app, o player deles com a marca deles e
+possivelmente um anúncio antes do trailer da obra. No celular, o app nativo do
+YouTube ainda ganha de um iframe espremido numa coluna de largura de telefone.
+
+O cartão é a miniatura com um play, e o toque sai do app — decisão do usuário,
+e é o que mantém a CSP fechada.
+
+### A escolha do vídeo mora em `core`, com teste
+
+É a parte que erra. A TMDB devolve uma lista de dez itens misturando trailer,
+teaser, clipe, bastidores e entrevista, em vários idiomas: a regra é TIPO
+primeiro (só trailer e teaser, trailer na frente), depois IDIOMA (pt, depois
+en), depois OFICIAL, e empate mantém a ordem da TMDB. A IGDB não tem campo de
+tipo nenhum, só um nome livre — vence quem se chama "trailer", e sem ninguém
+vale o primeiro.
+
+**Cair no primeiro é diferente da decisão 23** (onde assistir), que erra para o
+silêncio, e a diferença é o custo: lá, errar manda a pessoa procurar a obra num
+serviço que não a tem; aqui, errar mostra um diário de desenvolvimento DO MESMO
+JOGO, num bloco que ela escolheu tocar.
+
+### A armadilha do idioma, que teria feito a feature parecer quebrada
+
+O `tmdbGet` manda `language=pt-BR` em toda requisição, **e o endpoint de vídeos
+obedece**. `append_to_response=videos` sozinho traria só trailers dublados em
+português — raros fora do cinema infantil — e a maioria dos filmes ficaria sem
+trailer nenhum, sem erro nenhum. `include_video_language=pt,en,null` é o que faz
+a feature existir.
+
+Do lado da IGDB, os campos de vídeo entram no grupo FRÁGIL junto com os sites de
+loja: campo renomeado lá não devolve "sem vídeo", devolve erro e leva a ficha
+inteira. Perder o trailer E os links de loja juntos é o preço de não ter uma
+terceira tentativa em cascata.
+
+### Detalhes que parecem arbitrários e não são
+
+**A miniatura é a `hqdefault`**, que existe SEMPRE. A `maxresdefault` é mais
+nítida e dá 404 em parte do acervo, e um quadrado quebrado no lugar do play é
+pior que uma imagem macia. O 4:3 dela não é problema, é o mecanismo: o YouTube
+emoldura o quadro 16:9 com tarjas, e `aspect-video` + `object-cover` recorta
+exatamente a tarja.
+
+**O play carrega o próprio contraste**, num disco escuro. A primeira versão
+tinha um `PlayCircle` claro solto sobre a miniatura — e medindo no navegador,
+sem miniatura e no tema claro, era um disco branco sobre branco, invisível. Uma
+cena de neve faria o mesmo com miniatura. Nenhum véu sobre a imagem inteira
+resolve isso sem escurecer o quadro que é a razão do cartão existir.
+
+**Só YouTube na TMDB.** Ela também cataloga Vimeo e o link até abriria, mas a
+miniatura do Vimeo exige uma segunda ida à rede — e cartão de trailer sem imagem
+não é cartão de trailer. No AniList o Dailymotion entra, porque lá a própria
+fonte manda a miniatura pronta.
+
+---
+
 ## Ainda em aberto
 
 - **EXPERIMENTO EM CURSO: o `+` sobre a capa está desligado** (09/08/2026). A

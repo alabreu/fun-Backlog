@@ -19,6 +19,27 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-09-14-trailer',
+    date: '2026-09-14',
+    emoji: '🎬',
+    title: {
+      pt: 'Trailer na ficha da obra',
+      en: 'Trailers on the work page',
+    },
+    items: {
+      pt: [
+        'Jogo, filme, série e anime agora mostram o trailer logo abaixo de "Quem fez". Livro não tem — nenhuma das duas fontes de livro cataloga vídeo.',
+        'Tocar abre o app do YouTube, em vez de um player espremido dentro da ficha.',
+        'Obra sem trailer simplesmente não mostra o bloco.',
+      ],
+      en: [
+        'Games, films, series and anime now show the trailer right below "Made by". Books do not — neither book source catalogues video.',
+        'Tapping it opens the YouTube app instead of a player squeezed into the page.',
+        'A work with no trailer simply does not show the block.',
+      ],
+    },
+  },
+  {
     id: '2026-08-11-busca-sem-conta',
     date: '2026-08-11',
     emoji: '🔎',
