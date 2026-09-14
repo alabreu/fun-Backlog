@@ -478,12 +478,28 @@ body {
  * Com `100dvh` + `border-box` aqui, a caixa de conteúdo do #root já é a janela
  * menos as áreas seguras, e a coluna vira `h-full` — 100% de uma altura
  * definida. O `dvh` continua sendo dvh (é ele que acompanha a barra de endereço
- * encolhendo no navegador); ele só deixou de ignorar o notch. */
+ * encolhendo no navegador); ele só deixou de ignorar o notch.
+ *
+ * `--app-height` É O MESMO 100dvh MENOS O TECLADO, publicado por
+ * `ui/viewport.ts` — o padrão do `var()` é o que vale enquanto ele não fala, e
+ * em navegador sem `visualViewport` é o que vale sempre. Ver o comentário
+ * daquele arquivo: com o teclado aberto o `dvh` sozinho manda o app inteiro
+ * para fora da tela. */
 #root {
-  height: 100dvh;
+  height: var(--app-height, 100dvh);
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
   box-sizing: border-box;
+}
+
+/* O MESMO RETÂNGULO, para quem é `fixed` e por isso não mora dentro do #root.
+   Hoje só o `Sheet` — e ele precisa porque DOIS painéis têm campo de texto (o
+   de adicionar à mão e o da obra). Sem isto, encolher só o app consertaria a
+   busca da estante e quebraria a digitação dentro do painel: o `Sheet` ficaria
+   ancorado no rodapé da JANELA, atrás do teclado, e a rolagem que o iOS faria
+   para revelar o campo é justamente a que `ui/viewport.ts` desfaz. */
+.app-viewport {
+  height: var(--app-height, 100dvh);
 }
 
 /* Elemento `fixed` posiciona-se pela JANELA, então ele escapa do padding do

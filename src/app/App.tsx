@@ -22,6 +22,7 @@ import {
 } from '@core/media/preferences'
 import { DEFAULT_THEME, LOCKED_THEME, normalizeTheme } from '@core/theme'
 import { applyGrainMode, applyTheme, GRAIN_MODE } from '@ui/theme'
+import { trackViewportHeight } from '@ui/viewport'
 import { UpdateToast } from '@ui/components/UpdateToast'
 import { useAuthInit } from '@ui/hooks/useAuth'
 import { useProfileSync } from '@ui/hooks/useProfileSync'
@@ -163,6 +164,10 @@ export function App() {
   useEffect(() => {
     applyGrainMode(GRAIN_MODE)
   }, [])
+
+  // O tamanho REAL da tela, teclado descontado (ver `ui/viewport.ts`). Tem
+  // limpeza porque, ao contrário do grão, isto assina eventos.
+  useEffect(() => trackViewportHeight(), [])
 
   // Restaura + observa a sessão (no-op quando o backend não está configurado).
   useAuthInit()

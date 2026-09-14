@@ -141,7 +141,11 @@ export function Sheet({ open, onClose, label, children }: SheetProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 transition-[visibility] duration-200 ${
+      // `app-viewport` em vez de `inset-0`: sendo `fixed`, este retângulo se
+      // mede pela JANELA, e a janela não encolhe quando o teclado abre. Como
+      // dois painéis têm campo de texto, ancorar no rodapé da janela poria o
+      // campo atrás do teclado. Ver `ui/viewport.ts`.
+      className={`fixed inset-x-0 top-0 z-50 app-viewport transition-[visibility] duration-200 ${
         open ? 'visible' : 'invisible pointer-events-none'
       }`}
       aria-hidden={!open}
@@ -171,7 +175,10 @@ export function Sheet({ open, onClose, label, children }: SheetProps) {
         style={
           dragY === null ? undefined : { transform: `translateY(${dragY}px)` }
         }
-        className={`app-grain absolute inset-x-0 bottom-0 mx-auto flex max-h-[92dvh] max-w-md flex-col rounded-t-sheet bg-surface px-gutter pt-gutter shadow-2xl ring-1 ring-ink/10 ease-out ${
+        // `92%` e não `92dvh`: a régua agora é o retângulo de cima, que já
+        // desconta o teclado. Com `dvh` o painel poderia ser mais alto que o
+        // espaço que sobrou e voltaria a passar por baixo dele.
+        className={`app-grain absolute inset-x-0 bottom-0 mx-auto flex max-h-[92%] max-w-md flex-col rounded-t-sheet bg-surface px-gutter pt-gutter shadow-2xl ring-1 ring-ink/10 ease-out ${
           dragY === null ? 'transition-transform duration-200' : ''
         } ${open ? 'translate-y-0' : 'translate-y-full'}`}
       >
