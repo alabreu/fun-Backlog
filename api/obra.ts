@@ -118,28 +118,82 @@ interface VolumeGoogle {
   }
 }
 
-async function pegarJson<T>(url: string, init?: RequestInit): Promise<T | null> {
-  const resposta = await fetch(url, init)
-  if (!resposta.ok) return null
-  return (await resposta.json()) as T
+/**
+ * O DIAGNÓSTICO DESTA FUNÇÃO SÃO OS LOGS, e é por isso que eles existem.
+ *
+ * Toda falha aqui tem o mesmo desfecho — a página sai sem cartão —, e isso é
+ * deliberado: fonte fora do ar não pode derrubar o link. O preço é que, de
+ * fora, "a fonte não conhece esta obra" e "não estou configurada" são o MESMO
+ * HTML, e foi exatamente esse silêncio que deixou o cartão de jogo quebrado
+ * sem ninguém saber por quê (14/09/2026) — o de anime funcionava, porque ele
+ * não passa por aqui.
+ *
+ * É a mesma lição da decisão 26 escrita de outro jeito: o que não se mede não
+ * se conserta. `console.error` na borda vai para os Runtime Logs da Vercel.
+ *
+ * NUNCA A CHAVE, NUNCA O CORPO DA RESPOSTA: o log diz o QUE falhou (status,
+ * fonte, id) e não o que a resposta continha — um 401 da Twitch descreve o
+ * estado da nossa credencial, e log é lido por mais gente que segredo.
+ */
+function aviso(motivo: string): void {
+  console.error(`og: ${motivo}`)
+}
+
+async function pegarJson<T>(
+  rotulo: string,
+  url: string,
+  init?: RequestInit,
+): Promise<T | null> {
+  let resposta: Response
+  try {
+    resposta = await fetch(url, init)
+  } catch (erro) {
+    // Rede: DNS, TLS, tempo esgotado. O nome do erro basta e não vaza corpo.
+    aviso(`${rotulo} nao respondeu (${(erro as Error)?.name ?? 'erro'})`)
+    return null
+  }
+  if (!resposta.ok) {
+    aviso(`${rotulo} devolveu ${resposta.status}`)
+    return null
+  }
+  try {
+    return (await resposta.json()) as T
+  } catch {
+    aviso(`${rotulo} devolveu algo que nao e json`)
+    return null
+  }
 }
 
 /** Jogos e filmes: a nossa própria Edge Function, que guarda as chaves. */
 async function viaFuncaoMedia<T>(
   corpo: Record<string, unknown>,
 ): Promise<T | null> {
-  const url = process.env.VITE_SUPABASE_URL
+  // A BARRA DO FIM SAI AQUI. `https://x.supabase.co/` + `/functions/...` daria
+  // uma barra dupla, que o gateway do Supabase não perdoa — e o sintoma seria
+  // este mesmo: cartão vazio, sem erro, só para jogo e filme.
+  const url = process.env.VITE_SUPABASE_URL?.replace(/\/+$/, '')
   const anon = process.env.VITE_SUPABASE_ANON_KEY
-  if (!url || !anon) return null
-  const body = await pegarJson<{ results?: T }>(`${url}/functions/v1/media`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      apikey: anon,
-      Authorization: `Bearer ${anon}`,
+  if (!url || !anon) {
+    aviso(
+      `sem configuracao do backend (url=${url ? 'ok' : 'faltando'}, chave=${anon ? 'ok' : 'faltando'})`,
+    )
+    return null
+  }
+  const body = await pegarJson<{ results?: T }>(
+    'a function media',
+    `${url}/functions/v1/media`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        apikey: anon,
+        Authorization: `Bearer ${anon}`,
+      },
+      body: JSON.stringify(corpo),
     },
-    body: JSON.stringify(corpo),
-  })
+  )
+  if (body && body.results === undefined)
+    aviso('a function media respondeu sem `results`')
   return body?.results ?? null
 }
 
@@ -149,7 +203,7 @@ async function buscarObra(
   mediaType: string,
 ): Promise<Obra | null> {
   if (provider === 'anilist') {
-    const body = await pegarJson<RespostaAniList>('https://graphql.anilist.co', {
+    const body = await pegarJson<RespostaAniList>('a AniList', 'https://graphql.anilist.co', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -200,6 +254,7 @@ async function buscarObra(
 
   if (provider === 'openlibrary') {
     const obra = await pegarJson<ObraOpenLibrary>(
+      'a Open Library',
       `https://openlibrary.org/works/${externalId}.json`,
     )
     if (!obra) return null
@@ -218,6 +273,7 @@ async function buscarObra(
 
   if (provider === 'googlebooks') {
     const livro = await pegarJson<VolumeGoogle>(
+      'o Google Books',
       `https://www.googleapis.com/books/v1/volumes/${externalId}`,
     )
     const info = livro?.volumeInfo
@@ -265,12 +321,17 @@ export default async function handler(req: Request): Promise<Response> {
   let obra: Obra | null = null
   try {
     obra = await buscarObra(provider, externalId, media)
-  } catch {
+  } catch (erro) {
     // Fonte fora do ar não pode derrubar a página. Sem cartão, o app carrega e
-    // busca a ficha por conta própria como sempre fez.
+    // busca a ficha por conta própria como sempre fez — mas o motivo fica
+    // escrito, senão o desfecho é indistinguível de "obra não existe".
+    aviso(`${provider}/${externalId} estourou (${(erro as Error)?.name ?? 'erro'})`)
     obra = null
   }
-  if (!obra?.title) return new Response(html, { headers })
+  if (!obra?.title) {
+    aviso(`${provider}/${externalId} ficou sem cartao`)
+    return new Response(html, { headers })
+  }
 
   const caminho = `/obra/${media}/${provider}/${externalId}${slug ? `/${slug}` : ''}`
   const meta: OgMeta = {
