@@ -1322,6 +1322,46 @@ do `export const config = { runtime: 'edge' }`. Funciona — a assinatura web
 (`Request` → `Response`) é aceita nos dois —, mas contraria o que está escrito no
 arquivo. Vale conferir na primeira vez que a prévia for exercitada de verdade.
 
+### Epílogo, 14/09/2026: ela estava no ar e o cartão continuava vazio
+
+A observação acima **estava errada** e o log de execução desfez: a função roda
+como `edge-function`, como o arquivo declara. O `lambdaRuntimeStats` contava
+outra coisa.
+
+O que não estava certo era o cartão de **jogo**. Ele nunca funcionou, e por um
+motivo independente de tudo acima: a `api/obra.ts` desembrulhava a resposta
+DUAS VEZES. A IGDB devolve lista mesmo para um id só — verdade —, mas a nossa
+Edge Function já desembrulha ela ("o app espera o objeto", escrito no
+`detailIgdb`). O arquivo fazia `objeto[0]`, recebia `undefined`, e devolvia a
+página sem cartão. Sempre.
+
+**Os outros três escaparam por motivos que escondiam o padrão:** anime e livro
+não passam pela Edge Function (o navegador busca direto na fonte) e filme passa
+sem esse `[0]`. Um cartão funcionando ao lado de outro quebrado parece
+peculiaridade da fonte, e não erro nosso.
+
+**O QUE TORNA ISTO PARTE DESTA DECISÃO** é que o silêncio se repetiu, com outra
+roupa. Em agosto o gate local era mais frouxo que produção e AFIRMAVA que não
+havia erro. Aqui, todo desfecho ruim da prévia produzia o MESMO HTML: sem
+configuração, com a function recusando, com a fonte não conhecendo a obra e com
+a resposta lida errado — quatro causas, uma página. De fora não havia como
+distinguir, e por isso ninguém distinguiu por um mês.
+
+O conserto veio em duas etapas de propósito, e a primeira não consertava nada:
+`console.error` em cada falha distinguível, com fonte e status (nunca a chave,
+nunca o corpo da resposta). Uma linha nos Runtime Logs — `og: igdb/228530 ficou
+sem cartao`, com nenhum dos outros avisos disparando — apontou o dedo. Sem ela,
+o passo seguinte teria sido adivinhar entre quatro hipóteses.
+
+**A regra que fica:** função que falha SEMPRE do mesmo jeito precisa dizer por
+quê em algum lugar. O desfecho único é a decisão certa para quem lê a página; o
+silêncio sobre a causa não é decisão nenhuma, é só o que sobra quando ninguém
+escreve o log.
+
+E o contrato entre `api/obra.ts` e a Edge Function é JSON, sem tipo que o
+prove — então a leitura hoje aceita as duas formas. A alternativa é confiar de
+novo numa lembrança sobre o outro lado, que foi o que quebrou.
+
 ---
 
 ## 27. A busca abre sem conta, com teto por IP
@@ -1424,6 +1464,140 @@ nova, que é justamente o que precisa ser tocado.
 
 **Regra que fica:** dentro da coluna, altura de tela é `h-full`. `h-dvh` e
 `100dvh` só valem para elementos `fixed`, que se medem pela janela mesmo.
+
+---
+
+## 29. A altura do app desconta o teclado, e o painel também
+
+**14/09/2026.** Continuação direta da **decisão 28** — mesmo lugar, sinal
+diferente. Lá o `100dvh` ignorava o notch; aqui ele ignora o teclado.
+
+Buscando dentro de uma estante no iPhone, aparecia a barra de busca, o teclado,
+e mais nada: sem título de tela, sem resultados.
+
+**São duas coisas que o iOS faz, e as duas contam.** Ele não encolhe a viewport
+de layout — `100dvh` continua sendo a tela inteira, e metade da coluna passa a
+ficar atrás do teclado. E ele ROLA a página para revelar o campo com foco; como
+o campo mora no rodapé de uma coluna alta demais, a rolagem é grande e o que sai
+por cima é o começo do app.
+
+**O print disse qual dos dois era.** O cabeçalho "Jogos" não estava cortado,
+estava AUSENTE. Coluna alta demais sozinha ainda mostraria o topo; só a rolagem
+explica ele sumir. Vale registrar porque os dois sintomas se parecem e levam a
+consertos opostos.
+
+**O conserto é parar de precisar da rolagem.** `--app-height` carrega a altura
+visível de verdade (do `visualViewport`), o `#root` usa ela, e com o campo já à
+vista a rolagem é desfeita. Sem `visualViewport`, o `var()` cai no `100dvh` de
+antes — um app que some porque a variável foi a zero seria pior que o bug.
+
+**Zoom fica de fora, e não é detalhe.** Pinçar também encolhe o `visualViewport`;
+obedecer àquele número ali encolheria o app a cada aproximação, e desfazer a
+rolagem prenderia a pessoa no canto superior esquerdo, sem conseguir arrastar
+para ler o resto. Com `scale > 1` a função inteira sai do caminho.
+
+**O `Sheet` recebe o mesmo retângulo, e isso não é zelo:** dois painéis têm
+campo de texto (adicionar à mão e a ficha da obra). Consertar só a estante
+consertaria a busca e QUEBRARIA a digitação no painel — sendo `fixed`, ele se
+ancora no rodapé da janela, atrás do teclado, e a rolagem que o iOS usaria para
+revelá-lo é justamente a que passou a ser desfeita. O `max-h` dele virou `92%`
+em vez de `92dvh` pela mesma razão.
+
+**Medido** com um `visualViewport` de mentira dirigindo o código de verdade, em
+390×844 com teclado de 336px: a barra de busca sai de y=780..828 (atrás do
+teclado) para y=444..492, o cabeçalho fica em y=30, e os dois respondem a toque.
+O painel termina em y=508 com o teclado aberto e volta a 844 ao fechar.
+
+**A regra que fica:** dentro do app, altura de tela é `var(--app-height,
+100dvh)`. `100dvh` cru só vale para quem não pode encolher junto — e hoje não há
+ninguém assim.
+
+---
+
+## 30. Toda fonte de busca tem prazo, e o Google Books é reserva
+
+**14/09/2026.** Dois achados do navegador de um testador, em agosto, com a mesma
+raiz: a tela contava uma história que não era a verdadeira.
+
+### Uma fonte pendurada não é uma fonte que falhou
+
+O `searchAll` esperava TODAS as fontes, sem prazo. Fonte que responde 500 já era
+tratada — vira `failed` e a tela mostra o resto. Fonte que aceita a conexão e
+nunca responde não é erro para o `fetch`: é uma promessa que não assenta, e o
+`Promise.all` espera para sempre. A tela ficava em "Buscando…" com o resultado
+das outras quatro pronto e escondido atrás dela.
+
+**Oito segundos, e o número é sobre pane, não sobre desempenho.** Se a meta
+fosse velocidade, a resposta seria mostrar cada fonte assim que ela chega — e
+não apressar as lentas. Oito é o ponto em que a espera deixou de ser lentidão: as
+fontes normais respondem em menos de um segundo, e uma rede móvel ruim ainda
+cabe com folga.
+
+**Corrida E aborto.** O aborto sozinho bastaria se todo provider respeitasse o
+`signal` — todos respeitam hoje. A corrida é o que faz a promessa ("a tela não
+trava") não depender de o próximo provider lembrar disso.
+
+**A ordem dentro do `catch` importa:** prazo estourado é checado ANTES de
+`AbortError`, porque o aborto foi nosso. Sem isso a fonte pendurada seria lida
+como "a pessoa digitou de novo" e sumiria sem deixar recado — o mesmo silêncio
+que o prazo veio acabar.
+
+### O Google Books vira reserva
+
+Chamamos o Google Books SEM chave, e a cota anônima dele é por IP. Em busca
+normal ele responde `429`, a Open Library responde, o resultado aparece — e
+junto aparecia "uma das fontes não respondeu", permanentemente. **Um aviso que
+fica sempre aceso não avisa nada; ele ensina a ignorar avisos.**
+
+Ele passa a ser chamado só quando a mídia dele volta magra (menos de cinco), que
+é o que o `PROVIDERS` sempre disse que ele era ("FALLBACK de livro") e não era. O
+preço é uma ida sequencial em vez de paralela, e só nos casos magros — mais
+barato que cadastrar uma chave, que depende do Alexandre, e sem deixar nada de
+fora.
+
+**Quem declara isso é o provider (`fallbackFor`), não o `searchAll`.** A fonte é
+quem sabe que é reserva; um nome escolhido a dedo no chamador seria um segundo
+lugar para manter os dois de acordo — e é o tipo de par que diverge.
+
+**A falha da reserva só chega à tela quando não sobrou nada.** Com resultado na
+mão ela é um extra, e anunciar que o extra faltou reabre o ruído que isto fecha.
+Sem nada na mão, calar diria "não existe" quando a verdade é "ninguém conseguiu
+procurar".
+
+Os dois testes do travamento foram conferidos ao contrário: sem o prazo, eles
+falham por timeout — que é a falha que a pessoa via.
+
+---
+
+## 31. O que um evento de produto pode contar
+
+**14/09/2026.** Eram 337 eventos no banco e todos `session_start`: o `/admin`
+sabia quantas vezes o app foi aberto e nada sobre o que se faz dentro dele.
+Adicionar uma obra e concluir uma obra são os dois atos de que o produto trata.
+
+**A mídia e a FONTE. Nunca o título, e nem o id da obra.** O painel responde
+"quanto se cataloga", e para isso o nome não acrescenta nada — mas transformaria
+a tabela de eventos numa segunda cópia da estante das pessoas, fora do RLS que
+protege a primeira. O id aponta para a obra tão bem quanto o nome. O dado que
+não é coletado é o único que não vaza.
+
+**Contado no store, não na tela.** Adicionar já acontece de três lugares e
+concluir de dois; tela é tela de esquecer.
+
+**Depois de gravar, nunca antes:** um evento de "adicionou" para uma adição que
+falhou mente na direção otimista, que é a direção em que ninguém desconfia.
+
+**Concluir reusa a condição da comemoração.** Reabrir um item concluído e tocar
+no mesmo chip não é conclusão nova, e contar as duas inflaria justamente a
+métrica que mais interessa — quanto deste backlog vira obra terminada — com
+repique de quem só estava arrumando a ficha.
+
+**Migrar a estante de convidado NÃO conta como adicionar.** É a mesma estante
+mudando de casa; contá-la daria um pico de adições no dia em que alguém criou
+conta, e o painel leria isso como uso. Isso e o título são o que os testes
+guardam — as duas coisas que uma mudança futura quebra sem perceber.
+
+"Recomendar" não entrou: o mood picker ainda não existe.
 
 ---
 
