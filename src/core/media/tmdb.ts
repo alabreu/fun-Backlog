@@ -10,6 +10,7 @@ import {
   type MediaSearchResult,
 } from './types'
 import { callMediaFunction } from './server'
+import { pickTmdbTrailer, type TmdbVideo } from './trailer'
 
 /**
  * Filmes e séries via TMDB — a mesma base que roda por baixo de Plex, Jellyfin
@@ -138,6 +139,9 @@ interface TmdbDetailBody extends TmdbResult {
       }
     >
   }
+  /** Trailer, teaser, clipe, bastidores — misturados. Quem separa é
+   *  `pickTmdbTrailer`. */
+  videos?: { results?: TmdbVideo[] }
 }
 
 /**
@@ -332,6 +336,7 @@ export function mapTmdbDetail(
     people: [...directors, ...cast].filter((n): n is string => Boolean(n)),
     // vote_average é 0–10; o resto do app fala em 0–100.
     score: body.vote_average ? Math.round(body.vote_average * 10) : undefined,
+    trailer: pickTmdbTrailer(body.videos?.results) ?? undefined,
     total: body.number_of_episodes,
     // A TEMPORADA 0 FICA DE FORA. A TMDB a usa para especiais, extras e
     // recapitulações, e não a conta em `number_of_episodes` — somar tudo daria

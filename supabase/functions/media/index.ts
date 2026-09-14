@@ -318,6 +318,18 @@ const IGDB_DETAIL_FIELDS =
  */
 const IGDB_WEBSITE_FIELDS = ',websites.url,websites.category'
 
+/**
+ * O TRAILER. Entra no grupo FRÁGIL junto com os sites, e não no obrigatório —
+ * pelo mesmo motivo e com a mesma consequência: campo da IGDB que some não
+ * devolve "sem vídeo", devolve erro e leva a ficha inteira junto.
+ *
+ * O custo de juntar os dois é que a queda de um derruba o outro: sem
+ * `websites.category`, a obra perde os links de loja E o trailer. É aceitável
+ * porque os dois são extras e a sinopse continua de pé, e é mais honesto que
+ * três tentativas em cascata para cobrir uma combinação que nunca aconteceu.
+ */
+const IGDB_VIDEO_FIELDS = ',videos.video_id,videos.name'
+
 /** Manda uma query APICalypse, renovando o token uma vez se levar 401. */
 async function askIgdb(body: string, url = IGDB_URL): Promise<unknown> {
   const run = async (token: string) =>
@@ -482,11 +494,14 @@ async function detailIgdb(id: string): Promise<unknown> {
 
   let rows: unknown
   try {
-    rows = await ask(IGDB_DETAIL_FIELDS + IGDB_WEBSITE_FIELDS)
+    rows = await ask(
+      IGDB_DETAIL_FIELDS + IGDB_WEBSITE_FIELDS + IGDB_VIDEO_FIELDS,
+    )
   } catch {
-    // REDE DE SEGURANÇA: se a IGDB tirar `websites.category` do ar, a ficha
-    // continua abrindo — só sem os links de loja. Perder um extra é aceitável;
-    // perder a sinopse, o elenco e as plataformas junto não é.
+    // REDE DE SEGURANÇA: se a IGDB tirar `websites.category` (ou `videos`) do
+    // ar, a ficha continua abrindo — só sem os links de loja e sem o trailer.
+    // Perder um extra é aceitável; perder a sinopse, o elenco e as plataformas
+    // junto não é.
     rows = await ask(IGDB_DETAIL_FIELDS)
   }
   // A IGDB sempre devolve ARRAY, mesmo para um id só. O app espera o objeto.
@@ -598,12 +613,24 @@ async function detailTmdb(id: string, kind: 'movie' | 'tv'): Promise<unknown> {
   if (!Number.isInteger(numeric) || numeric <= 0) throw new UpstreamError(400)
 
   // `release_dates` só existe para filme — pedir numa série devolve erro na
-  // requisição INTEIRA, então o append muda com o tipo.
+  // requisição INTEIRA, então o append muda com o tipo. `videos` existe nos
+  // dois e entra de graça: `append_to_response` é a MESMA requisição.
+  //
+  // `include_video_language` NÃO É OPCIONAL AQUI, e é o detalhe que faria a
+  // feature parecer quebrada. O `tmdbGet` manda `language=pt-BR` em tudo, e o
+  // endpoint de vídeos OBEDECE: sem esta linha, a resposta traria só trailers
+  // em português — que são raros fora do cinema infantil —, e a maioria dos
+  // filmes ficaria sem trailer nenhum. `null` na lista é a grafia da TMDB para
+  // "vídeo sem idioma declarado", que é boa parte do acervo antigo.
+  //
+  // Quem escolhe entre os que voltam é `core/media/trailer.ts`, que prefere
+  // português, depois inglês.
   const ficha = await tmdbGet(`/${kind}/${numeric}`, {
     append_to_response:
       kind === 'movie'
-        ? 'credits,watch/providers,release_dates'
-        : 'credits,watch/providers',
+        ? 'credits,watch/providers,release_dates,videos'
+        : 'credits,watch/providers,videos',
+    include_video_language: 'pt,en,null',
   })
   if (!ficha || typeof ficha !== 'object') return ficha
 

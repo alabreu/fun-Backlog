@@ -1,6 +1,7 @@
 import { callMediaFunction } from './server'
 import { FAMILY_LABEL, groupPlatforms } from './platforms'
 import { releasesInFuture } from './release'
+import { pickIgdbTrailer, type IgdbVideo } from './trailer'
 import type { MediaDetail, MediaProvider, MediaSearchResult } from './types'
 
 /**
@@ -133,6 +134,9 @@ interface IgdbDetail extends IgdbGame {
     company?: { name?: string }
   }[]
   websites?: { url?: string; category?: number }[]
+  /** Trailer, gameplay, diário de desenvolvimento — sem campo de tipo, só o
+   *  nome livre. Quem separa é `pickIgdbTrailer`. */
+  videos?: IgdbVideo[]
   /** Sintético: os irmãos de franquia, montados pela Edge Function. Não é
    *  campo da IGDB — ver `franchiseGamesIgdb` em supabase/functions/media. */
   franchiseGames?: IgdbGame[]
@@ -248,6 +252,7 @@ export function mapIgdbDetail(game: IgdbDetail): MediaDetail | null {
         : []),
     ],
     score: game.total_rating ? Math.round(game.total_rating) : undefined,
+    trailer: pickIgdbTrailer(game.videos) ?? undefined,
     // A IGDB dá a data em SEGUNDOS. Um jogo anunciado tem data no futuro; um
     // jogo sem data anunciada não entra — "não sei quando sai" é diferente de
     // "não saiu", e tratar os dois igual esconderia as horas jogadas de todo

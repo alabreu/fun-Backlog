@@ -37,6 +37,7 @@ import {
   Sheet,
   Textarea,
   Toast,
+  TrailerCard,
   Toggle,
   WorkRow,
 } from '@ui/design'
@@ -932,6 +933,28 @@ export function DesignScreen() {
               </Rail>
             </div>
           ))}
+        </section>
+
+        <section>
+          <SectionTitle className="mb-2">TrailerCard</SectionTitle>
+          <div className="flex flex-col gap-3">
+            <TrailerCard
+              href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+              thumbnailUrl="https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
+              label="Ver o trailer (abre fora do app)"
+            />
+            {/* O segundo é o caso do Dailymotion e o da miniatura que não
+                carregou: o cartão não pode encolher nem trocar de forma. */}
+            <TrailerCard
+              href="https://www.dailymotion.com/video/x8abcde"
+              label="Ver o trailer sem miniatura (abre fora do app)"
+            />
+          </div>
+          <p className="mt-2 text-label text-muted">
+            Parece player e não é: abre o app do YouTube. Embutir exigiria
+            `frame-src` na CSP, que hoje bloqueia todo iframe. O segundo cartão é
+            o mesmo componente sem miniatura.
+          </p>
         </section>
 
         <section>

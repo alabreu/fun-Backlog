@@ -186,6 +186,10 @@ export const pt = {
   'item.franchise': 'Da mesma franquia',
   'item.synopsis': 'Sinopse',
   'item.people': 'Quem fez',
+  'item.trailer': 'Trailer',
+  /** O link abre FORA do app — o rótulo diz isso antes do toque, porque o
+   *  ícone de "sai daqui" sozinho não é lido por leitor de tela. */
+  'item.trailerOpen': 'Ver o trailer de {title} (abre fora do app)',
   'item.detailLoading': 'Carregando a ficha…',
   'item.detailFailed': 'Não deu para carregar a ficha completa.',
 

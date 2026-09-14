@@ -56,6 +56,7 @@ import {
   Sheet,
   Skeleton,
   Textarea,
+  TrailerCard,
 } from '@ui/design'
 import { ShareButton } from '@ui/components/ShareButton'
 import { useImageDownload } from '@ui/hooks/useImageDownload'
@@ -762,6 +763,24 @@ function SourceFacts({
         </div>
       )}
 
+      {/* O TRAILER FECHA A PARTE "SOBRE A OBRA" (posição escolhida pelo
+          usuário, 14/09/2026). O que vem antes é leitura — fatos, sinopse,
+          quem fez —, e o trailer é a única coisa aqui que TIRA a pessoa do
+          app. Deixá-lo no fim é o que impede a ficha de oferecer a saída antes
+          de ter contado o que tinha para contar.
+
+          Só existe quando a fonte tem: jogo, filme, série e anime têm; livro
+          não tem e nunca vai ter. Nada de bloco vazio anunciando ausência. */}
+      {detail.trailer && (
+        <div>
+          <SectionTitle className="mb-2">{t('item.trailer')}</SectionTitle>
+          <TrailerCard
+            href={detail.trailer.url}
+            thumbnailUrl={detail.trailer.thumbnailUrl}
+            label={t('item.trailerOpen', { title: detail.title })}
+          />
+        </div>
+      )}
     </>
   )
 }

@@ -1,4 +1,5 @@
 import { isAdultAnime } from './adult'
+import { anilistTrailer, type AniListTrailer } from './trailer'
 import {
   SEARCH_LIMIT,
   type MediaDetail,
@@ -299,6 +300,7 @@ const DETAIL_QUERY = `
       description(asHtml: false)
       title { romaji english }
       coverImage { large }
+      trailer { id site thumbnail }
       studios(isMain: true) { nodes { name } }
       ${RELATIONS_FULL}
     }
@@ -315,6 +317,9 @@ interface AniListDetail extends AniListMedia {
   averageScore?: number | null
   description?: string | null
   studios?: { nodes?: { name?: string }[] } | null
+  /** `site` é `youtube` ou `dailymotion` — o AniList é a única fonte nossa que
+   *  não é só YouTube. Quem monta o endereço é `anilistTrailer`. */
+  trailer?: AniListTrailer | null
 }
 
 /** O AniList devolve a sinopse com `<br>` e `<i>` mesmo pedindo `asHtml: false`.
@@ -396,5 +401,6 @@ export function mapAniListDetail(media: AniListDetail): MediaDetail | null {
       .map((n) => n?.name)
       .filter((n): n is string => Boolean(n)),
     score: media.averageScore ?? undefined,
+    trailer: anilistTrailer(media.trailer) ?? undefined,
   }
 }

@@ -159,6 +159,21 @@ export interface MediaFactItem {
   logoUrl?: string
 }
 
+/**
+ * O TRAILER DA OBRA, para abrir FORA do app.
+ *
+ * Dois campos e nenhum id: quem monta endereço é `core/media/trailer.ts`, e o
+ * resto do app só precisa de para onde ir e o que desenhar. Guardar o id aqui
+ * convidaria uma segunda tela a montar a URL do seu jeito.
+ *
+ * `thumbnailUrl` é opcional porque o Dailymotion não dá endereço previsível a
+ * partir do id — e o cartão sabe desenhar sem imagem.
+ */
+export interface MediaTrailer {
+  url: string
+  thumbnailUrl?: string
+}
+
 export interface MediaDetail {
   provider: string
   externalId: string
@@ -195,6 +210,14 @@ export interface MediaDetail {
   people?: string[]
   /** Nota da fonte, normalizada para 0–100. */
   score?: number
+  /**
+   * O trailer, quando a fonte tem um.
+   *
+   * Jogo, filme, série e anime têm; LIVRO não tem e nunca vai ter — nem a Open
+   * Library nem o Google Books cataloguem vídeo. Ausente é o normal, e a tela
+   * simplesmente não mostra o bloco.
+   */
+  trailer?: MediaTrailer
   /** Total de episódios/páginas, para preencher o progresso ao adicionar. */
   total?: number
   /**

@@ -181,6 +181,8 @@ export const en: Record<keyof typeof pt, string> = {
   'item.franchise': 'From the same franchise',
   'item.synopsis': 'Synopsis',
   'item.people': 'Made by',
+  'item.trailer': 'Trailer',
+  'item.trailerOpen': 'Watch the trailer for {title} (opens outside the app)',
   'item.detailLoading': 'Loading the details…',
   'item.detailFailed': 'Could not load the full details.',
 
