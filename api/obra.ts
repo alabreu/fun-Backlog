@@ -238,10 +238,20 @@ async function buscarObra(
   }
 
   if (provider === 'igdb') {
-    // A IGDB devolve LISTA mesmo pedindo um id só.
-    const ficha = (
-      await viaFuncaoMedia<FichaIgdb[]>({ source: 'igdb', detailId: externalId })
-    )?.[0]
+    // A IGDB devolve LISTA mesmo pedindo um id só — e a nossa function JÁ
+    // DESEMBRULHA ela ("o app espera o objeto", em `detailIgdb`). Este arquivo
+    // desembrulhava de novo, e `objeto[0]` é `undefined`: o cartão de jogo
+    // nascia vazio, sempre, desde o primeiro dia. Anime e livro escapavam por
+    // não passarem pela function, e filme por não ter esse `[0]`.
+    //
+    // Aceita as duas formas de propósito. O contrato entre os dois arquivos
+    // não tem tipo que o prove — a function fala JSON —, então a alternativa
+    // a isto é confiar de novo numa lembrança sobre o outro lado.
+    const resposta = await viaFuncaoMedia<FichaIgdb | FichaIgdb[]>({
+      source: 'igdb',
+      detailId: externalId,
+    })
+    const ficha = Array.isArray(resposta) ? resposta[0] : resposta
     if (!ficha) return null
     return {
       title: ficha.name || '',
