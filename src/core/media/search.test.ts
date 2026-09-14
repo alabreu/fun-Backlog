@@ -231,6 +231,55 @@ describe('searchAll', () => {
     expect(outcome.failed).toEqual([])
   })
 
+  // UMA FONTE PENDURADA NÃO É UMA FONTE QUE FALHOU, e a diferença é o que este
+  // bloco guarda: `fetch` não reclama de uma conexão que ninguém fecha, então
+  // sem prazo a promessa nunca assenta e o `Promise.all` espera para sempre —
+  // com os resultados das outras prontos e escondidos atrás dela. A tela ficava
+  // em "Buscando…" indefinidamente (reproduzido no navegador em 11/08/2026).
+  it('fonte pendurada vira falha e não trava a busca', async () => {
+    vi.useFakeTimers()
+    PROVIDERS.push(
+      stubProvider({ id: 'rapida' }),
+      stubProvider({
+        id: 'pendurada',
+        mediaTypes: ['book'],
+        // Nunca resolve nem rejeita. É o caso que não existia nos testes.
+        search: () => new Promise<MediaSearchResult[]>(() => {}),
+      }),
+    )
+
+    const busca = searchAll('bebop')
+    await vi.advanceTimersByTimeAsync(8000)
+    const outcome = await busca
+
+    expect(outcome.failed).toEqual(['pendurada'])
+    // O que importa não é o recado, é isto: o resultado de quem respondeu
+    // chegou à tela em vez de ficar preso atrás de quem não respondeu.
+    expect(outcome.groups).toHaveLength(1)
+    vi.useRealTimers()
+  })
+
+  it('o prazo aborta a fonte pendurada em vez de deixá-la de pé', async () => {
+    vi.useFakeTimers()
+    let recebido: AbortSignal | undefined
+    PROVIDERS.push(
+      stubProvider({
+        id: 'pendurada',
+        search: (_q, options) =>
+          new Promise<MediaSearchResult[]>(() => {
+            recebido = options?.signal
+          }),
+      }),
+    )
+
+    const busca = searchAll('bebop')
+    await vi.advanceTimersByTimeAsync(8000)
+    await busca
+
+    expect(recebido?.aborted).toBe(true)
+    vi.useRealTimers()
+  })
+
   it('falha comum continua sendo falha comum', async () => {
     PROVIDERS.push(
       stubProvider({
@@ -244,6 +293,91 @@ describe('searchAll', () => {
     const outcome = await searchAll('hollow knight')
     expect(outcome.rateLimited).toBe(false)
     expect(outcome.failed).toEqual(['igdb'])
+  })
+
+  // A RESERVA (`fallbackFor`) existe por causa do Google Books: chamado sem
+  // chave, ele responde 429 por cota de IP em busca normal, e a tela acendia
+  // "uma das fontes não respondeu" o tempo todo — com a Open Library tendo
+  // respondido do lado.
+  function livros(quantos: number): MediaSearchResult[] {
+    return Array.from({ length: quantos }, (_, i) =>
+      result({ mediaType: 'book', externalId: `l${i}`, title: `Livro ${i}` }),
+    )
+  }
+
+  it('não chama a reserva quando a primeira linha já traz o bastante', async () => {
+    const reserva = vi.fn(async () => livros(3))
+    PROVIDERS.push(
+      stubProvider({ id: 'openlibrary', mediaTypes: ['book'], search: async () => livros(5) }),
+      stubProvider({
+        id: 'googlebooks',
+        mediaTypes: ['book'],
+        fallbackFor: 'book',
+        search: reserva,
+      }),
+    )
+
+    const outcome = await searchAll('duna')
+    expect(reserva).not.toHaveBeenCalled()
+    expect(outcome.groups[0].results).toHaveLength(5)
+  })
+
+  it('chama a reserva quando a primeira linha vem magra, e junta os dois', async () => {
+    const reserva = vi.fn(async () => [
+      result({ mediaType: 'book', externalId: 'g1', title: 'Só o Google tem' }),
+    ])
+    PROVIDERS.push(
+      stubProvider({ id: 'openlibrary', mediaTypes: ['book'], search: async () => livros(2) }),
+      stubProvider({
+        id: 'googlebooks',
+        mediaTypes: ['book'],
+        fallbackFor: 'book',
+        search: reserva,
+      }),
+    )
+
+    const outcome = await searchAll('duna')
+    expect(reserva).toHaveBeenCalledOnce()
+    expect(outcome.groups[0].results).toHaveLength(3)
+  })
+
+  it('reserva que falha com resultado na mão não vira recado na tela', async () => {
+    PROVIDERS.push(
+      stubProvider({ id: 'openlibrary', mediaTypes: ['book'], search: async () => livros(2) }),
+      stubProvider({
+        id: 'googlebooks',
+        mediaTypes: ['book'],
+        fallbackFor: 'book',
+        search: async () => {
+          throw new Error('429')
+        },
+      }),
+    )
+
+    const outcome = await searchAll('duna')
+    // O 429 do Google Books era EXATAMENTE este caso, e o aviso permanente que
+    // ele acendia é o que este teste impede de voltar.
+    expect(outcome.failed).toEqual([])
+    expect(outcome.groups[0].results).toHaveLength(2)
+  })
+
+  it('reserva que falha sem nada na mão continua virando recado', async () => {
+    PROVIDERS.push(
+      stubProvider({ id: 'openlibrary', mediaTypes: ['book'], search: async () => [] }),
+      stubProvider({
+        id: 'googlebooks',
+        mediaTypes: ['book'],
+        fallbackFor: 'book',
+        search: async () => {
+          throw new Error('429')
+        },
+      }),
+    )
+
+    const outcome = await searchAll('duna')
+    // Sem livro nenhum, calar seria dizer "não existe" quando a verdade é
+    // "ninguém conseguiu procurar".
+    expect(outcome.failed).toEqual(['googlebooks'])
   })
 
   // A BUSCA COM CHAVE DEIXOU DE EXIGIR SESSÃO (11/08/2026). Antes havia um par

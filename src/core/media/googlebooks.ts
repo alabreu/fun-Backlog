@@ -147,6 +147,11 @@ export const googleBooksProvider: MediaProvider = {
   name: 'Google Books',
   mediaTypes: ['book'],
   requiresServer: false,
+  // RESERVA, e não segunda fonte simultânea (ver `fallbackFor`). Chamado sem
+  // chave, a cota anônima é por IP: em busca normal ele devolve 429 e a tela
+  // acendia "uma das fontes não respondeu" o tempo todo, com a Open Library
+  // tendo respondido do lado. Agora ele só entra quando ela vem magra.
+  fallbackFor: 'book',
 
   async search(query, { signal, region } = {}) {
     const url = new URL(GOOGLE_BOOKS_URL)

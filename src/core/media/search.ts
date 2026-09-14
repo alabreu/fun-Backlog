@@ -24,9 +24,11 @@ export const PROVIDERS: MediaProvider[] = [
   tmdbProvider,
   anilistProvider,
   openLibraryProvider,
-  // Depois da Open Library de propósito: o Google Books é FALLBACK de livro, e
-  // esta ordem é o que faz a deduplicação abaixo manter o resultado da Open
-  // Library quando as duas conhecem a mesma obra.
+  // Depois da Open Library de propósito, e por duas razões que se somam: a
+  // deduplicação abaixo mantém o PRIMEIRO, então esta ordem é o que faz a Open
+  // Library ganhar quando as duas conhecem a mesma obra; e o Google Books se
+  // declara `fallbackFor: 'book'`, então ele nem chega a ser chamado enquanto
+  // ela responder o bastante.
   googleBooksProvider,
 ]
 
@@ -213,6 +215,86 @@ export function sortByFranchise(
 const GROUP_ORDER: MediaType[] = ['game', 'movie', 'series', 'anime', 'book']
 
 /**
+ * QUANTO TEMPO UMA FONTE TEM PARA RESPONDER, antes de virar "não respondeu".
+ *
+ * Sem isto a busca esperava TODAS as fontes sem prazo nenhum, e o desfecho ruim
+ * não era lentidão: era a tela em "Buscando…" PARA SEMPRE, com os resultados
+ * das outras quatro prontos e escondidos atrás de uma que não fechava a
+ * conexão. Reproduzido no navegador em 11/08/2026.
+ *
+ * Note a diferença entre pendurar e falhar: uma fonte que responde 500 já era
+ * tratada (vira `failed` e a tela mostra o resto). Uma que aceita a conexão e
+ * não responde nunca não é um erro para o `fetch` — é uma promessa que não
+ * assenta, e `Promise.all` a espera até o fim do mundo.
+ *
+ * OITO SEGUNDOS é longo de propósito. Não é uma meta de desempenho — para isso
+ * a resposta seria mostrar cada fonte assim que ela chega, e não apressar as
+ * lentas. É o ponto a partir do qual a espera deixou de ser lentidão e virou
+ * pane: as fontes normais respondem em menos de um segundo, e uma rede móvel
+ * ruim ainda cabe aqui com folga.
+ */
+const PRAZO_POR_FONTE = 8000
+
+/**
+ * O sinal que uma fonte recebe: o de fora, MAIS o prazo desta busca.
+ *
+ * Também aborta a chamada ao estourar. Correr contra o relógio já garante que a
+ * tela não trave, mas sem o aborto a requisição perdida continuaria de pé,
+ * gastando rede e cota de quem já desistiu dela.
+ */
+function comPrazo<T>(
+  ms: number,
+  externo: AbortSignal | undefined,
+  chamar: (signal: AbortSignal) => Promise<T>,
+): { corrida: Promise<T>; estourou: () => boolean } {
+  const controlador = new AbortController()
+  let venceu = false
+  const repassar = () => controlador.abort()
+  externo?.addEventListener('abort', repassar)
+
+  const trabalho = chamar(controlador.signal)
+  // O PERDEDOR DA CORRIDA NÃO PODE VIRAR REJEIÇÃO SOLTA. Se o prazo ganha e a
+  // fonte rejeita depois, ninguém mais está ouvindo aquela promessa — e uma
+  // rejeição sem dono derruba o processo no Node e polui o console no browser.
+  // Este `catch` é só o ouvinte; ele não muda o que a corrida abaixo enxerga.
+  trabalho.catch(() => {})
+
+  const corrida = new Promise<T>((resolve, reject) => {
+    const relogio = setTimeout(() => {
+      venceu = true
+      controlador.abort()
+      reject(new Error('deadline'))
+    }, ms)
+    const encerrar = () => {
+      clearTimeout(relogio)
+      externo?.removeEventListener('abort', repassar)
+    }
+    trabalho.then(
+      (valor) => {
+        encerrar()
+        resolve(valor)
+      },
+      (erro) => {
+        encerrar()
+        reject(erro)
+      },
+    )
+  })
+
+  return { corrida, estourou: () => venceu }
+}
+
+/**
+ * A partir de quantos resultados a primeira linha conta como suficiente, e a
+ * reserva daquela mídia não precisa ser chamada.
+ *
+ * Cinco é o tamanho em que a lista já dá o que escolher — o número existe para
+ * ser ajustado se a estante real disser outra coisa, não porque tenha teoria
+ * por trás.
+ */
+const RESULTADOS_SUFICIENTES = 5
+
+/**
  * Existe alguma fonte capaz de buscar esta mídia agora? Serve ao estado vazio
  * da tela: "nada encontrado" seria mentira quando o problema é que ninguém
  * procurou.
@@ -277,27 +359,73 @@ export async function searchAll(
     return true
   })
 
-  // Em paralelo e tolerante a falha: um provider fora do ar não pode levar a
-  // busca inteira junto — o resultado dos outros ainda serve.
-  const settled = await Promise.all(
-    eligible.map(async (provider) => {
-      try {
-        return await provider.search(trimmed, { signal, region, mediaType })
-      } catch (error) {
-        // Cancelamento não é falha: quem digitou de novo abortou de propósito.
-        if (error instanceof DOMException && error.name === 'AbortError')
-          return [] as MediaSearchResult[]
-        // O TETO NÃO ENTRA EM `failed`, e não é detalhe: as duas coisas viram
-        // recados diferentes na tela, e somados diriam "a fonte não respondeu"
-        // logo acima de "você atingiu o limite" — dois motivos para o mesmo
-        // resultado vazio, sendo que só um é verdade.
-        if (error instanceof Error && error.message === ANON_RATE_LIMITED)
-          rateLimited = true
-        else failed.push(provider.id)
-        return [] as MediaSearchResult[]
+  /**
+   * Uma fonte, com prazo, sem deixar a falha dela derrubar as outras.
+   *
+   * `anotarFalha` existe por causa do Google Books: chamado como fallback, o
+   * silêncio dele só merece recado na tela quando não sobrou livro nenhum.
+   */
+  const perguntar = async (
+    provider: MediaProvider,
+    anotarFalha = true,
+  ): Promise<MediaSearchResult[]> => {
+    const { corrida, estourou } = comPrazo(PRAZO_POR_FONTE, signal, (s) =>
+      provider.search(trimmed, { signal: s, region, mediaType }),
+    )
+    try {
+      return await corrida
+    } catch (error) {
+      // PRAZO ESTOURADO É FALHA, e vem antes do teste de cancelamento porque o
+      // aborto foi NOSSO: sem esta ordem a fonte pendurada seria lida como
+      // "quem digitou de novo desistiu" e sumiria sem deixar recado — o mesmo
+      // silêncio que este prazo veio consertar.
+      if (estourou()) {
+        if (anotarFalha) failed.push(provider.id)
+        return []
       }
-    }),
-  )
+      // Cancelamento não é falha: quem digitou de novo abortou de propósito.
+      if (error instanceof DOMException && error.name === 'AbortError') return []
+      // O TETO NÃO ENTRA EM `failed`, e não é detalhe: as duas coisas viram
+      // recados diferentes na tela, e somados diriam "a fonte não respondeu"
+      // logo acima de "você atingiu o limite" — dois motivos para o mesmo
+      // resultado vazio, sendo que só um é verdade.
+      if (error instanceof Error && error.message === ANON_RATE_LIMITED)
+        rateLimited = true
+      else if (anotarFalha) failed.push(provider.id)
+      return []
+    }
+  }
+
+  /**
+   * AS RESERVAS SAEM DA RODADA PRINCIPAL (ver `fallbackFor`): elas só são
+   * chamadas se a mídia delas voltar magra das fontes de primeira linha. Hoje
+   * a única é o Google Books, e o motivo é concreto — foi visto no navegador
+   * de um testador (11/08/2026). Chamamos o Google Books SEM chave, a cota
+   * anônima é por IP, ele responde `429` em busca normal, a Open Library
+   * responde, o resultado aparece — e junto aparecia "uma das fontes não
+   * respondeu", sempre. Um aviso que fica aceso o tempo todo não avisa nada;
+   * ele só ensina a ignorar avisos.
+   *
+   * O PREÇO É UMA IDA SEQUENCIAL em vez de paralela, e só nos casos magros. É
+   * mais barato que a alternativa (cadastrar uma chave, que depende do
+   * Alexandre) e não deixa nada de fora: quando a primeira linha não sabe
+   * responder, a reserva continua sendo perguntada.
+   */
+  const primeiraLinha = eligible.filter((p) => !p.fallbackFor)
+  const reservas = eligible.filter((p) => p.fallbackFor)
+
+  const settled = await Promise.all(primeiraLinha.map((p) => perguntar(p)))
+
+  for (const reserva of reservas) {
+    const jaTemos = settled
+      .flat()
+      .filter((r) => r.mediaType === reserva.fallbackFor).length
+    if (jaTemos >= RESULTADOS_SUFICIENTES) continue
+    // A FALHA DA RESERVA SÓ CONTA SE NÃO SOBROU NADA. Com a primeira linha
+    // tendo respondido alguma coisa, a reserva é um extra — e anunciar que o
+    // extra faltou é reabrir exatamente o ruído que isto aqui fecha.
+    settled.push(await perguntar(reserva, jaTemos === 0))
+  }
 
   const byType = new Map<MediaType, MediaSearchResult[]>()
   // O FILTRO MORA AQUI, na porta única por onde toda busca passa. Numa tela

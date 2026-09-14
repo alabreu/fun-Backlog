@@ -299,6 +299,19 @@ export interface MediaProvider {
   mediaTypes: MediaType[]
   /** Precisa passar por Edge Function (tem chave)? */
   requiresServer: boolean
+  /**
+   * ESTE PROVIDER É RESERVA para esta mídia: só é chamado quando os outros
+   * voltarem magros dela.
+   *
+   * Declarado aqui, e não escolhido a dedo dentro de `searchAll`, porque quem
+   * sabe que é reserva é a fonte. Hoje só o Google Books usa — ele é chamado
+   * SEM chave e a cota anônima é por IP, então em busca normal ele responde
+   * `429` e a tela ganhava um "uma das fontes não respondeu" permanente,
+   * mesmo com a Open Library tendo respondido.
+   *
+   * Ausente = fonte de primeira linha, chamada sempre e em paralelo.
+   */
+  fallbackFor?: MediaType
   search(
     query: string,
     options?: ProviderOptions,
