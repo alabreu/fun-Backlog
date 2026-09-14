@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { track } from '@core/analytics'
 import { itemsToMigrate, toNewItem } from '@core/items/merge'
 import {
   clearLocalItems,
@@ -46,6 +47,23 @@ interface ItemsState {
   clearJustCompleted: () => void
 }
 
+/**
+ * O QUE UM EVENTO PODE CONTAR SOBRE UMA OBRA: a mídia e de onde ela veio.
+ *
+ * Nunca o TÍTULO. O painel /admin responde "quanta gente usa e o que ela
+ * cataloga", e para isso o nome da obra não acrescenta nada — mas ele
+ * transformaria a tabela de eventos numa segunda cópia da estante das pessoas,
+ * fora do alcance do RLS que protege a primeira. O dado que não é coletado é o
+ * único que não vaza.
+ *
+ * `source` é a FONTE, não o id: "igdb" conta de onde vem o catálogo, "228530"
+ * apontaria para uma obra específica e cairia na mesma objeção do título.
+ * Item sem id externo nenhum foi digitado à mão, e é isso que 'manual' diz.
+ */
+function origem(item: Pick<Item, 'externalIds'>): string {
+  return Object.keys(item.externalIds ?? {})[0] ?? 'manual'
+}
+
 export const useItemsStore = create<ItemsState>((set, get) => ({
   items: [],
   loading: true,
@@ -75,6 +93,19 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
   async add(input) {
     const item = await itemsRepository(get().signedIn).add(input)
     set((state) => ({ items: [item, ...state.items] }))
+    // DEPOIS DE GRAVAR, não antes: um evento de "adicionou" para uma adição que
+    // falhou é pior que evento nenhum — ele mente na direção otimista, que é a
+    // direção em que ninguém desconfia.
+    //
+    // `status` vai junto porque "adicionei para depois" e "adicionei porque
+    // comecei agora" são usos diferentes do app, e a diferença é justamente o
+    // que o painel não consegue ver depois (o status de hoje é o de agora, não
+    // o da entrada).
+    track('item_added', {
+      media: item.mediaType,
+      source: origem(item),
+      status: item.status,
+    })
     return item
   },
 
@@ -113,6 +144,14 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
     if (isNewCompletion) {
       const updated = get().items.find((i) => i.id === id)
       if (updated) set({ justCompleted: updated })
+      // A MESMA CONDIÇÃO DA COMEMORAÇÃO, e de propósito: reabrir um item
+      // concluído e tocar no chip de novo não é uma conclusão nova. Contar as
+      // duas inflaria a métrica que mais interessa — quanto deste backlog vira
+      // obra terminada — com repique de quem só estava mexendo na ficha.
+      track('item_completed', {
+        media: item.mediaType,
+        source: origem(item),
+      })
     }
   },
 
@@ -127,6 +166,11 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
   },
 
   /**
+   * NÃO CONTA COMO "ADICIONOU", e isso não é acaso: ela chama o repositório
+   * direto em vez de passar pelo `add` acima. Migrar é a MESMA estante mudando
+   * de casa — contar de novo daria um pico de adições no dia em que alguém
+   * criou conta, e o painel leria isso como uso.
+   *
    * Sobe a estante de convidado para a conta. Um item por vez, e sem otimismo:
    * aqui a confirmação do servidor é o que importa, porque o storage local só
    * pode ser limpo depois que TUDO subiu. Se um item falhar, o local fica
