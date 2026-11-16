@@ -18,6 +18,31 @@ Regras: `.env` está no `.gitignore` — **nunca** commitá-lo; nenhum secret en
 em código, log ou mensagem de erro; se um secret vazar (commit acidental,
 print), **rotacione na hora** — remover o commit não basta.
 
+`npm run lint` roda `scripts/check-secrets.mjs`, que QUEBRA se uma credencial
+entrar em arquivo rastreado. Ele varre o que está rastreado agora, não o
+histórico; o comando para o histórico está no comentário do script.
+
+## As credenciais DESTE app, e onde cada uma vive
+
+Inventário feito na revisão de 16/11/2026. Nomes e lugares — nenhum valor, aqui
+nem em lugar nenhum do repositório.
+
+| Credencial | Classificação | Onde ela vive de verdade | O que para se ela cair |
+| --- | --- | --- | --- |
+| OAuth do Google (id + chave secreta) | SECRETA (a chave) | Emitida no Google Cloud; **colada no Supabase → Authentication → Providers → Google** | "Entrar com Google" |
+| Twitch/IGDB `IGDB_CLIENT_ID` + `IGDB_CLIENT_SECRET` | SECRETA (o secret) | Secret de Edge Function do Supabase, lido pela function `media` | Busca e ficha de **jogo** |
+| TMDB `TMDB_READ_TOKEN` (token v4) | SECRETA | Secret de Edge Function do Supabase, lido pela function `media` | Busca e ficha de **filme e série**, e o "onde assistir" do anime |
+| TMDB chave v3 | SECRETA | **Não é usada pelo código** — o `tmdbGet` manda só o token v4 no header | nada |
+| `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` | Públicas por design | Env da Vercel → bundle do navegador | tudo que fala com o backend |
+| `SUPABASE_SERVICE_ROLE_KEY` | SECRETA — ignora RLS | **Injetada pela plataforma** na Edge Function; nunca cadastrada à mão | o teto por IP da busca |
+| `ALLOWED_ORIGIN` | Não é segredo | Secret de Edge Function. **Não dá para ler o valor daqui**; o código cai em `*` quando ausente, e o backlog manual ainda o lista como pendente | nada |
+| `OPENROUTER_API_KEY` | SECRETA | Ainda **não cadastrada** — a function `llm` nunca foi implantada | nada hoje |
+
+**O repositório nunca carregou nenhuma delas** — conferido na árvore e em todo
+blob que já existiu nos commits. O vazamento de 16/11/2026 foi por fora: uma
+página de notas em texto puro. É o lembrete de que o gate acima cobre um
+caminho só, e o caminho mais fácil costuma ser o outro.
+
 ## Banco (Postgres/Supabase)
 
 - **RLS habilitado em toda tabela, com policies na mesma migração** — nunca

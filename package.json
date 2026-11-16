@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
-    "lint": "eslint . && node scripts/check-design-system.mjs && node scripts/check-contrast.mjs",
+    "lint": "eslint . && node scripts/check-design-system.mjs && node scripts/check-contrast.mjs && node scripts/check-secrets.mjs",
     "format": "prettier --write .",
     "test": "vitest run",
     "icons": "node scripts/generate-icons.mjs"
